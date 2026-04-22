@@ -1,0 +1,20 @@
+{
+  "type": "submit",
+  "merchantId": "fun-burgers",
+  "businessName": "Fun Burgers",
+  "businessBrief": "Premium burger spot for the PBTC community in Miami.",
+  "category": "dining_nightlife",
+  "isOnline": false,
+  "country": "Egypt",
+  "city": "Cairo",
+  "fullAddress": "El-Horeya 25",
+  "lat": 29.9788563,
+  "lng": 31.3373166,
+  "website": "https://www.purplebitcoin.com",
+  "logoUrl": "https://picsum.photos/400",
+  "heroImageUrl": "https://picsum.photos/1200/600",
+  "promoCode": "PBTC10",
+  "discountDetails": "10% off for PBTC holders",
+  "email": "josephgibri@gmail.com",
+  "turnstileToken": "workflow-approved"
+}
