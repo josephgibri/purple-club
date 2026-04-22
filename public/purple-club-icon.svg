@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5D78E"/>
+      <stop offset="45%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#A8812A"/>
+    </linearGradient>
+    <linearGradient id="goldGradInner" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE9B0"/>
+      <stop offset="50%" stop-color="#E8C45A"/>
+      <stop offset="100%" stop-color="#B8892E"/>
+    </linearGradient>
+    <radialGradient id="gemGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#C69BFF"/>
+      <stop offset="35%" stop-color="#7B2FF7"/>
+      <stop offset="100%" stop-color="#3D0A8F"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Outer gold ring -->
+  <circle cx="50" cy="50" r="47" stroke="url(#goldGrad)" stroke-width="3.5" fill="#0a0418"/>
+  <circle cx="50" cy="50" r="43.5" stroke="url(#goldGradInner)" stroke-width="0.6" fill="none" opacity="0.7"/>
+
+  <!-- Geometric letter P built from bold strokes -->
+  <g stroke="url(#goldGradInner)" stroke-width="6.5" stroke-linejoin="miter" fill="none">
+    <!-- Vertical stem -->
+    <line x1="31" y1="22" x2="31" y2="78"/>
+    <!-- Top horizontal -->
+    <line x1="31" y1="22" x2="58" y2="22"/>
+    <!-- Right vertical of bowl -->
+    <line x1="65" y1="29" x2="65" y2="44"/>
+    <!-- Bottom horizontal of bowl -->
+    <line x1="31" y1="51" x2="58" y2="51"/>
+    <!-- Top angled corner (top-right chamfer) -->
+    <line x1="58" y1="22" x2="65" y2="29"/>
+    <!-- Bottom angled corner (bottom-right chamfer) -->
+    <line x1="65" y1="44" x2="58" y2="51"/>
+  </g>
+
+  <!-- Purple amethyst gem in the bowl -->
+  <circle cx="48" cy="36.5" r="6.2" fill="url(#gemGrad)" stroke="url(#goldGrad)" stroke-width="1.1"/>
+  <!-- Gem star highlight -->
+  <g stroke="#F3E5FF" stroke-width="0.7" stroke-linecap="round" opacity="0.95">
+    <line x1="48" y1="32" x2="48" y2="41"/>
+    <line x1="43.5" y1="36.5" x2="52.5" y2="36.5"/>
+    <line x1="44.8" y1="33.3" x2="51.2" y2="39.7"/>
+    <line x1="51.2" y1="33.3" x2="44.8" y2="39.7"/>
+  </g>
+  <circle cx="46.5" cy="34.8" r="1" fill="#FFFFFF" opacity="0.85"/>
+</svg>

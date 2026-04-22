@@ -1,0 +1,126 @@
+name: Merchant submission
+description: Programmatic submission from the /join form. Maintainers add the `approved` label to trigger the auto-PR workflow.
+title: "[Merchant] <businessName>"
+labels: ["pending-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Submitted via the Purple Club merchant relay (`/api/submit-merchant`). Maintainers only need to review and add the `approved` label to publish.
+  - type: input
+    id: type
+    attributes:
+      label: Submission type
+      description: submit | update | remove
+      value: submit
+    validations:
+      required: true
+  - type: input
+    id: merchantId
+    attributes:
+      label: Merchant id (slug)
+      description: Provided for update/remove. Blank for new submissions.
+    validations:
+      required: false
+  - type: input
+    id: businessName
+    attributes:
+      label: Business name
+    validations:
+      required: true
+  - type: textarea
+    id: businessBrief
+    attributes:
+      label: Business brief (≤140 chars)
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - retail_goods
+        - dining_nightlife
+        - tech_digital
+        - travel_leisure
+        - wellness_beauty
+        - professional_services
+    validations:
+      required: true
+  - type: dropdown
+    id: isOnline
+    attributes:
+      label: Is online-only?
+      options:
+        - "false"
+        - "true"
+    validations:
+      required: true
+  - type: input
+    id: country
+    attributes:
+      label: Country (physical only)
+  - type: input
+    id: city
+    attributes:
+      label: City (physical only)
+  - type: input
+    id: fullAddress
+    attributes:
+      label: Full address (physical only)
+  - type: input
+    id: lat
+    attributes:
+      label: Latitude (physical only)
+  - type: input
+    id: lng
+    attributes:
+      label: Longitude (physical only)
+  - type: input
+    id: website
+    attributes:
+      label: Website
+    validations:
+      required: true
+  - type: input
+    id: logoUrl
+    attributes:
+      label: Logo URL
+    validations:
+      required: true
+  - type: input
+    id: heroImageUrl
+    attributes:
+      label: Hero image URL
+    validations:
+      required: true
+  - type: input
+    id: promoCode
+    attributes:
+      label: Promo code
+      description: Required for online merchants.
+  - type: input
+    id: discountDetails
+    attributes:
+      label: Discount details
+    validations:
+      required: true
+  - type: dropdown
+    id: socialPlatform
+    attributes:
+      label: Social platform
+      options:
+        - ""
+        - instagram
+        - x
+        - tiktok
+  - type: input
+    id: socialHandle
+    attributes:
+      label: Social handle (no @)
+  - type: input
+    id: email
+    attributes:
+      label: Contact email
+    validations:
+      required: true

@@ -1,0 +1,7 @@
+# Merchant directory data — maintainer review required.
+# Workflow-authored PRs will request review from these owners automatically.
+/data/merchants.json @purpleclub/maintainers
+/data/merchants.ts   @purpleclub/maintainers
+/lib/merchantSchema.ts @purpleclub/maintainers
+/scripts/apply-merchant-change.ts @purpleclub/maintainers
+/.github/workflows/merchant-approve.yml @purpleclub/maintainers

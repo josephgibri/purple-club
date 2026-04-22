@@ -1,0 +1,16 @@
+# Purple Club Development Rules
+
+## Tech Stack
+- Framework: Next.js (App Router)
+- Styling: Tailwind CSS (Strictly match colors from purplebitcoin.com)
+- Web3: Solana Wallet Adapter + @solana/web3.js
+- State: Token-gate access based on 1 PBTC (Mint: HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p)
+
+## UI/UX Standards
+- Theme: "The Vault" (Dark, Premium, High-Contrast Purple/Gold).
+- Mobile-First: The "Membership Pass" must be perfectly legible on a phone screen in high-glare environments (like a storefront).
+- Privacy: Never store user wallet data on a server. Everything is client-side verification.
+
+## Implementation Goal
+- Build a Progressive Web App (PWA) that feels like a native "Members Only" club.
+- Use a central `merchants.ts` configuration to drive the directory UI.

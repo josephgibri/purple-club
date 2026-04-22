@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+:root {
+  --background: #080512;
+  --foreground: #f6f0ff;
+  --surface: #140a2d;
+  --surface-muted: #1e1040;
+  --border: #352065;
+  --purple-accent: #7b2ff7;
+  --gold-accent: #f6c453;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-purple-accent: var(--purple-accent);
+  --color-gold-accent: var(--gold-accent);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.hologram-shimmer {
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0) 0deg,
+    rgba(246, 196, 83, 0.2) 70deg,
+    rgba(123, 47, 247, 0.35) 170deg,
+    rgba(255, 255, 255, 0.05) 250deg,
+    rgba(246, 196, 83, 0.2) 360deg
+  );
+  animation: rotate-shimmer 11s linear infinite;
+}
+
+.scanline-overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.03) 45%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.03) 55%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: scanline 5.5s ease-in-out infinite;
+}
+
+@keyframes rotate-shimmer {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-35%);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(35%);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-35%);
+    opacity: 0.45;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  opacity: 0;
+  animation: fade-in-up 0.7s ease-out forwards;
+}
+
+/* Leaflet z-index guard — keep map panes below drawer/overlay layers. */
+.leaflet-pane,
+.leaflet-control {
+  z-index: 1 !important;
+}
+
+.ambassador-texture {
+  background-color: rgba(255, 255, 255, 0.03);
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(246, 196, 83, 0.18), transparent 35%),
+    radial-gradient(circle at 88% 82%, rgba(123, 47, 247, 0.22), transparent 40%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(246, 196, 83, 0.045) 0px,
+      rgba(246, 196, 83, 0.045) 1px,
+      transparent 1px,
+      transparent 9px
+    );
+}

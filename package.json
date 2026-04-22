@@ -1,0 +1,42 @@
+{
+  "name": "purple-club-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@marsidev/react-turnstile": "^1.5.0",
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/wallet-adapter-wallets": "^0.19.38",
+    "@solana/web3.js": "^1.98.4",
+    "@types/leaflet": "^1.9.21",
+    "bs58": "^6.0.0",
+    "clsx": "^2.1.1",
+    "jose": "^6.2.2",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "octokit": "^5.0.5",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tweetnacl": "^1.0.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}
