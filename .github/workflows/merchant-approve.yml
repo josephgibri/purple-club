@@ -44,20 +44,35 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Parse issue body
-        id: parse
-        uses: stefanbuck/github-issue-parser@v3
-        with:
-          template-path: .github/ISSUE_TEMPLATE/merchant_submission.yml
-
       - name: Build payload
         id: payload
         env:
-          DATA: ${{ steps.parse.outputs.jsonString }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           node <<'NODE'
           const fs = require("node:fs");
-          const data = JSON.parse(process.env.DATA);
+          const body = process.env.ISSUE_BODY ?? "";
+          const match = body.match(/```yaml\s*([\s\S]*?)```/i);
+          if (!match) {
+            throw new Error("Could not find YAML payload block in issue body.");
+          }
+
+          const yamlBlock = match[1];
+          const data = {};
+          for (const rawLine of yamlBlock.split("\n")) {
+            const line = rawLine.trim();
+            if (!line || !line.includes(":")) continue;
+            const idx = line.indexOf(":");
+            const key = line.slice(0, idx).trim();
+            const rawValue = line.slice(idx + 1).trim();
+            if (!key) continue;
+            try {
+              data[key] = JSON.parse(rawValue);
+            } catch {
+              data[key] = rawValue;
+            }
+          }
+
           const asBool = (v) => String(v).toLowerCase() === "true";
           const num = (v) => (v === "" || v == null ? undefined : Number(v));
           const clean = (v) => (v == null ? "" : String(v));
@@ -88,11 +103,18 @@ jobs:
           fs.writeFileSync("payload.json", JSON.stringify(payload, null, 2));
           NODE
 
+      - name: Export URL fields for reachability checks
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const payload = JSON.parse(fs.readFileSync("payload.json", "utf8"));
+          const out = process.env.GITHUB_ENV;
+          fs.appendFileSync(out, `WEBSITE=${payload.website ?? ""}\n`);
+          fs.appendFileSync(out, `LOGO=${payload.logoUrl ?? ""}\n`);
+          fs.appendFileSync(out, `HERO=${payload.heroImageUrl ?? ""}\n`);
+          NODE
+
       - name: Validate remote URLs reachable
-        env:
-          WEBSITE: ${{ steps.parse.outputs.issueparser_website }}
-          LOGO: ${{ steps.parse.outputs.issueparser_logoUrl }}
-          HERO: ${{ steps.parse.outputs.issueparser_heroImageUrl }}
         run: |
           set -e
           for url in "$WEBSITE" "$LOGO" "$HERO"; do
