@@ -12,9 +12,9 @@
     "description": "Premium training and wellness for PBTC holders.",
     "logoUrl": "https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=320&q=80",
     "heroImageUrl": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=80",
-    "verificationHint": "Show active Purple Club pass before signup.",
     "ctaLabel": "Visit Website",
-    "ctaHref": "https://www.goldsgym.com"
+    "ctaHref": "https://www.goldsgym.com",
+    "verificationHint": "Show active Purple Club pass before signup."
   },
   {
     "id": "lucky-barbershop",
@@ -29,9 +29,9 @@
     "description": "Classic cuts and modern grooming with member perks.",
     "logoUrl": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=320&q=80",
     "heroImageUrl": "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1400&q=80",
-    "verificationHint": "Discount applies same-day with live pass.",
     "ctaLabel": "Visit Website",
-    "ctaHref": "https://example.com/lucky-barbershop"
+    "ctaHref": "https://example.com/lucky-barbershop",
+    "verificationHint": "Discount applies same-day with live pass."
   },
   {
     "id": "vpn-service",
@@ -47,9 +47,9 @@
     "logoUrl": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=320&q=80",
     "heroImageUrl": "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1400&q=80",
     "promoCode": "PURPLEVPN40",
-    "verificationHint": "Redeem code rotates monthly for members.",
     "ctaLabel": "Visit Website",
-    "ctaHref": "https://example.com/vpn-service"
+    "ctaHref": "https://example.com/vpn-service",
+    "verificationHint": "Redeem code rotates monthly for members."
   },
   {
     "id": "purple-travel",
@@ -87,5 +87,25 @@
     "ctaLabel": "Visit Website",
     "ctaHref": "https://example.com/purple-amazon",
     "verificationHint": "Featured concept merchant for global-first roadmap."
+  },
+  {
+    "id": "fun-burgers",
+    "name": "Fun Burgers",
+    "category": "dining_nightlife",
+    "isOnline": false,
+    "country": "Egypt",
+    "city": "Cairo",
+    "fullAddress": "El-Horeya 25",
+    "discount": "10% off for PBTC holders",
+    "locationOrCoverage": "Cairo, Egypt",
+    "description": "Premium burger spot for the PBTC community in Miami.",
+    "logoUrl": "https://picsum.photos/400",
+    "heroImageUrl": "https://picsum.photos/1200/600",
+    "promoCode": "PBTC10",
+    "ctaLabel": "Redeem Offer",
+    "ctaHref": "https://www.purplebitcoin.com",
+    "verificationHint": "Show active Purple Club pass before redeeming offer.",
+    "lat": 29.9788563,
+    "lng": 31.3373166
   }
 ]
