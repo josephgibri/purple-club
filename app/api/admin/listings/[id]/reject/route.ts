@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { sendListingRejectedEmail } from "@/lib/email";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -42,6 +43,15 @@ export async function POST(request: Request, { params }: Params): Promise<Respon
         },
       },
     },
+    include: {
+      profile: { include: { user: { select: { email: true } } } },
+    },
+  });
+
+  void sendListingRejectedEmail({
+    to: listing.profile.user.email,
+    businessName: listing.businessName,
+    reason: parsed.data.reason,
   });
 
   return Response.json({ ok: true, listing });

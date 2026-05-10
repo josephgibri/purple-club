@@ -5,15 +5,15 @@ import { MERCHANT_CATEGORIES, SOCIAL_PLATFORMS } from "@/data/merchants";
 
 export const registerSchema = z.object({
   email: z.string().trim().email(),
-  username: z
-    .string()
-    .trim()
-    .min(3)
-    .max(24)
-    .regex(/^[a-zA-Z0-9._-]+$/, "Username can only contain letters, numbers, dot, dash, underscore"),
   password: z.string().min(8).max(128),
   displayName: z.string().trim().min(2).max(80),
 });
+
+export function deriveUsername(email: string): string {
+  const local = email.split("@")[0] ?? "merchant";
+  const cleaned = local.toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 24);
+  return cleaned.length >= 3 ? cleaned : `${cleaned}_${Math.random().toString(36).slice(2, 6)}`;
+}
 
 export const loginSchema = z.object({
   identifier: z.string().trim().min(3),

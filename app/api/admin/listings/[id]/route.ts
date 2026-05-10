@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { adminListingEditSchema, deriveMerchantId } from "@/lib/dbSchemas";
+import { sendListingApprovedEmail, sendListingRejectedEmail } from "@/lib/email";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -95,6 +96,32 @@ export async function PATCH(request: Request, { params }: Params): Promise<Respo
 
     return updated;
   });
+
+  if (existing.status !== "APPROVED" && isApproving) {
+    const profile = await db.merchantProfile.findUnique({
+      where: { id: listing.merchantProfileId },
+      include: { user: { select: { email: true } } },
+    });
+    if (profile?.user.email) {
+      void sendListingApprovedEmail({
+        to: profile.user.email,
+        businessName: listing.businessName,
+        merchantId: listing.merchantId,
+      });
+    }
+  } else if (existing.status !== "REJECTED" && isRejecting) {
+    const profile = await db.merchantProfile.findUnique({
+      where: { id: listing.merchantProfileId },
+      include: { user: { select: { email: true } } },
+    });
+    if (profile?.user.email) {
+      void sendListingRejectedEmail({
+        to: profile.user.email,
+        businessName: listing.businessName,
+        reason: data.rejectionReason ?? "Please review and resubmit.",
+      });
+    }
+  }
 
   return Response.json({ ok: true, listing });
 }

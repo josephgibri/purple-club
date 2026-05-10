@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { registerSchema } from "@/lib/dbSchemas";
+import { deriveUsername, registerSchema } from "@/lib/dbSchemas";
 import { setSessionCookie, signSession } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 
@@ -22,21 +22,28 @@ export async function POST(request: Request): Promise<Response> {
     .map((x) => x.trim().toLowerCase())
     .filter(Boolean);
   const role = adminEmails.includes(data.email.toLowerCase()) ? "ADMIN" : "MERCHANT";
-  const existing = await db.user.findFirst({
-    where: {
-      OR: [{ email: data.email.toLowerCase() }, { username: data.username.toLowerCase() }],
-    },
+
+  const emailLower = data.email.toLowerCase();
+  const existing = await db.user.findUnique({
+    where: { email: emailLower },
     select: { id: true },
   });
   if (existing) {
-    return Response.json({ error: "Email or username already in use." }, { status: 409 });
+    return Response.json({ error: "An account with that email already exists." }, { status: 409 });
+  }
+
+  let username = deriveUsername(emailLower);
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const taken = await db.user.findUnique({ where: { username }, select: { id: true } });
+    if (!taken) break;
+    username = `${deriveUsername(emailLower)}_${Math.random().toString(36).slice(2, 5)}`;
   }
 
   const passwordHash = await hashPassword(data.password);
   const user = await db.user.create({
     data: {
-      email: data.email.toLowerCase(),
-      username: data.username.toLowerCase(),
+      email: emailLower,
+      username,
       passwordHash,
       role,
       profile: {

@@ -12,7 +12,6 @@ export function MerchantAuthPanel() {
   const [form, setForm] = useState({
     identifier: "",
     email: "",
-    username: "",
     displayName: "",
     password: "",
   });
@@ -34,8 +33,7 @@ export function MerchantAuthPanel() {
           ? { identifier: form.identifier, password: form.password }
           : {
               email: form.email,
-              username: form.username,
-              displayName: form.displayName || form.username,
+              displayName: form.displayName,
               password: form.password,
             };
       const res = await fetch(endpoint, {
@@ -99,25 +97,18 @@ export function MerchantAuthPanel() {
                 value={form.email}
                 onChange={(e) => setField("email", e.target.value)}
                 className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm outline-none focus:border-purple-accent"
-                placeholder="merchant@brand.com"
+                placeholder="hello@yourbrand.com"
+                autoComplete="email"
               />
             </label>
             <label className="grid gap-1 text-sm">
-              <span className="text-violet-100/85">Username</span>
-              <input
-                value={form.username}
-                onChange={(e) => setField("username", e.target.value)}
-                className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm outline-none focus:border-purple-accent"
-                placeholder="funburgers"
-              />
-            </label>
-            <label className="grid gap-1 text-sm">
-              <span className="text-violet-100/85">Display Name</span>
+              <span className="text-violet-100/85">Business Name</span>
               <input
                 value={form.displayName}
                 onChange={(e) => setField("displayName", e.target.value)}
                 className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm outline-none focus:border-purple-accent"
-                placeholder="Fun Burgers"
+                placeholder="Your Brand"
+                autoComplete="organization"
               />
             </label>
           </>

@@ -2,14 +2,18 @@
 
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
-import { Info, Lock, ShoppingBag, Sparkles } from "lucide-react";
+import { HelpCircle, Info, Lock, ShoppingBag, Sparkles, Users, X } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 
 import { DigitalMembershipPass } from "@/components/membership/digital-membership-pass";
 import { MerchantDirectory } from "@/components/merchants/merchant-directory";
 import { merchants } from "@/data/merchants";
 import { useMembershipGate } from "@/hooks/useMembershipGate";
+import { usePbtcHolders } from "@/hooks/usePbtcHolders";
 import { useWalletSignIn } from "@/hooks/useWalletSignIn";
+
+const PBTC_MINT = "HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p";
+const JUPITER_BUY_URL = `https://jup.ag/swap/SOL-${PBTC_MINT}`;
 
 export default function Home() {
   const { publicKey, connected } = useWallet();
@@ -27,7 +31,9 @@ export default function Home() {
   const { enter: enterPurpleClub, isPending: isAuthPending, error: authFlowError } =
     useWalletSignIn();
   const [isPassOpen, setIsPassOpen] = useState(false);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [directoryMerchants, setDirectoryMerchants] = useState(merchants);
+  const { activeHolders } = usePbtcHolders();
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +90,25 @@ export default function Home() {
           Solana wallet to unlock exclusive offers from vetted online and local merchants.
           Verification is read-only — your tokens never leave your wallet.
         </p>
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-violet-100/75">
+          {activeHolders !== null ? (
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-emerald-200">
+              <Users size={12} />
+              <strong className="font-mono font-semibold">
+                {activeHolders.toLocaleString()}
+              </strong>
+              <span className="text-emerald-100/80">PBTC holders worldwide</span>
+            </span>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setIsInfoOpen(true)}
+            className="inline-flex items-center gap-1.5 text-violet-100/70 underline-offset-4 hover:text-violet-50 hover:underline"
+          >
+            <HelpCircle size={12} />
+            What is PBTC?
+          </button>
+        </div>
 
         <div className="mt-7 inline-flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-3 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 backdrop-blur-xl">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
@@ -133,13 +158,15 @@ export default function Home() {
               {isAuthPending ? "Connecting…" : "Enter Purple Prime"}
             </button>
           ) : (
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 rounded-full bg-purple-accent px-3.5 py-1.5 text-xs font-semibold text-white"
+            <a
+              href={JUPITER_BUY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full bg-purple-accent px-3.5 py-1.5 text-xs font-semibold text-white transition hover:brightness-110"
             >
               <Lock size={14} />
               Buy 1 PBTC to Unlock
-            </button>
+            </a>
           )}
         </div>
 
@@ -211,6 +238,67 @@ export default function Home() {
         signaturePrefix={signaturePrefix}
         signedAtIso={signedAtIso}
       />
+
+      {isInfoOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => setIsInfoOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-md rounded-2xl border border-gold-accent/40 bg-[#150a30] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setIsInfoOpen(false)}
+              className="absolute right-3 top-3 rounded-full p-1.5 text-violet-100/60 hover:bg-white/10 hover:text-white"
+              aria-label="Close"
+            >
+              <X size={16} />
+            </button>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold-accent">
+              What is PBTC?
+            </p>
+            <h2 className="mt-2 text-xl font-semibold">
+              The Solana token that opens the network.
+            </h2>
+            <ol className="mt-4 grid gap-3 text-sm text-violet-100/85">
+              <li className="flex gap-3">
+                <span className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-full bg-gold-accent text-[11px] font-bold text-black">
+                  1
+                </span>
+                <span>
+                  PBTC is a token on the Solana blockchain. Hold at least 1 PBTC and you&apos;re a Purple Prime member.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-full bg-gold-accent text-[11px] font-bold text-black">
+                  2
+                </span>
+                <span>
+                  Connect a Solana wallet (Phantom, Solflare, etc.) and sign a free read-only message. We never request transaction or transfer permissions.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-full bg-gold-accent text-[11px] font-bold text-black">
+                  3
+                </span>
+                <span>
+                  The full directory of merchants and their promo codes unlocks. Use them online or in person — your tokens stay safely in your wallet.
+                </span>
+              </li>
+            </ol>
+            <a
+              href={JUPITER_BUY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold-accent px-4 py-2.5 text-sm font-semibold text-black hover:brightness-110"
+            >
+              Buy PBTC on Jupiter
+            </a>
+          </div>
+        </div>
+      ) : null}
 
       <footer className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
         <div className="grid gap-6 md:grid-cols-3">

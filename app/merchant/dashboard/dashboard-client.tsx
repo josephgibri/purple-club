@@ -356,162 +356,197 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
         </aside>
 
         <section className="rounded-2xl border border-border bg-surface p-5">
-          <h2 className="text-lg font-semibold">{selectedListing ? "Edit Listing" : "Create Listing"}</h2>
-          {selectedListing?.rejectionReason ? (
-            <p className="mt-2 rounded-lg border border-amber-400/40 bg-amber-500/10 p-3 text-xs text-amber-100">
-              Last rejection reason: {selectedListing.rejectionReason}
+          <h2 className="text-lg font-semibold">
+            {selectedListing ? "Edit Listing" : "Tell us about your business"}
+          </h2>
+          {!selectedListing ? (
+            <p className="mt-1 text-xs text-violet-100/70">
+              Three short steps. We&apos;ll review within 24 hours and email you the result.
             </p>
           ) : null}
-          <div className="mt-4 grid gap-4">
-            <Input label="Merchant Slug (optional)" value={form.merchantId} onChange={(v) => setField("merchantId", v)} />
-            <Input label="Business Name" value={form.businessName} onChange={(v) => setField("businessName", v)} />
-            <Input label="Business Brief" value={form.businessBrief} onChange={(v) => setField("businessBrief", v)} />
-            <label className="grid gap-1 text-sm">
-              <span className="text-violet-100/85">Category</span>
-              <select
-                value={form.category}
-                onChange={(e) => setField("category", e.target.value as MerchantCategory)}
-                className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm"
-              >
-                {MERCHANT_CATEGORIES.map((category) => (
-                  <option value={category} key={category}>
-                    {CATEGORY_LABELS[category]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="grid gap-1 text-sm">
-              <span className="text-violet-100/85">Merchant Type</span>
-              <select
-                value={form.isOnline ? "online" : "local"}
-                onChange={(e) => setField("isOnline", e.target.value === "online")}
-                className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm"
-              >
-                <option value="local">Local / In-person</option>
-                <option value="online">Online / Global</option>
-              </select>
-            </label>
-            {!form.isOnline ? (
-              <>
-                <label className="grid gap-1 text-sm">
-                  <span className="text-violet-100/85">City</span>
-                  <CityAutocomplete
-                    value={form.city}
-                    onChange={(v) => setField("city", v)}
-                    onSelect={onCitySelect}
-                    placeholder="Start typing city"
-                  />
-                </label>
-                <Input label="Country" value={form.country} onChange={(v) => setField("country", v)} />
-                <Input
-                  label="Full Address"
-                  value={form.fullAddress}
-                  onChange={(v) => setField("fullAddress", v)}
-                />
 
-                <div className="rounded-xl border border-border bg-surface-muted p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.2em] text-gold-accent">
-                        Verify business on Foursquare
-                      </p>
-                      <p className="mt-1 text-xs text-violet-100/70">
-                        Optional but recommended. Helps the admin approve faster.
-                      </p>
+          {selectedListing ? <ListingStatusPanel listing={selectedListing} /> : null}
+
+          <div className="mt-4 grid gap-3">
+            <FormStep
+              defaultOpen={!selectedListing}
+              step={1}
+              title="Identity"
+              subtitle="Who you are and what category you fit."
+            >
+              <Input label="Business Name" value={form.businessName} onChange={(v) => setField("businessName", v)} />
+              <Input label="Business Brief (one short sentence)" value={form.businessBrief} onChange={(v) => setField("businessBrief", v)} />
+              <label className="grid gap-1 text-sm">
+                <span className="text-violet-100/85">Category</span>
+                <select
+                  value={form.category}
+                  onChange={(e) => setField("category", e.target.value as MerchantCategory)}
+                  className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm"
+                >
+                  {MERCHANT_CATEGORIES.map((category) => (
+                    <option value={category} key={category}>
+                      {CATEGORY_LABELS[category]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-1 text-sm">
+                <span className="text-violet-100/85">Merchant Type</span>
+                <select
+                  value={form.isOnline ? "online" : "local"}
+                  onChange={(e) => setField("isOnline", e.target.value === "online")}
+                  className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm"
+                >
+                  <option value="local">Local / In-person</option>
+                  <option value="online">Online / Global</option>
+                </select>
+              </label>
+              <Input label="Custom slug (optional)" value={form.merchantId} onChange={(v) => setField("merchantId", v)} />
+            </FormStep>
+
+            <FormStep
+              defaultOpen={!selectedListing}
+              step={2}
+              title={form.isOnline ? "Reach" : "Location & verification"}
+              subtitle={
+                form.isOnline
+                  ? "Online merchants serve members worldwide — no address needed."
+                  : "Where members can find you, plus a free Foursquare match."
+              }
+            >
+              {form.isOnline ? (
+                <p className="rounded-lg border border-border bg-surface-muted p-3 text-xs text-violet-100/75">
+                  You&apos;re listed as <strong>Online / Global</strong>. Skip ahead to step 3.
+                </p>
+              ) : (
+                <>
+                  <label className="grid gap-1 text-sm">
+                    <span className="text-violet-100/85">City</span>
+                    <CityAutocomplete
+                      value={form.city}
+                      onChange={(v) => setField("city", v)}
+                      onSelect={onCitySelect}
+                      placeholder="Start typing city"
+                    />
+                  </label>
+                  <Input label="Country" value={form.country} onChange={(v) => setField("country", v)} />
+                  <Input
+                    label="Full Address"
+                    value={form.fullAddress}
+                    onChange={(v) => setField("fullAddress", v)}
+                  />
+
+                  <div className="rounded-xl border border-border bg-surface-muted p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.2em] text-gold-accent">
+                          Verify business on Foursquare
+                        </p>
+                        <p className="mt-1 text-xs text-violet-100/70">
+                          Optional but recommended. Helps the admin approve faster.
+                        </p>
+                      </div>
+                      {form.fsqId ? (
+                        <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs text-emerald-200">
+                          ✓ Verified: {form.fsqName}
+                        </span>
+                      ) : null}
                     </div>
-                    {form.fsqId ? (
-                      <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs text-emerald-200">
-                        ✓ Verified: {form.fsqName}
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void lookupFsq()}
-                      disabled={fsqLoading || form.businessName.trim().length < 2}
-                      className="rounded-xl border border-gold-accent/60 bg-gold-accent/10 px-3 py-2 text-xs font-semibold text-gold-accent disabled:opacity-50"
-                    >
-                      {fsqLoading ? "Searching..." : "Search Foursquare"}
-                    </button>
-                    {form.fsqId ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
                       <button
                         type="button"
-                        onClick={clearFsqMatch}
-                        className="rounded-xl border border-border bg-surface px-3 py-2 text-xs text-violet-100/85"
+                        onClick={() => void lookupFsq()}
+                        disabled={fsqLoading || form.businessName.trim().length < 2}
+                        className="rounded-xl border border-gold-accent/60 bg-gold-accent/10 px-3 py-2 text-xs font-semibold text-gold-accent disabled:opacity-50"
                       >
-                        Clear match
+                        {fsqLoading ? "Searching..." : "Search Foursquare"}
                       </button>
+                      {form.fsqId ? (
+                        <button
+                          type="button"
+                          onClick={clearFsqMatch}
+                          className="rounded-xl border border-border bg-surface px-3 py-2 text-xs text-violet-100/85"
+                        >
+                          Clear match
+                        </button>
+                      ) : null}
+                    </div>
+                    {fsqError ? <p className="mt-2 text-xs text-rose-300">{fsqError}</p> : null}
+                    {fsqMatches.length > 0 ? (
+                      <ul className="mt-3 grid gap-2">
+                        {fsqMatches.map((match) => (
+                          <li key={match.id}>
+                            <button
+                              type="button"
+                              onClick={() => applyFsqMatch(match)}
+                              className="w-full rounded-lg border border-border bg-surface p-3 text-left text-sm hover:border-gold-accent/60"
+                            >
+                              <p className="font-semibold">{match.name}</p>
+                              <p className="text-xs text-violet-100/70">
+                                {match.address || "—"}
+                                {match.category ? ` · ${match.category}` : ""}
+                              </p>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                     ) : null}
                   </div>
-                  {fsqError ? (
-                    <p className="mt-2 text-xs text-rose-300">{fsqError}</p>
-                  ) : null}
-                  {fsqMatches.length > 0 ? (
-                    <ul className="mt-3 grid gap-2">
-                      {fsqMatches.map((match) => (
-                        <li key={match.id}>
-                          <button
-                            type="button"
-                            onClick={() => applyFsqMatch(match)}
-                            className="w-full rounded-lg border border-border bg-surface p-3 text-left text-sm hover:border-gold-accent/60"
-                          >
-                            <p className="font-semibold">{match.name}</p>
-                            <p className="text-xs text-violet-100/70">
-                              {match.address || "—"}
-                              {match.category ? ` · ${match.category}` : ""}
-                            </p>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-              </>
-            ) : null}
-            <Input label="Website URL" value={form.website} onChange={(v) => setField("website", v)} />
-            <ImageUploadField
-              label="Logo"
-              value={form.logoUrl}
-              onChange={(v) => setField("logoUrl", v)}
-              kind="logo"
-              aspect="square"
-              hint="Square image works best. PNG/SVG with transparent background recommended."
-            />
-            <ImageUploadField
-              label="Hero image"
-              value={form.heroImageUrl}
-              onChange={(v) => setField("heroImageUrl", v)}
-              kind="hero"
-              aspect="wide"
-              hint="Wide cover photo (16:9) showcasing your storefront, product, or brand."
-            />
-            <Input label="Promo Code" value={form.promoCode} onChange={(v) => setField("promoCode", v)} />
-            <Input
-              label="Discount Details"
-              value={form.discountDetails}
-              onChange={(v) => setField("discountDetails", v)}
-            />
-            <label className="grid gap-1 text-sm">
-              <span className="text-violet-100/85">Social Platform</span>
-              <select
-                value={form.socialPlatform}
-                onChange={(e) => setField("socialPlatform", e.target.value as SocialPlatform | "")}
-                className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm"
-              >
-                <option value="">None</option>
-                {SOCIAL_PLATFORMS.map((platform) => (
-                  <option key={platform} value={platform}>
-                    {platform}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <Input
-              label="Social Handle"
-              value={form.socialHandle}
-              onChange={(v) => setField("socialHandle", v.replace(/^@+/, ""))}
-            />
+                </>
+              )}
+            </FormStep>
+
+            <FormStep
+              defaultOpen={!selectedListing}
+              step={3}
+              title="Offer & branding"
+              subtitle="What members get and how your listing looks."
+            >
+              <Input label="Website URL" value={form.website} onChange={(v) => setField("website", v)} />
+              <ImageUploadField
+                label="Logo"
+                value={form.logoUrl}
+                onChange={(v) => setField("logoUrl", v)}
+                kind="logo"
+                aspect="square"
+                hint="Square works best. PNG/SVG with transparent background recommended."
+              />
+              <ImageUploadField
+                label="Hero image"
+                value={form.heroImageUrl}
+                onChange={(v) => setField("heroImageUrl", v)}
+                kind="hero"
+                aspect="wide"
+                hint="Wide cover (16:9) showcasing your storefront, product, or brand."
+              />
+              <Input label="Promo Code" value={form.promoCode} onChange={(v) => setField("promoCode", v)} />
+              <Input
+                label="Discount Details"
+                value={form.discountDetails}
+                onChange={(v) => setField("discountDetails", v)}
+              />
+              <label className="grid gap-1 text-sm">
+                <span className="text-violet-100/85">Social Platform</span>
+                <select
+                  value={form.socialPlatform}
+                  onChange={(e) => setField("socialPlatform", e.target.value as SocialPlatform | "")}
+                  className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm"
+                >
+                  <option value="">None</option>
+                  {SOCIAL_PLATFORMS.map((platform) => (
+                    <option key={platform} value={platform}>
+                      {platform}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <Input
+                label="Social Handle"
+                value={form.socialHandle}
+                onChange={(v) => setField("socialHandle", v.replace(/^@+/, ""))}
+              />
+            </FormStep>
+
             <label className="grid gap-1 text-sm">
               <span className="text-violet-100/85">Save Mode</span>
               <select
@@ -531,11 +566,107 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
               disabled={isSaving}
               className="rounded-xl bg-gold-accent px-4 py-3 text-sm font-semibold text-black disabled:opacity-60"
             >
-              {isSaving ? "Saving..." : selectedListing ? "Update Listing" : "Create Listing"}
+              {isSaving
+                ? "Saving..."
+                : selectedListing
+                  ? form.status === "DRAFT"
+                    ? "Save draft"
+                    : "Resubmit for review"
+                  : form.status === "DRAFT"
+                    ? "Save draft"
+                    : "Submit for review"}
             </button>
           </div>
         </section>
       </div>
+    </div>
+  );
+}
+
+function FormStep({
+  step,
+  title,
+  subtitle,
+  children,
+  defaultOpen,
+}: {
+  step: number;
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+  defaultOpen: boolean;
+}) {
+  return (
+    <details
+      open={defaultOpen}
+      className="group overflow-hidden rounded-2xl border border-border bg-surface-muted [&[open]>summary>span.indicator]:rotate-90"
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm">
+        <div className="flex items-center gap-3">
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-gold-accent text-xs font-bold text-black">
+            {step}
+          </span>
+          <div>
+            <p className="font-semibold text-violet-50">{title}</p>
+            <p className="text-xs text-violet-100/65">{subtitle}</p>
+          </div>
+        </div>
+        <span className="indicator inline-block transform text-violet-100/50 transition-transform">
+          ▶
+        </span>
+      </summary>
+      <div className="grid gap-3 border-t border-border bg-surface px-4 py-4">{children}</div>
+    </details>
+  );
+}
+
+function ListingStatusPanel({
+  listing,
+}: {
+  listing: { status: string; rejectionReason: string | null; updatedAt: string };
+}) {
+  const variants: Record<
+    string,
+    { label: string; tone: string; description: string }
+  > = {
+    DRAFT: {
+      label: "Draft",
+      tone: "border-violet-400/40 bg-violet-500/10 text-violet-100",
+      description: "Saved but not yet submitted. Switch Save Mode to Submit for Review when you're ready.",
+    },
+    SUBMITTED: {
+      label: "Submitted",
+      tone: "border-amber-400/40 bg-amber-500/10 text-amber-100",
+      description: "Under review. We'll email you within 24 hours.",
+    },
+    UNDER_REVIEW: {
+      label: "Under review",
+      tone: "border-amber-400/40 bg-amber-500/10 text-amber-100",
+      description: "An admin is looking at your listing right now.",
+    },
+    APPROVED: {
+      label: "Approved · Live",
+      tone: "border-emerald-400/40 bg-emerald-500/10 text-emerald-100",
+      description: "Your listing is live in the directory. Updates here will require re-review.",
+    },
+    REJECTED: {
+      label: "Changes requested",
+      tone: "border-rose-400/40 bg-rose-500/10 text-rose-100",
+      description: "Address the reviewer's note below, then resubmit.",
+    },
+  };
+  const v = variants[listing.status] ?? variants.SUBMITTED;
+  return (
+    <div className={`mt-3 rounded-xl border p-3 text-xs ${v.tone}`}>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] opacity-90">
+        {v.label}
+      </p>
+      <p className="mt-1 opacity-85">{v.description}</p>
+      {listing.rejectionReason ? (
+        <p className="mt-2 rounded-lg border border-amber-400/40 bg-amber-500/10 p-2 text-amber-100">
+          <strong>Reviewer note:</strong> {listing.rejectionReason}
+        </p>
+      ) : null}
     </div>
   );
 }
