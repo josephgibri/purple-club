@@ -2,7 +2,7 @@
 
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
-import { HelpCircle, Info, Lock, ShoppingBag, Sparkles, Users, X } from "lucide-react";
+import { HelpCircle, Info, Lock, Sparkles, Users, X } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 
 import { DigitalMembershipPass } from "@/components/membership/digital-membership-pass";
@@ -131,22 +131,14 @@ export default function Home() {
             </span>
           </div>
           {isMember ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <a
-                href="#directory"
-                className="inline-flex items-center gap-1.5 rounded-full bg-gold-accent px-3.5 py-1.5 text-xs font-semibold text-black transition hover:brightness-110"
-              >
-                <ShoppingBag size={14} />
-                Browse Offers
-              </a>
-              <button
-                type="button"
-                onClick={() => setIsPassOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-gold-accent px-3.5 py-1.5 text-xs font-semibold text-black transition hover:brightness-110"
-              >
-                Open Pass
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsPassOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-gold-accent px-3.5 py-1.5 text-xs font-semibold text-black transition hover:brightness-110"
+            >
+              <Sparkles size={14} />
+              Open Pass
+            </button>
           ) : !connected || (connected && !isVerified) ? (
             <button
               type="button"
