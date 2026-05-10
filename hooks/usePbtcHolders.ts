@@ -53,6 +53,7 @@ export function usePbtcHolders(): PbtcHoldersState {
 
     const cached = readCache();
     if (cached) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState({
         activeHolders: cached.activeHolders,
         totalAccounts: cached.totalAccounts,

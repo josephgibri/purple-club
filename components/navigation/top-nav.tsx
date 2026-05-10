@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
-import { WalletConnectButton } from "@/components/providers/solana-provider";
+import { PurpleClubAuthButton } from "@/components/auth/purple-club-auth-button";
 
 export function TopNav() {
   const [open, setOpen] = useState(false);
@@ -13,23 +12,16 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0618]/70 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <Image
-            src="/purple-club-icon.png"
-            alt="Purple Club emblem"
-            width={80}
-            height={48}
-            className="h-11 w-auto object-contain"
-            priority
-          />
-          <span className="text-base font-semibold tracking-widest text-[#D4AF37]">
-            PURPLE CLUB
-          </span>
+        <Link
+          href="/"
+          className="inline-flex items-center text-base font-semibold uppercase tracking-[0.28em] text-[#D4AF37] transition hover:text-[#F1C75A]"
+        >
+          Purple Prime
         </Link>
 
         <div className="hidden items-center gap-3 md:flex">
           <NavLinks />
-          <WalletConnectButton />
+          <PurpleClubAuthButton />
         </div>
 
         <button
@@ -46,7 +38,7 @@ export function TopNav() {
         <div className="border-t border-white/10 px-4 py-3 md:hidden">
           <div className="mx-auto flex w-full max-w-5xl flex-col gap-3">
             <NavLinks onNavigate={() => setOpen(false)} mobile />
-            <WalletConnectButton />
+            <PurpleClubAuthButton />
           </div>
         </div>
       ) : null}

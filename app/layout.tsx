@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Purple Club",
+  title: "Purple Prime",
   description: "Token-gated merchant discount network powered by PBTC.",
   manifest: "/manifest.webmanifest",
   icons: {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Purple Club",
+    title: "Purple Prime",
     statusBarStyle: "black-translucent",
   },
 };

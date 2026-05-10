@@ -1,24 +1,14 @@
-"use client";
-
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { CommunityCounter } from "@/components/join/community-counter";
-import {
-  MerchantForm,
-  type MerchantFormResult,
-} from "@/components/join/merchant-form";
+import { MerchantAuthPanel } from "@/components/auth/merchant-auth-panel";
+import { getSession } from "@/lib/auth";
 
-export default function JoinPage() {
-  const router = useRouter();
-
-  function onSuccess(result: MerchantFormResult) {
-    const params = new URLSearchParams({
-      issue: result.issueUrl,
-      edit: result.editUrl,
-      merchant: result.merchantId,
-    });
-    router.push(`/merchant/submitted?${params.toString()}`);
+export default async function JoinPage() {
+  const session = await getSession();
+  if (session) {
+    redirect("/merchant/dashboard");
   }
 
   return (
@@ -28,11 +18,11 @@ export default function JoinPage() {
           Merchant Join
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-          Join the Purple Club Network
+          Join the Purple Prime Network
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-violet-100/75">
           Get free exposure to PBTC holders actively looking for premium offers.
-          Purple Club sends qualified community members to trusted merchants.
+          Purple Prime sends qualified community members to trusted merchants.
         </p>
 
         <div className="mt-6">
@@ -69,12 +59,12 @@ export default function JoinPage() {
         </section>
 
         <div className="mt-8">
-          <MerchantForm mode="submit" onSuccess={onSuccess} />
+          <MerchantAuthPanel />
         </div>
 
         <div className="mt-8 text-sm text-violet-100/70">
           <Link href="/" className="underline underline-offset-4">
-            Back to Purple Club
+            Back to Purple Prime
           </Link>
         </div>
       </div>

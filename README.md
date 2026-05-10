@@ -1,4 +1,14 @@
-# Purple Club
+# Purple Prime
+
+This project is migrating from the legacy GitHub-issue approval relay to a database-backed merchant and admin dashboard model.
+
+## Migration Status (v2)
+
+- Merchant auth: email/password with session cookies.
+- Merchant dashboard: create/update listings and track status.
+- Admin dashboard: approve/reject queue with review audit trail.
+- Public directory: supports DB-approved listings behind `USE_DB_LISTINGS=true`.
+- Legacy GitHub relay remains available as a fallback via `USE_GITHUB_RELAY=true`.
 
 Decentralized discount network for the PBTC community, built on Next.js 16 + Solana read-only auth.
 

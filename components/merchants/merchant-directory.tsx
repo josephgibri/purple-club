@@ -131,7 +131,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
 
   async function copyInvitation() {
     const joinUrl = typeof window !== "undefined" ? `${window.location.origin}/join` : "/join";
-    const text = `Hey! I'm a member of the Purple Club. I'd love to see your business as a featured partner for our PBTC community. You can join the network here: ${joinUrl}`;
+    const text = `Hey! I'm a member of Purple Prime. I'd love to see your business as a featured partner for our PBTC community. You can join the network here: ${joinUrl}`;
     await navigator.clipboard.writeText(text);
     setInviteCopied(true);
     window.setTimeout(() => setInviteCopied(false), 1800);
@@ -310,7 +310,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
         ) : (
           <article className="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-xl sm:col-span-2">
             <h3 className="text-xl font-semibold text-gold-accent">
-              Purple Club is currently growing in {emptyScope}.
+              Purple Prime is currently growing in {emptyScope}.
             </h3>
             <p className="mt-2 max-w-2xl text-sm text-violet-100/80">
               Use your status to invite the first local partner and help expand
@@ -336,7 +336,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
             <p className="text-[10px] uppercase tracking-[0.3em] text-gold-accent">Ambassador Mode</p>
             <h3 className="mt-2 text-2xl font-semibold">Invite a Merchant</h3>
             <p className="mt-2 max-w-2xl text-sm text-violet-100/80">
-              Know a business that belongs in Purple Club? Invite them to the
+              Know a business that belongs in Purple Prime? Invite them to the
               network and expand holder utility.
             </p>
             <span className="mt-4 inline-flex rounded-lg bg-gold-accent px-4 py-2 text-sm font-semibold text-black transition group-hover:brightness-110">
@@ -364,7 +364,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
           <div className="w-full max-w-lg rounded-2xl border border-gold-accent/60 bg-surface p-6 backdrop-blur-xl">
             <h3 className="text-xl font-semibold">Invite a Merchant</h3>
             <p className="mt-2 text-sm text-violet-100/80">
-              Know a business that belongs in Purple Club? Invite them to the
+              Know a business that belongs in Purple Prime? Invite them to the
               network.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">

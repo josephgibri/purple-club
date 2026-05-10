@@ -2,13 +2,14 @@
 
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
-import { Info, Lock, PenLine, ShoppingBag } from "lucide-react";
-import { Suspense, useState } from "react";
+import { Info, Lock, ShoppingBag, Sparkles } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
 
 import { DigitalMembershipPass } from "@/components/membership/digital-membership-pass";
 import { MerchantDirectory } from "@/components/merchants/merchant-directory";
 import { merchants } from "@/data/merchants";
 import { useMembershipGate } from "@/hooks/useMembershipGate";
+import { useWalletSignIn } from "@/hooks/useWalletSignIn";
 
 export default function Home() {
   const { publicKey, connected } = useWallet();
@@ -18,14 +19,35 @@ export default function Home() {
     isVerified,
     isMember,
     isLoading,
-    isSigning,
     error,
     authError,
     signaturePrefix,
     signedAtIso,
-    verifyOwnership,
   } = useMembershipGate();
+  const { enter: enterPurpleClub, isPending: isAuthPending, error: authFlowError } =
+    useWalletSignIn();
   const [isPassOpen, setIsPassOpen] = useState(false);
+  const [directoryMerchants, setDirectoryMerchants] = useState(merchants);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadFromDb() {
+      try {
+        const res = await fetch("/api/public/merchants");
+        if (!res.ok) return;
+        const data = (await res.json()) as { merchants?: typeof merchants };
+        if (!cancelled && data.merchants && data.merchants.length > 0) {
+          setDirectoryMerchants(data.merchants);
+        }
+      } catch {
+        // fallback to bundled JSON merchants
+      }
+    }
+    void loadFromDb();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const statusLabel = isLoading
     ? "Checking"
@@ -101,15 +123,15 @@ export default function Home() {
                 Open Pass
               </button>
             </div>
-          ) : connected && hasPbtc && !isVerified ? (
+          ) : !connected || (connected && !isVerified) ? (
             <button
               type="button"
-              onClick={() => void verifyOwnership()}
-              disabled={isSigning}
+              onClick={() => void enterPurpleClub()}
+              disabled={isAuthPending}
               className="inline-flex items-center gap-1.5 rounded-full bg-gold-accent px-3.5 py-1.5 text-xs font-semibold text-black transition hover:brightness-110 disabled:opacity-60"
             >
-              <PenLine size={14} />
-              {isSigning ? "Waiting for Signature..." : "Verify Ownership"}
+              <Sparkles size={14} />
+              {isAuthPending ? "Connecting…" : "Enter Purple Prime"}
             </button>
           ) : (
             <button
@@ -122,16 +144,19 @@ export default function Home() {
           )}
         </div>
 
-        {connected && hasPbtc && !isVerified ? (
-          <div className="mt-3 rounded-xl border border-gold-accent/30 bg-gold-accent/5 px-4 py-3 text-xs text-violet-100/80">
-            <p className="font-semibold text-gold-accent">One more step: prove you own this wallet.</p>
+        {connected && isVerified && !hasPbtc ? (
+          <div className="mt-3 rounded-xl border border-purple-accent/40 bg-purple-accent/10 px-4 py-3 text-xs text-violet-100/80">
+            <p className="font-semibold text-gold-accent">Wallet verified — add PBTC to unlock.</p>
             <p className="mt-1">
-              Sign a free message to confirm the connected wallet is yours. This is{" "}
-              <strong>not</strong> a transaction and moves no funds.
+              Your ownership signature is good for 24 hours. Hold at least 1 PBTC
+              in this wallet to access the Purple Prime directory.
             </p>
-            {authError ? (
-              <p className="mt-1 text-rose-300">{authError}</p>
-            ) : null}
+          </div>
+        ) : null}
+
+        {authError || authFlowError ? (
+          <div className="mt-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
+            {authFlowError ?? authError}
           </div>
         ) : null}
 
@@ -145,7 +170,7 @@ export default function Home() {
               <p className="text-xs uppercase tracking-[0.2em] text-gold-accent">Step 1</p>
               <h3 className="mt-2 text-lg font-semibold">Acquire PBTC</h3>
               <p className="mt-2 text-sm text-violet-100/80">
-                Hold at least 1 PBTC token in your Solana wallet to unlock Purple Club access.
+                Hold at least 1 PBTC token in your Solana wallet to unlock Purple Prime access.
               </p>
             </article>
             <article
@@ -174,7 +199,7 @@ export default function Home() {
 
         <div id="directory">
           <Suspense fallback={<div className="mt-6 text-sm text-violet-100/70">Loading merchant directory...</div>}>
-            <MerchantDirectory merchants={merchants} locked={!isMember} />
+            <MerchantDirectory merchants={directoryMerchants} locked={!isMember} />
           </Suspense>
         </div>
       </div>
@@ -191,7 +216,7 @@ export default function Home() {
       <footer className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
         <div className="grid gap-6 md:grid-cols-3">
           <div>
-            <p className="text-lg font-semibold">Purple Club</p>
+            <p className="text-lg font-semibold">Purple Prime</p>
             <p className="mt-2 text-sm text-violet-100/80">
               The premier discount network for the PBTC community.
             </p>

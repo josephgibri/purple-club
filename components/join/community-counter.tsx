@@ -23,6 +23,8 @@ export function CommunityCounter() {
   const { activeHolders, isLoading, error, fetchedAt } = usePbtcHolders();
   const [displayCount, setDisplayCount] = useState(0);
   const frameRef = useRef<number | null>(null);
+  // eslint-disable-next-line react-hooks/purity
+  const now = Date.now();
 
   useEffect(() => {
     if (activeHolders === null) return;
@@ -98,7 +100,7 @@ export function CommunityCounter() {
           ) : null}
           <span className="inline-flex items-center gap-1.5 text-xs text-violet-100/55">
             <ShieldCheck size={12} />
-            {fetchedAt ? `Verified ${formatRelative(Date.now() - fetchedAt)}` : "Read-only Solana RPC"}
+            {fetchedAt ? `Verified ${formatRelative(now - fetchedAt)}` : "Read-only Solana RPC"}
           </span>
         </div>
       </div>

@@ -96,6 +96,17 @@ Maintainers: validate the details, then add the \`approved\` label to trigger th
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
+  const useGithubRelay = process.env.USE_GITHUB_RELAY === "true";
+  if (!useGithubRelay) {
+    return json(
+      {
+        error:
+          "GitHub relay is disabled. Please use the authenticated merchant dashboard flow.",
+      },
+      { status: 410 },
+    );
+  }
+
   let raw: unknown;
   try {
     raw = await request.json();

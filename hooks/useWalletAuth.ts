@@ -7,7 +7,8 @@ import nacl from "tweetnacl";
 
 const SESSION_KEY_PREFIX = "pc_auth:";
 const DOMAIN = "purple.club";
-const PROOF_TTL_MS = 10 * 60 * 1000;
+const PROOF_TTL_MS = 24 * 60 * 60 * 1000;
+const PROOF_EVENT = "pc:auth:updated";
 
 type Proof = {
   publicKey: string;
@@ -24,6 +25,7 @@ type WalletAuthState = {
   proof: Proof | null;
   verify: () => Promise<void>;
   clear: () => void;
+  setError: (value: string | null) => void;
 };
 
 function buildMessage(publicKey: string, nonce: string, issuedAt: number): string {
@@ -65,11 +67,17 @@ function readStoredProof(publicKey: string): Proof | null {
 function writeStoredProof(proof: Proof): void {
   if (typeof window === "undefined") return;
   sessionStorage.setItem(SESSION_KEY_PREFIX + proof.publicKey, JSON.stringify(proof));
+  window.dispatchEvent(
+    new CustomEvent(PROOF_EVENT, { detail: { publicKey: proof.publicKey } }),
+  );
 }
 
 function clearStoredProof(publicKey: string): void {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem(SESSION_KEY_PREFIX + publicKey);
+  window.dispatchEvent(
+    new CustomEvent(PROOF_EVENT, { detail: { publicKey } }),
+  );
 }
 
 export function useWalletAuth(): WalletAuthState {
@@ -85,8 +93,17 @@ export function useWalletAuth(): WalletAuthState {
       setError(null);
       return;
     }
-    const stored = readStoredProof(publicKey.toBase58());
-    setProof(stored);
+    const address = publicKey.toBase58();
+    setProof(readStoredProof(address));
+
+    function onProofChange(e: Event) {
+      const detail = (e as CustomEvent<{ publicKey?: string }>).detail;
+      if (detail?.publicKey && detail.publicKey !== address) return;
+      setProof(readStoredProof(address));
+    }
+
+    window.addEventListener(PROOF_EVENT, onProofChange);
+    return () => window.removeEventListener(PROOF_EVENT, onProofChange);
   }, [publicKey, connected]);
 
   const verify = useCallback(async () => {
@@ -159,5 +176,13 @@ export function useWalletAuth(): WalletAuthState {
       proof.expiresAt > now,
   );
 
-  return { isVerified, isSigning, error, proof, verify, clear };
+  return {
+    isVerified,
+    isSigning,
+    error,
+    proof,
+    verify,
+    clear,
+    setError,
+  };
 }
