@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { CityAutocomplete, type CitySelection } from "@/components/join/city-autocomplete";
+import { ImageUploadField } from "@/components/uploads/image-upload-field";
 import { MERCHANT_CATEGORIES, type MerchantCategory, SOCIAL_PLATFORMS, type SocialPlatform } from "@/data/merchants";
 import type { SessionPayload } from "@/lib/auth";
 
@@ -469,11 +470,21 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
               </>
             ) : null}
             <Input label="Website URL" value={form.website} onChange={(v) => setField("website", v)} />
-            <Input label="Logo URL" value={form.logoUrl} onChange={(v) => setField("logoUrl", v)} />
-            <Input
-              label="Hero Image URL"
+            <ImageUploadField
+              label="Logo"
+              value={form.logoUrl}
+              onChange={(v) => setField("logoUrl", v)}
+              kind="logo"
+              aspect="square"
+              hint="Square image works best. PNG/SVG with transparent background recommended."
+            />
+            <ImageUploadField
+              label="Hero image"
               value={form.heroImageUrl}
               onChange={(v) => setField("heroImageUrl", v)}
+              kind="hero"
+              aspect="wide"
+              hint="Wide cover photo (16:9) showcasing your storefront, product, or brand."
             />
             <Input label="Promo Code" value={form.promoCode} onChange={(v) => setField("promoCode", v)} />
             <Input

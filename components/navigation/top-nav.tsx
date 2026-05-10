@@ -52,13 +52,8 @@ function NavLinks(props: { onNavigate?: () => void; mobile?: boolean }) {
     : "rounded-lg px-3 py-2 text-sm text-violet-100/85 hover:bg-white/10";
 
   return (
-    <>
-      <Link href="/#directory" className={classes} onClick={props.onNavigate}>
-        Directory
-      </Link>
-      <Link href="/join" className={classes} onClick={props.onNavigate}>
-        Join as Merchant
-      </Link>
-    </>
+    <Link href="/join" className={classes} onClick={props.onNavigate}>
+      For Merchants
+    </Link>
   );
 }

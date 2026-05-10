@@ -72,19 +72,18 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-8 sm:py-10">
       <div className="rounded-3xl border border-border bg-surface p-8 shadow-2xl shadow-black/20">
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-          Member Dashboard
-        </h1>
-        <p className="mt-3 max-w-xl text-sm text-violet-100/75">
-          Connect your wallet to verify that you hold at least 1 PBTC. Access
-          remains fully client-side and read-only against Solana RPC.
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
+          Member Access
         </p>
-        <Link
-          href="/join"
-          className="mt-4 inline-flex rounded-lg border border-purple-accent/70 bg-surface-muted px-4 py-2 text-sm text-violet-50 hover:bg-purple-accent/20"
-        >
-          Own a business? Join the Merchant Network
-        </Link>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Discounts you only get for holding PBTC.
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm text-violet-100/80">
+          Purple Prime is a private discount network for the PBTC community.
+          Hold at least <span className="font-semibold text-gold-accent">1 PBTC</span> in your
+          Solana wallet to unlock exclusive offers from vetted online and local merchants.
+          Verification is read-only — your tokens never leave your wallet.
+        </p>
 
         <div className="mt-7 inline-flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-3 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 backdrop-blur-xl">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
@@ -225,10 +224,10 @@ export default function Home() {
             <p className="text-sm font-semibold text-gold-accent">Navigation</p>
             <div className="mt-2 grid gap-2 text-sm">
               <Link href="/#directory" className="text-violet-100/85 hover:text-white">
-                Directory
+                Browse merchants
               </Link>
               <Link href="/join" className="text-violet-100/85 hover:text-white">
-                Join as Merchant
+                For Merchants
               </Link>
             </div>
           </div>
