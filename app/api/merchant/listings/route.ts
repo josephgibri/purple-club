@@ -83,6 +83,10 @@ export async function POST(request: Request): Promise<Response> {
       discountDetails: data.discountDetails,
       socialPlatform: data.socialPlatform,
       socialHandle: data.socialHandle,
+      fsqId: data.fsqId ?? null,
+      fsqName: data.fsqName ?? null,
+      fsqAddress: data.fsqAddress ?? null,
+      fsqVerifiedAt: data.fsqId ? new Date() : null,
       status: data.status === "DRAFT" ? "DRAFT" : "SUBMITTED",
     },
   });

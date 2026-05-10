@@ -24,6 +24,7 @@ enum ReviewAction {
   APPROVED
   REJECTED
   SENT_BACK
+  EDITED
 }
 
 model User {
@@ -68,6 +69,11 @@ model MerchantListing {
   discountDetails  String
   socialPlatform   String?
   socialHandle     String?
+  fsqId            String?
+  fsqName          String?
+  fsqAddress       String?
+  fsqVerifiedAt    DateTime?
+  adminNotes       String?
   status           ListingStatus  @default(DRAFT)
   rejectionReason  String?
   approvedAt       DateTime?
