@@ -44,8 +44,22 @@ export function DirectoryClient() {
         const res = await fetch("/api/public/merchants");
         if (!res.ok) return;
         const data = (await res.json()) as { merchants?: Merchant[] };
-        if (!cancelled && data.merchants && data.merchants.length > 0) {
-          setDirectoryMerchants(data.merchants);
+        if (cancelled) return;
+        // Merge DB-driven listings with the bundled showcase merchants
+        // (Lucky Barbershop, Gold's Gym, etc.). DB takes precedence on
+        // matching slugs so a real merchant always wins over the demo
+        // entry with the same id (e.g. `purple-stay` lives in both
+        // places after the rename script). Without this merge the
+        // bundled demo cards vanish the moment the DB fetch resolves —
+        // exactly what the screenshot showed.
+        const dbMerchants = data.merchants ?? [];
+        const dbIds = new Set(dbMerchants.map((m) => m.id));
+        const merged = [
+          ...dbMerchants,
+          ...bundledMerchants.filter((m) => !dbIds.has(m.id)),
+        ];
+        if (merged.length > 0) {
+          setDirectoryMerchants(merged);
         }
       } catch {
         // Fall back to bundled JSON merchants.

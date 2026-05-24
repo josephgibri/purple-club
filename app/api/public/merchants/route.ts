@@ -44,6 +44,12 @@ export async function GET(): Promise<Response> {
       logoUrl: item.logoUrl,
       heroImageUrl: item.heroImageUrl,
       promoCode: item.promoCode ?? undefined,
+      // The drawer's "Visit Website" CTA reads from `ctaHref`. Without
+      // this mapping it falls back to "#" and the click does nothing —
+      // exactly what was happening on Purple Stay in prod. Default the
+      // label too so it shows the same copy as bundled merchants.
+      ctaHref: item.website || undefined,
+      ctaLabel: item.website ? "Visit Website" : undefined,
       verificationHint: item.approvedAt ? "Approved by Purple Club admin." : undefined,
       lat: item.lat ?? undefined,
       lng: item.lng ?? undefined,

@@ -116,12 +116,13 @@ export function MerchantDetailDrawer({
             className="object-cover"
             onError={() => setHeroError(true)}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#05020f] to-transparent" />
+          {/* The gradient is purely decorative — never intercept clicks. */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#05020f] to-transparent" />
           <button
             ref={closeButtonRef}
             type="button"
             onClick={close}
-            className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-gold-accent/45 bg-black/45 text-white"
+            className="absolute right-3 top-3 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-gold-accent/45 bg-black/60 text-white shadow-lg shadow-black/40 transition hover:bg-black/80"
             aria-label="Close merchant drawer"
           >
             <X size={18} />
