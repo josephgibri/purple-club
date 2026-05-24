@@ -22,6 +22,8 @@ type VerifyResult =
       message: string;
     };
 
+const MERCHANT_STORAGE_KEY = "purpleclub:verifier_merchant";
+
 /**
  * Merchant-facing verifier.
  *
@@ -40,37 +42,83 @@ type VerifyResult =
  *   3. Paste a verification URL when the camera can't focus (kiosks,
  *      desktop browsers, broken permissions).
  */
-export function VerifyClient({ initialToken }: { initialToken: string | null }) {
+type VerifyClientProps = {
+  initialToken: string | null;
+  initialMerchantId: string | null;
+};
+
+export function VerifyClient({ initialToken, initialMerchantId }: VerifyClientProps) {
   const [mode, setMode] = useState<"idle" | "scanning" | "loading" | "result">(
     initialToken ? "loading" : "idle",
   );
   const [result, setResult] = useState<VerifyResult | null>(null);
   const [pasteValue, setPasteValue] = useState("");
+  // Once a merchant scans `/verify?m=<slug>` on their counter device
+  // we remember the slug locally. Future taps on the same device omit
+  // `?m=` (e.g. typing the URL by hand) but still get attributed to
+  // the right merchant. They can clear it via the "switch merchant"
+  // link in the footer.
+  const [merchantId, setMerchantId] = useState<string | null>(initialMerchantId);
 
-  const runVerify = useCallback(async (token: string) => {
-    setMode("loading");
-    setResult(null);
-    try {
-      const res = await fetch(
-        `/api/public/verify-pass?t=${encodeURIComponent(token)}`,
-      );
-      const data = (await res.json()) as VerifyResult;
-      setResult(data);
-    } catch {
-      setResult({
-        valid: false,
-        reason: "network",
-        message: "Could not reach the verifier. Check your connection and try again.",
-      });
-    } finally {
-      setMode("result");
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (initialMerchantId) {
+      try {
+        window.localStorage.setItem(MERCHANT_STORAGE_KEY, initialMerchantId);
+      } catch {
+        // localStorage might be blocked in some private modes — fine.
+      }
+      return;
     }
-  }, []);
+    try {
+      const stored = window.localStorage.getItem(MERCHANT_STORAGE_KEY);
+      if (stored) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setMerchantId(stored);
+      }
+    } catch {
+      // Read failure — proceed unattributed.
+    }
+  }, [initialMerchantId]);
+
+  const runVerify = useCallback(
+    async (token: string) => {
+      setMode("loading");
+      setResult(null);
+      try {
+        const params = new URLSearchParams({ t: token });
+        if (merchantId) params.set("m", merchantId);
+        const res = await fetch(`/api/public/verify-pass?${params.toString()}`);
+        const data = (await res.json()) as VerifyResult;
+        setResult(data);
+      } catch {
+        setResult({
+          valid: false,
+          reason: "network",
+          message: "Could not reach the verifier. Check your connection and try again.",
+        });
+      } finally {
+        setMode("result");
+      }
+    },
+    [merchantId],
+  );
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (initialToken) void runVerify(initialToken);
   }, [initialToken, runVerify]);
+
+  function clearMerchant() {
+    setMerchantId(null);
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.removeItem(MERCHANT_STORAGE_KEY);
+      } catch {
+        // ignore — best effort
+      }
+    }
+  }
 
   const handleScan = useCallback(
     (raw: string) => {
@@ -190,6 +238,19 @@ export function VerifyClient({ initialToken }: { initialToken: string | null }) 
       <p className="mt-6 text-center text-[11px] uppercase tracking-[0.18em] text-violet-100/45">
         Two-layer check · Signature + live PBTC balance
       </p>
+
+      {merchantId ? (
+        <p className="mt-2 text-center text-[11px] text-violet-100/55">
+          Scans attributed to <strong className="text-violet-100">{merchantId}</strong>{" "}
+          <button
+            type="button"
+            onClick={clearMerchant}
+            className="ml-1 underline underline-offset-2 hover:text-violet-100"
+          >
+            switch
+          </button>
+        </p>
+      ) : null}
     </main>
   );
 }

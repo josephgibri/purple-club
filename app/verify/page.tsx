@@ -9,11 +9,13 @@ export const metadata: Metadata = {
 };
 
 type VerifyPageProps = {
-  searchParams: Promise<{ t?: string }>;
+  searchParams: Promise<{ t?: string; m?: string }>;
 };
 
 export default async function VerifyPage({ searchParams }: VerifyPageProps) {
-  const { t } = await searchParams;
+  const { t, m } = await searchParams;
   const token = typeof t === "string" && t.length > 0 ? t : null;
-  return <VerifyClient initialToken={token} />;
+  const initialMerchantId =
+    typeof m === "string" && m.length > 0 ? m : null;
+  return <VerifyClient initialToken={token} initialMerchantId={initialMerchantId} />;
 }

@@ -9,6 +9,7 @@ import {
   CATEGORY_HERO_FALLBACK as DEFAULT_HERO_BY_CATEGORY,
   type Merchant,
 } from "@/data/merchants";
+import { useListingTracking } from "@/hooks/useListingTracking";
 
 const MerchantLocationMap = dynamic(
   () => import("@/components/merchants/merchant-location-map"),
@@ -34,6 +35,7 @@ export function MerchantDetailDrawer({
   const [logoError, setLogoError] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const { trackEvent } = useListingTracking();
 
   const close = useCallback(() => {
     setCopied(false);
@@ -163,6 +165,7 @@ export function MerchantDetailDrawer({
             href={merchant.ctaHref ?? "#"}
             target="_blank"
             rel="noreferrer"
+            onClick={() => trackEvent(merchant.id, "WEBSITE_CLICK")}
             className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold-accent px-4 py-3 text-sm font-semibold text-black"
           >
             {merchant.ctaLabel ?? "Visit Website"}
@@ -180,6 +183,7 @@ export function MerchantDetailDrawer({
                 onClick={async () => {
                   if (!merchant.promoCode) return;
                   await navigator.clipboard.writeText(merchant.promoCode);
+                  trackEvent(merchant.id, "CODE_COPY");
                   setCopied(true);
                   window.setTimeout(() => setCopied(false), 1600);
                 }}
@@ -208,6 +212,7 @@ export function MerchantDetailDrawer({
                   href={mapsLink}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => trackEvent(merchant.id, "MAPS_CLICK")}
                   className="mt-3 inline-flex items-center gap-2 rounded-lg border border-gold-accent/40 bg-[#1a0d33] px-3 py-2 text-sm"
                 >
                   <MapPin size={14} />

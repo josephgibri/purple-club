@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Download, Printer } from "lucide-react";
+import { ArrowLeft, Check, Copy, Download, ScanLine, Printer } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { PurpleClubSticker } from "@/components/sticker/purple-club-sticker";
@@ -27,6 +27,7 @@ type StickerClientProps = {
  */
 export function StickerClient({ merchantId }: StickerClientProps) {
   const [origin, setOrigin] = useState<string>("https://purpleclub.xyz");
+  const [verifierCopied, setVerifierCopied] = useState(false);
   const stickerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -41,6 +42,27 @@ export function StickerClient({ merchantId }: StickerClientProps) {
     if (merchantId) params.set("merchant", merchantId);
     return `${origin}/welcome?${params.toString()}`;
   }, [origin, merchantId]);
+
+  // Personalised verifier URL — when the merchant scans a pass from
+  // this device the PASS_SCAN gets attributed to their listing. They
+  // bookmark it once on their counter phone, then forget about it.
+  const verifierUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    if (merchantId) params.set("m", merchantId);
+    const qs = params.toString();
+    return qs ? `${origin}/verify?${qs}` : `${origin}/verify`;
+  }, [origin, merchantId]);
+
+  async function copyVerifierUrl() {
+    try {
+      await navigator.clipboard.writeText(verifierUrl);
+      setVerifierCopied(true);
+      window.setTimeout(() => setVerifierCopied(false), 1800);
+    } catch {
+      // Clipboard might be blocked — fall back to a tiny prompt.
+      window.prompt("Copy your verifier link", verifierUrl);
+    }
+  }
 
   function getSvgElement(): SVGSVGElement | null {
     return stickerRef.current?.querySelector<SVGSVGElement>(
@@ -214,6 +236,38 @@ export function StickerClient({ merchantId }: StickerClientProps) {
                 </li>
               ) : null}
             </ul>
+          </div>
+
+          <div className="rounded-2xl border border-emerald-400/40 bg-emerald-500/5 p-5 backdrop-blur-xl">
+            <p className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-200">
+              <ScanLine size={11} />
+              Bookmark your verifier
+            </p>
+            <p className="mt-2 text-xs text-violet-100/80">
+              Open this URL once on the phone or tablet you keep at the
+              counter. Every successful pass scan from that device gets
+              attributed to your shop in analytics.
+            </p>
+            <div className="mt-3 rounded-lg border border-emerald-300/30 bg-black/30 px-3 py-2 font-mono text-[11px] text-emerald-100/90">
+              {verifierUrl.replace(origin, "") || "/verify"}
+            </div>
+            <button
+              type="button"
+              onClick={() => void copyVerifierUrl()}
+              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-300/40 bg-emerald-500/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100 transition hover:bg-emerald-500/15"
+            >
+              {verifierCopied ? <Check size={12} /> : <Copy size={12} />}
+              {verifierCopied ? "Copied" : "Copy verifier link"}
+            </button>
+            {!merchantId ? (
+              <p className="mt-3 text-[11px] text-amber-200/85">
+                No merchant slug in this URL — open{" "}
+                <Link href="/merchant/dashboard" className="underline">
+                  your dashboard
+                </Link>{" "}
+                first so the link gets personalised.
+              </p>
+            ) : null}
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-xs text-violet-100/70 backdrop-blur-xl">

@@ -33,6 +33,31 @@ type AddressAutocompleteProps = {
 
 const MIN_QUERY = 2;
 const DEBOUNCE_MS = 350;
+const PROVIDER_DEGRADED_COPY =
+  "Address suggestions are temporarily unavailable. Type freeform — it'll still save.";
+
+/**
+ * Render the dropdown only when it would actually show something
+ * useful. Without this guard, a provider-degraded state leaves an
+ * empty amber-tinted panel hovering over the map for the rest of
+ * the typing session — a screenshot the user pinged us about.
+ *
+ * Rules: show if (a) we have results, (b) we're actively loading,
+ * or (c) we have an error message AND no results AND no loading
+ * spinner has been emitted yet. After the user keeps typing past
+ * a transient error, the next successful response will repopulate
+ * `results` or reset `providerError`, so the panel naturally returns.
+ */
+function shouldShowDropdown(
+  resultsLength: number,
+  isLoading: boolean,
+  providerError: string | null,
+): boolean {
+  if (resultsLength > 0) return true;
+  if (isLoading) return true;
+  if (providerError) return true;
+  return false;
+}
 
 /**
  * Foursquare-powered address autocomplete. Replaces the old
@@ -75,10 +100,20 @@ export function AddressAutocomplete(props: AddressAutocompleteProps) {
         // Ignore late responses for stale queries.
         if (lastQueryRef.current !== trimmed) return;
         if (!res.ok) {
-          if (res.status === 503) {
-            setProviderError(
-              "Address suggestions are off (admin hasn't configured Foursquare). Type freeform — it'll still save.",
-            );
+          // Collapse every "provider broken" status (401 unauth,
+          // 403 forbidden, 429 rate-limit, 5xx upstream-down, plus
+          // any 502 from our own route) to the same friendly copy
+          // so an env mishap or transient Foursquare hiccup doesn't
+          // make the whole onboarding step look broken.
+          if (
+            res.status === 401 ||
+            res.status === 403 ||
+            res.status === 429 ||
+            res.status === 502 ||
+            res.status === 503 ||
+            res.status >= 500
+          ) {
+            setProviderError(PROVIDER_DEGRADED_COPY);
           } else {
             setProviderError(data.error ?? "Suggestions unavailable.");
           }
@@ -88,7 +123,7 @@ export function AddressAutocomplete(props: AddressAutocompleteProps) {
         setProviderError(null);
         setResults(data.matches ?? []);
       } catch {
-        setProviderError("Network error fetching suggestions.");
+        setProviderError(PROVIDER_DEGRADED_COPY);
         setResults([]);
       } finally {
         setIsLoading(false);
@@ -181,13 +216,13 @@ export function AddressAutocomplete(props: AddressAutocompleteProps) {
         aria-controls="address-autocomplete-listbox"
         role="combobox"
       />
-      {isOpen && (results.length > 0 || isLoading || providerError) ? (
+      {isOpen && shouldShowDropdown(results.length, isLoading, providerError) ? (
         <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-border bg-surface shadow-xl shadow-black/30">
           {isLoading && results.length === 0 ? (
             <p className="px-4 py-2 text-xs text-violet-100/70">Searching…</p>
           ) : null}
-          {providerError ? (
-            <p className="border-b border-border/60 px-4 py-2 text-[11px] text-amber-200/85">
+          {providerError && results.length === 0 && !isLoading ? (
+            <p className="px-4 py-2 text-[11px] text-amber-200/85">
               {providerError}
             </p>
           ) : null}

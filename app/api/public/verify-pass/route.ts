@@ -1,6 +1,8 @@
 import { PublicKey } from "@solana/web3.js";
 import { errors as joseErrors } from "jose";
 
+import { recordEvent } from "@/lib/analytics";
+import { db } from "@/lib/db";
 import { verifyPassToken } from "@/lib/passToken";
 import { getPbtcBalanceWithFallback } from "@/lib/solana";
 
@@ -121,6 +123,30 @@ export async function GET(request: Request): Promise<Response> {
       },
       403,
     );
+  }
+
+  // Attribution: only on success, only when the URL carries a real
+  // merchant slug. We intentionally don't pad metrics with failed
+  // scans (expired pass, no PBTC) — those are noise from the
+  // merchant's perspective.
+  const merchantSlug = url.searchParams.get("m")?.trim();
+  if (merchantSlug) {
+    try {
+      const listing = await db.merchantListing.findUnique({
+        where: { merchantId: merchantSlug },
+        select: { id: true, status: true },
+      });
+      if (listing && listing.status === "APPROVED") {
+        await recordEvent({
+          listingId: listing.id,
+          eventType: "PASS_SCAN",
+          headers: request.headers,
+        });
+      }
+    } catch (error) {
+      // Tracking must never break verification.
+      console.error("PASS_SCAN attribution failed", error);
+    }
   }
 
   return jsonOutcome(

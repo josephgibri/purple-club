@@ -6,6 +6,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import { AddressAutocomplete, type AddressSelection } from "@/components/join/address-autocomplete";
 import { CityAutocomplete, type CitySelection } from "@/components/join/city-autocomplete";
+import {
+  AnalyticsPanel,
+  type ListingAnalytics,
+} from "@/components/merchant/analytics-panel";
 import { ImageUploadField } from "@/components/uploads/image-upload-field";
 import {
   CATEGORY_LABELS,
@@ -161,6 +165,8 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [analytics, setAnalytics] = useState<ListingAnalytics[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
   // Controlled accordion — only one step open at a time so a fresh
   // merchant isn't dumped into 3 simultaneously-open panels. When
   // they're editing an existing listing we open the whole form (step
@@ -175,8 +181,26 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
 
   useEffect(() => {
     void refresh();
+    void loadAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function loadAnalytics() {
+    setAnalyticsLoading(true);
+    try {
+      const res = await fetch("/api/merchant/analytics");
+      if (!res.ok) {
+        setAnalytics([]);
+        return;
+      }
+      const data = (await res.json()) as { listings?: ListingAnalytics[] };
+      setAnalytics(data.listings ?? []);
+    } catch {
+      setAnalytics([]);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }
 
   async function refresh() {
     setIsLoading(true);
@@ -371,6 +395,30 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
           </button>
         </div>
       </div>
+
+      {analyticsLoading ? (
+        <div className="rounded-2xl border border-border bg-surface p-5 text-sm text-violet-100/70">
+          Loading analytics…
+        </div>
+      ) : analytics.length > 0 ? (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-gold-accent">
+              Merchant analytics
+            </h2>
+            <button
+              type="button"
+              onClick={() => void loadAnalytics()}
+              className="rounded-lg border border-border bg-surface-muted px-3 py-1 text-xs text-violet-100/85 hover:border-purple-accent"
+            >
+              Refresh
+            </button>
+          </div>
+          {analytics.map((entry) => (
+            <AnalyticsPanel key={entry.listingId} data={entry} />
+          ))}
+        </section>
+      ) : null}
 
       <Link
         href={stickerHref}

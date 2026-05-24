@@ -1,10 +1,10 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Menu, ScanLine, Sparkles, Store, X } from "lucide-react";
+import { Menu, ScanLine, ShieldCheck, Sparkles, Store, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PurpleClubAuthButton } from "@/components/auth/purple-club-auth-button";
 import { useWalletAuth } from "@/hooks/useWalletAuth";
@@ -28,6 +28,7 @@ export function TopNav() {
   const pathname = usePathname();
   const isAuthed = connected && isVerified;
   const isVerifyRoute = pathname === "/verify";
+  const isAdmin = useIsAdmin();
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0618]/70 backdrop-blur-xl">
@@ -43,7 +44,7 @@ export function TopNav() {
         </Link>
 
         <div className="hidden items-center gap-3 md:flex">
-          <NavLinks isAuthed={isAuthed} pathname={pathname} />
+          <NavLinks isAuthed={isAuthed} pathname={pathname} isAdmin={isAdmin} />
           {!isVerifyRoute ? <PurpleClubAuthButton /> : null}
         </div>
 
@@ -63,6 +64,7 @@ export function TopNav() {
             <NavLinks
               isAuthed={isAuthed}
               pathname={pathname}
+              isAdmin={isAdmin}
               onNavigate={() => setOpen(false)}
               mobile
             />
@@ -74,14 +76,43 @@ export function TopNav() {
   );
 }
 
+/**
+ * Lightweight session probe that only triggers a single GET on mount.
+ * We don't put this in a global context because admin status is rare
+ * and not worth dragging through the whole tree — the nav is the only
+ * place that needs it today.
+ */
+function useIsAdmin(): boolean {
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { user?: { role?: string } } | null) => {
+        if (cancelled) return;
+        setIsAdmin(data?.user?.role === "ADMIN");
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setIsAdmin(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return isAdmin;
+}
+
 type NavLinksProps = {
   isAuthed: boolean;
   pathname: string;
+  isAdmin: boolean;
   onNavigate?: () => void;
   mobile?: boolean;
 };
 
-function NavLinks({ isAuthed, pathname, onNavigate, mobile }: NavLinksProps) {
+function NavLinks({ isAuthed, pathname, isAdmin, onNavigate, mobile }: NavLinksProps) {
   const base = mobile
     ? "flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm"
     : "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm";
@@ -123,6 +154,21 @@ function NavLinks({ isAuthed, pathname, onNavigate, mobile }: NavLinksProps) {
       <Link href="/join" onClick={onNavigate} className={classFor("/join")}>
         For Merchants
       </Link>
+      {isAdmin ? (
+        <Link
+          href="/admin/reviews"
+          onClick={onNavigate}
+          className={
+            mobile
+              ? "flex items-center gap-2 rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-amber-100 transition hover:border-rose-300/70 hover:bg-rose-500/15"
+              : "inline-flex items-center gap-1.5 rounded-full border border-rose-400/40 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100 transition hover:border-rose-300/70 hover:bg-rose-500/15"
+          }
+          aria-label="Admin review queue"
+        >
+          <ShieldCheck size={14} />
+          Admin
+        </Link>
+      ) : null}
     </>
   );
 }

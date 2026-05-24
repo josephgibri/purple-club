@@ -4,7 +4,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { MerchantDetailDrawer } from "@/components/merchants/merchant-detail-drawer";
 import {
@@ -15,6 +15,7 @@ import {
   type MerchantCategory,
   type MerchantType,
 } from "@/data/merchants";
+import { useListingTracking } from "@/hooks/useListingTracking";
 
 /**
  * Best-effort channel mix lookup. New listings ship `merchantType`
@@ -47,6 +48,21 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
   const [imgErr, setImgErr] = useState<ImgErrState>({ hero: {}, logo: {} });
+  const { trackEvent } = useListingTracking();
+  // De-dupe impressions within a page view. A merchant who appears in
+  // both the anchor stripe and a filtered grid result should still only
+  // count once.
+  const seenImpressions = useRef<Set<string>>(new Set());
+
+  const trackImpression = useCallback(
+    (merchantId: string) => {
+      if (locked || !merchantId) return;
+      if (seenImpressions.current.has(merchantId)) return;
+      seenImpressions.current.add(merchantId);
+      trackEvent(merchantId, "IMPRESSION");
+    },
+    [locked, trackEvent],
+  );
 
   function markHeroError(id: string) {
     setImgErr((prev) => ({ ...prev, hero: { ...prev.hero, [id]: true } }));
@@ -121,6 +137,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
 
   function openMerchant(merchant: Merchant) {
     if (locked) return;
+    trackEvent(merchant.id, "DRAWER_OPEN");
     const params = new URLSearchParams(searchParams.toString());
     params.set("merchant", merchant.id);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
@@ -200,9 +217,12 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
       {anchorMerchants.length > 0 ? (
         <div className={clsx("space-y-4", locked && "relative")}>
           {anchorMerchants.map((merchant, index) => (
-            <button
-              type="button"
+            <ImpressionCard
               key={merchant.id}
+              merchantId={merchant.id}
+              onImpression={trackImpression}
+              as="button"
+              type="button"
               onClick={() => openMerchant(merchant)}
               className={clsx(
                 "group relative block w-full overflow-hidden rounded-3xl border border-gold-accent/60 text-left shadow-[0_0_40px_-15px_rgba(246,196,83,0.35)] transition hover:border-gold-accent hover:shadow-[0_0_50px_-10px_rgba(246,196,83,0.55)]",
@@ -251,7 +271,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
                   </div>
                 </div>
               </div>
-            </button>
+            </ImpressionCard>
           ))}
         </div>
       ) : null}
@@ -259,9 +279,12 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
       <div className={clsx("grid gap-4 sm:grid-cols-2", locked && "relative")}>
         {hasResults ? (
           standardMerchants.map((merchant, index) => (
-            <button
-              type="button"
+            <ImpressionCard
               key={merchant.id}
+              merchantId={merchant.id}
+              onImpression={trackImpression}
+              as="button"
+              type="button"
               onClick={() => openMerchant(merchant)}
               className={clsx(
                 "group overflow-hidden rounded-2xl border border-border text-left transition hover:scale-[1.01] hover:border-purple-accent",
@@ -317,7 +340,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
                   </span>
                 </div>
               </div>
-            </button>
+            </ImpressionCard>
           ))
         ) : (
           <article className="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-xl sm:col-span-2">
@@ -421,6 +444,61 @@ function FilterButton({ label, active, onClick }: FilterButtonProps) {
       )}
     >
       {label}
+    </button>
+  );
+}
+
+type ImpressionCardProps = {
+  merchantId: string;
+  onImpression: (merchantId: string) => void;
+  as: "button";
+  type?: "button" | "submit" | "reset";
+  onClick: () => void;
+  className?: string;
+  children: React.ReactNode;
+};
+
+/**
+ * Card wrapper that fires `onImpression(merchantId)` the first time
+ * the card crosses 50% visibility in the viewport. Uses a single
+ * shared IntersectionObserver per card mount (cheap) and disconnects
+ * once the impression has been logged so we don't re-observe forever.
+ */
+function ImpressionCard({
+  merchantId,
+  onImpression,
+  type = "button",
+  onClick,
+  className,
+  children,
+}: ImpressionCardProps) {
+  const ref = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || typeof IntersectionObserver === "undefined") {
+      onImpression(merchantId);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            onImpression(merchantId);
+            observer.disconnect();
+            return;
+          }
+        }
+      },
+      { threshold: [0.5] },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [merchantId, onImpression]);
+
+  return (
+    <button ref={ref} type={type} onClick={onClick} className={className}>
+      {children}
     </button>
   );
 }

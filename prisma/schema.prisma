@@ -27,6 +27,22 @@ enum ReviewAction {
   EDITED
 }
 
+/**
+ * Funnel events emitted for an approved merchant listing. The
+ * directory + drawer fire the web-side ones from the browser via
+ * /api/track; PASS_SCAN is server-issued by /api/public/verify-pass
+ * and never accepted from a client (otherwise a curl could pad a
+ * merchant's metrics).
+ */
+enum ListingEventType {
+  IMPRESSION
+  DRAWER_OPEN
+  CODE_COPY
+  WEBSITE_CLICK
+  MAPS_CLICK
+  PASS_SCAN
+}
+
 model User {
   id           String               @id @default(cuid())
   email        String               @unique
@@ -67,6 +83,28 @@ model MerchantProfile {
   updatedAt   DateTime          @updatedAt
   user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   listings    MerchantListing[]
+}
+
+model ListingEvent {
+  id          String           @id @default(cuid())
+  listingId   String
+  eventType   ListingEventType
+  /**
+   * Opaque viewer fingerprint: sha256(ip + ua + dayBucket + ANALYTICS_HASH_SALT).
+   * Stable for ~24h so we can compute uniques without storing any PII.
+   * Rotates daily so the same IP+UA becomes a brand-new fingerprint
+   * the next day — bounds the per-viewer linkability.
+   */
+  viewerHash  String
+  country     String?
+  city        String?
+  uaKind      String?
+  referrer    String?
+  createdAt   DateTime         @default(now())
+  listing     MerchantListing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, createdAt])
+  @@index([listingId, eventType, createdAt])
 }
 
 model MerchantListing {
@@ -112,6 +150,7 @@ model MerchantListing {
   updatedAt        DateTime       @updatedAt
   profile          MerchantProfile @relation(fields: [merchantProfileId], references: [id], onDelete: Cascade)
   reviews          ListingReview[]
+  events           ListingEvent[]
 }
 
 model ListingReview {

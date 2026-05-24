@@ -1,12 +1,24 @@
-// Server-only Foursquare Places (v3) helper.
+// Server-only Foursquare Places helper.
 // Free tier: ~99,500 calls/month for non-enterprise.
-// Docs: https://docs.foursquare.com/developer/reference/place-search
+// Docs: https://docs.foursquare.com/fsq-developers-places/reference/place-search
+// Migration: https://docs.foursquare.com/fsq-developers-users/reference/migration-guide
+//
+// Foursquare deprecated the legacy `api.foursquare.com/v3/...` host
+// in 2025 and rolled out new "Service API Keys" that authenticate via
+// `Authorization: Bearer <key>` and require a dated `X-Places-Api-Version`
+// header. The response shape also changed: `fsq_id` → `fsq_place_id`,
+// `geocodes.main.{latitude,longitude}` → top-level `latitude` / `longitude`.
+// We keep the public `FsqMatch` shape identical so downstream callers
+// (AddressAutocomplete, listing routes) need zero changes.
 
-const ENDPOINT = "https://api.foursquare.com/v3/places/search";
+const ENDPOINT = "https://places-api.foursquare.com/places/search";
+const PLACES_API_VERSION = "2025-06-17";
 
 export type FsqPlace = {
-  fsq_id: string;
+  fsq_place_id: string;
   name: string;
+  latitude?: number;
+  longitude?: number;
   location?: {
     address?: string;
     locality?: string;
@@ -14,10 +26,7 @@ export type FsqPlace = {
     country?: string;
     formatted_address?: string;
   };
-  geocodes?: {
-    main?: { latitude: number; longitude: number };
-  };
-  categories?: Array<{ id: number; name: string }>;
+  categories?: Array<{ fsq_category_id: string; name: string }>;
   website?: string;
   tel?: string;
   distance?: number;
@@ -56,13 +65,13 @@ export function isFsqEnabled(): boolean {
 function toMatch(p: FsqPlace): FsqMatch {
   const loc = p.location ?? {};
   return {
-    id: p.fsq_id,
+    id: p.fsq_place_id,
     name: p.name,
     address: loc.formatted_address ?? loc.address ?? "",
     city: loc.locality ?? "",
     country: loc.country ?? "",
-    lat: p.geocodes?.main?.latitude ?? null,
-    lng: p.geocodes?.main?.longitude ?? null,
+    lat: typeof p.latitude === "number" ? p.latitude : null,
+    lng: typeof p.longitude === "number" ? p.longitude : null,
     category: p.categories?.[0]?.name ?? "",
     website: p.website ?? "",
     tel: p.tel ?? "",
@@ -79,7 +88,8 @@ export async function searchPlaces(input: FsqSearchInput): Promise<FsqMatch[]> {
 
   const res = await fetch(`${ENDPOINT}?${params.toString()}`, {
     headers: {
-      Authorization: apiKey,
+      Authorization: `Bearer ${apiKey}`,
+      "X-Places-Api-Version": PLACES_API_VERSION,
       Accept: "application/json",
     },
     cache: "no-store",
