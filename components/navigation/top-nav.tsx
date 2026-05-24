@@ -32,11 +32,14 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0618]/70 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <Link
-          href="/"
-          className="inline-flex items-center text-base font-semibold uppercase tracking-[0.28em] text-[#D4AF37] transition hover:text-[#F1C75A]"
-        >
-          Purple Club
+        <Link href="/" className="flex items-center gap-2">
+          <span
+            aria-hidden
+            className="inline-block h-2.5 w-2.5 rounded-full bg-gold-accent shadow-[0_0_18px_rgba(246,196,83,0.65)]"
+          />
+          <span className="pc-serif text-lg font-semibold tracking-tight text-white">
+            Purple Club
+          </span>
         </Link>
 
         <div className="hidden items-center gap-3 md:flex">
