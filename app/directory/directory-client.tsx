@@ -45,17 +45,31 @@ export function DirectoryClient() {
         if (!res.ok) return;
         const data = (await res.json()) as { merchants?: Merchant[] };
         if (cancelled) return;
-        // Merge DB-driven listings with the bundled showcase merchants
-        // (Lucky Barbershop, Gold's Gym, etc.). DB takes precedence on
-        // matching slugs so a real merchant always wins over the demo
-        // entry with the same id (e.g. `purple-stay` lives in both
-        // places after the rename script). Without this merge the
-        // bundled demo cards vanish the moment the DB fetch resolves —
-        // exactly what the screenshot showed.
+        // Merge DB-driven listings with the bundled showcase merchants.
+        // For each DB row we look for a bundled overlay with the same
+        // slug and inherit its CURATORIAL fields — anchor placement,
+        // ctaLabel/ctaHref fallback, verification hint. Those aren't
+        // merchant-editable in the DB schema, they're editorial picks
+        // (e.g. Purple Stay is the flagship anchor). Without this
+        // overlay the directory flashes from "Purple Stay as anchor"
+        // (bundled initial state) to "Purple Stay as regular card"
+        // (DB version) the moment the fetch resolves.
         const dbMerchants = data.merchants ?? [];
-        const dbIds = new Set(dbMerchants.map((m) => m.id));
+        const overlaid = dbMerchants.map<Merchant>((dbItem) => {
+          const bundled = bundledMerchants.find((b) => b.id === dbItem.id);
+          if (!bundled) return dbItem;
+          return {
+            ...dbItem,
+            isAnchor: dbItem.isAnchor ?? bundled.isAnchor,
+            ctaLabel: dbItem.ctaLabel ?? bundled.ctaLabel,
+            ctaHref: dbItem.ctaHref ?? bundled.ctaHref,
+            verificationHint:
+              dbItem.verificationHint ?? bundled.verificationHint,
+          };
+        });
+        const dbIds = new Set(overlaid.map((m) => m.id));
         const merged = [
-          ...dbMerchants,
+          ...overlaid,
           ...bundledMerchants.filter((m) => !dbIds.has(m.id)),
         ];
         if (merged.length > 0) {
