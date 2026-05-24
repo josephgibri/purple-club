@@ -167,12 +167,16 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
   const [error, setError] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState<ListingAnalytics[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
-  // Controlled accordion — only one step open at a time so a fresh
-  // merchant isn't dumped into 3 simultaneously-open panels. When
-  // they're editing an existing listing we open the whole form (step
-  // = "all") since they're scanning for what to change rather than
-  // walking through it linearly.
-  const [openStep, setOpenStep] = useState<1 | 2 | 3 | "all">(1);
+  // Controlled accordion:
+  //   - First-time merchant: step 1 open so they have a clear next
+  //     action ("Identity").
+  //   - Existing listing: ALL CLOSED ("none"). The status panel above
+  //     already tells them everything's live; they only expand a step
+  //     when they want to actively edit something.
+  //   - "all" remains a valid value for callers that want to spread
+  //     every step open at once (currently unused but kept for future
+  //     "Expand all" affordances).
+  const [openStep, setOpenStep] = useState<1 | 2 | 3 | "all" | "none">(1);
 
   const selectedListing = useMemo(
     () => listings.find((item) => item.id === selectedId) ?? null,
@@ -213,7 +217,7 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
       if (active) {
         setSelectedId(active.id);
         setForm(mapListingToForm(active));
-        setOpenStep("all");
+        setOpenStep("none");
       }
     } else {
       setSelectedId(null);
@@ -227,6 +231,22 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
     setForm((prev) => ({ ...prev, [key]: value }));
     setMessage(null);
     setError(null);
+  }
+
+  /**
+   * Generic accordion toggle. Opening a step always sets it as the
+   * active one (other steps collapse). Closing a step explicitly
+   * lands us in "none" — no more surprise auto-advance to the next
+   * panel like the old guided-walkthrough handler did. The "all"
+   * sticky state is preserved for any future "Expand all" button.
+   */
+  function toggleStep(step: 1 | 2 | 3, next: boolean) {
+    setOpenStep((prev) => {
+      if (prev === "all") return "all";
+      if (next) return step;
+      if (prev === step) return "none";
+      return prev;
+    });
   }
 
   function onMerchantTypeChange(next: MerchantType) {
@@ -396,30 +416,6 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
         </div>
       </div>
 
-      {analyticsLoading ? (
-        <div className="rounded-2xl border border-border bg-surface p-5 text-sm text-violet-100/70">
-          Loading analytics…
-        </div>
-      ) : analytics.length > 0 ? (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-gold-accent">
-              Merchant analytics
-            </h2>
-            <button
-              type="button"
-              onClick={() => void loadAnalytics()}
-              className="rounded-lg border border-border bg-surface-muted px-3 py-1 text-xs text-violet-100/85 hover:border-purple-accent"
-            >
-              Refresh
-            </button>
-          </div>
-          {analytics.map((entry) => (
-            <AnalyticsPanel key={entry.listingId} data={entry} />
-          ))}
-        </section>
-      ) : null}
-
       <Link
         href={stickerHref}
         className="block rounded-2xl border border-gold-accent/40 bg-gradient-to-br from-[#1a0c39] via-[#140a2d] to-[#0e0722] p-5 transition hover:border-gold-accent"
@@ -476,7 +472,7 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
                   onClick={() => {
                     setSelectedId(item.id);
                     setForm(mapListingToForm(item));
-                    setOpenStep("all");
+                    setOpenStep("none");
                   }}
                   className={`rounded-lg border p-3 text-left text-sm ${
                     selectedId === item.id
@@ -514,9 +510,7 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
           <div className="mt-4 grid gap-3">
             <FormStep
               open={openStep === 1 || openStep === "all"}
-              onToggle={(next) =>
-                setOpenStep((prev) => (prev === "all" ? "all" : next ? 1 : prev === 1 ? 2 : prev))
-              }
+              onToggle={(next) => toggleStep(1, next)}
               step={1}
               title="Identity"
               subtitle="Who you are and what category you fit."
@@ -564,9 +558,7 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
 
             <FormStep
               open={openStep === 2 || openStep === "all"}
-              onToggle={(next) =>
-                setOpenStep((prev) => (prev === "all" ? "all" : next ? 2 : prev === 2 ? 3 : prev))
-              }
+              onToggle={(next) => toggleStep(2, next)}
               step={2}
               title={form.merchantType === "ONLINE" ? "Reach" : "Location & verification"}
               subtitle={
@@ -688,9 +680,7 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
 
             <FormStep
               open={openStep === 3 || openStep === "all"}
-              onToggle={(next) =>
-                setOpenStep((prev) => (prev === "all" ? "all" : next ? 3 : prev))
-              }
+              onToggle={(next) => toggleStep(3, next)}
               step={3}
               title="Offer & branding"
               subtitle="What members get and how your listing looks."
@@ -797,6 +787,30 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
           </div>
         </section>
       </div>
+
+      {analyticsLoading ? (
+        <div className="rounded-2xl border border-border bg-surface p-5 text-sm text-violet-100/70">
+          Loading analytics…
+        </div>
+      ) : analytics.length > 0 ? (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-gold-accent">
+              Merchant analytics
+            </h2>
+            <button
+              type="button"
+              onClick={() => void loadAnalytics()}
+              className="rounded-lg border border-border bg-surface-muted px-3 py-1 text-xs text-violet-100/85 hover:border-purple-accent"
+            >
+              Refresh
+            </button>
+          </div>
+          {analytics.map((entry) => (
+            <AnalyticsPanel key={entry.listingId} data={entry} />
+          ))}
+        </section>
+      ) : null}
     </div>
   );
 }
