@@ -103,7 +103,7 @@ export default function HomePage() {
             icon={<Sparkles size={16} />}
             label="Save"
             title="Spend like an insider"
-            body="Show your live pass at any Purple Hub or paste the promo code online. Anchors include Purple Travel, Purple OTC, and global retail partners."
+            body="Show your live pass at any Purple Hub or paste the promo code online. Anchors include Purple Stay, Purple OTC, and global retail partners."
           />
         </div>
       </section>

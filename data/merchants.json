@@ -52,23 +52,22 @@
     "verificationHint": "Redeem code rotates monthly for members."
   },
   {
-    "id": "purple-travel",
-    "name": "Purple Travel",
+    "id": "purple-stay",
+    "name": "Purple Stay",
     "category": "travel_leisure",
     "isOnline": true,
     "country": "",
     "city": "",
     "fullAddress": "",
-    "discount": "Up to 35% off hotel rates",
+    "discount": "Up to 20% off wholesale rates",
     "locationOrCoverage": "Global",
-    "description": "Anchor merchant for travel and lifestyle utility.",
-    "logoUrl": "https://images.unsplash.com/photo-1488085061387-422e29b40080?auto=format&fit=crop&w=320&q=80",
-    "heroImageUrl": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1400&q=80",
-    "promoCode": "PURPLETRAVEL35",
+    "description": "Up to 20% discount in over 250K hotels around the world.",
+    "logoUrl": "https://www.purplestay.co/icon-512.png",
+    "heroImageUrl": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1600&q=80",
     "isAnchor": true,
-    "ctaLabel": "Explore Stays",
-    "ctaHref": "https://example.com/purple-travel",
-    "verificationHint": "Flagship utility partner for Purple Club."
+    "ctaLabel": "Open Purple Stay",
+    "ctaHref": "https://www.purplestay.co",
+    "verificationHint": "Flagship Purple Club utility — auto-applied for 1 PBTC holders."
   },
   {
     "id": "purple-amazon",
