@@ -6,6 +6,8 @@ import { useMemo, useRef, useState } from "react";
 
 import { CityAutocomplete, type CitySelection } from "@/components/join/city-autocomplete";
 import {
+  CATEGORY_HERO_FALLBACK,
+  CATEGORY_LABELS,
   MERCHANT_CATEGORIES,
   type MerchantCategory,
   SOCIAL_PLATFORMS,
@@ -73,29 +75,13 @@ type FormState = {
   email: string;
 };
 
-const CATEGORY_LABELS: Record<MerchantCategory, string> = {
-  retail_goods: "Retail & Goods",
-  dining_nightlife: "Dining & Nightlife",
-  tech_digital: "Tech & Digital",
-  travel_leisure: "Travel & Leisure",
-  wellness_beauty: "Wellness & Beauty",
-  professional_services: "Professional Services",
-};
-
 const SOCIAL_LABELS: Record<SocialPlatform, string> = {
   instagram: "Instagram",
   x: "X (Twitter)",
   tiktok: "TikTok",
 };
 
-const DEFAULT_HERO_BY_CATEGORY: Record<MerchantCategory, string> = {
-  retail_goods: "/templates/retail-template.svg",
-  dining_nightlife: "/templates/dining-template.svg",
-  tech_digital: "/templates/tech-template.svg",
-  travel_leisure: "/templates/travel-template.svg",
-  wellness_beauty: "/templates/wellness-template.svg",
-  professional_services: "/templates/professional-template.svg",
-};
+const DEFAULT_HERO_BY_CATEGORY = CATEGORY_HERO_FALLBACK;
 
 const BRIEF_MAX = 140;
 

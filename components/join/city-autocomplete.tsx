@@ -19,6 +19,13 @@ type CityAutocompleteProps = {
   placeholder?: string;
   disabled?: boolean;
   inputId?: string;
+  /**
+   * Optional ISO-2 country code (e.g. "US", "EG"). When set, the city
+   * search only returns rows whose country code matches — prevents
+   * picking "Cairo, IL, USA" when the merchant has already chosen
+   * Country: Egypt.
+   */
+  countryCode?: string;
 };
 
 const MAX_RESULTS = 8;
@@ -45,6 +52,7 @@ export function CityAutocomplete(props: CityAutocompleteProps) {
     placeholder = "Start typing a city",
     disabled,
     inputId,
+    countryCode,
   } = props;
 
   const [results, setResults] = useState<CityTuple[]>([]);
@@ -55,25 +63,30 @@ export function CityAutocomplete(props: CityAutocompleteProps) {
   const debounceRef = useRef<number | null>(null);
 
   const trimmedValue = useMemo(() => normalise(value), [value]);
+  const normalisedCountry = countryCode?.toUpperCase();
 
-  const runSearch = useCallback(async (query: string) => {
-    const normalised = normalise(query);
-    if (normalised.length < MIN_QUERY_LENGTH) {
-      setResults([]);
-      return;
-    }
-    setIsLoading(true);
-    const cities = await loadCities();
-    const matches: CityTuple[] = [];
-    for (const entry of cities) {
-      if (entry[0].toLowerCase().startsWith(normalised)) {
-        matches.push(entry);
+  const runSearch = useCallback(
+    async (query: string) => {
+      const normalised = normalise(query);
+      if (normalised.length < MIN_QUERY_LENGTH) {
+        setResults([]);
+        return;
       }
-    }
-    matches.sort((a, b) => b[5] - a[5]);
-    setResults(matches.slice(0, MAX_RESULTS));
-    setIsLoading(false);
-  }, []);
+      setIsLoading(true);
+      const cities = await loadCities();
+      const matches: CityTuple[] = [];
+      for (const entry of cities) {
+        if (normalisedCountry && entry[1] !== normalisedCountry) continue;
+        if (entry[0].toLowerCase().startsWith(normalised)) {
+          matches.push(entry);
+        }
+      }
+      matches.sort((a, b) => b[5] - a[5]);
+      setResults(matches.slice(0, MAX_RESULTS));
+      setIsLoading(false);
+    },
+    [normalisedCountry],
+  );
 
   useEffect(() => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);

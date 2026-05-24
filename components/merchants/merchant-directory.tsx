@@ -8,28 +8,27 @@ import { useMemo, useState } from "react";
 
 import { MerchantDetailDrawer } from "@/components/merchants/merchant-detail-drawer";
 import {
+  CATEGORY_HERO_FALLBACK,
+  CATEGORY_LABELS,
   MERCHANT_CATEGORIES,
   type Merchant,
   type MerchantCategory,
+  type MerchantType,
 } from "@/data/merchants";
 
-const CATEGORY_LABELS: Record<MerchantCategory, string> = {
-  retail_goods: "Retail & Goods",
-  dining_nightlife: "Dining & Nightlife",
-  tech_digital: "Tech & Digital",
-  travel_leisure: "Travel & Leisure",
-  wellness_beauty: "Wellness & Beauty",
-  professional_services: "Professional Services",
-};
+/**
+ * Best-effort channel mix lookup. New listings ship `merchantType`
+ * straight from the API; older bundled merchants (in `data/merchants.json`)
+ * predate the field and fall back to the legacy `isOnline` boolean.
+ */
+function merchantChannel(merchant: Merchant): MerchantType {
+  if (merchant.merchantType === "ONLINE" || merchant.merchantType === "LOCAL" || merchant.merchantType === "HYBRID") {
+    return merchant.merchantType;
+  }
+  return merchant.isOnline ? "ONLINE" : "LOCAL";
+}
 
-const DEFAULT_HERO_BY_CATEGORY: Record<MerchantCategory, string> = {
-  retail_goods: "/templates/retail-template.svg",
-  dining_nightlife: "/templates/dining-template.svg",
-  tech_digital: "/templates/tech-template.svg",
-  travel_leisure: "/templates/travel-template.svg",
-  wellness_beauty: "/templates/wellness-template.svg",
-  professional_services: "/templates/professional-template.svg",
-};
+const DEFAULT_HERO_BY_CATEGORY = CATEGORY_HERO_FALLBACK;
 
 type ImgErrState = {
   hero: Record<string, boolean>;
@@ -75,7 +74,8 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
   const locationOptions = useMemo(() => {
     const citySet = new Set(
       merchants
-        .filter((item) => !item.isOnline && item.city)
+        // Pure-online merchants have no city; hybrid + local merchants do.
+        .filter((item) => merchantChannel(item) !== "ONLINE" && item.city)
         .map((item) => item.city),
     );
     return ["all", "global-online", ...Array.from(citySet).sort()];
@@ -87,7 +87,11 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
       if (
         activeLocation !== "all" &&
         !(
-          (activeLocation === "global-online" && item.isOnline) ||
+          // Hybrid merchants appear under BOTH "Global/Online" and
+          // their physical city — there's no good reason to hide a
+          // member's local Starbucks just because the same merchant
+          // also delivers online.
+          (activeLocation === "global-online" && merchantChannel(item) !== "LOCAL") ||
           item.city === activeLocation
         )
       ) {
@@ -228,9 +232,13 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
                       <p className="mt-2 text-sm text-violet-100/90 sm:text-base">{merchant.description}</p>
                       <div className="mt-3 flex flex-wrap items-center gap-3">
                         <p className="text-sm font-semibold text-gold-accent">{merchant.discount}</p>
-                        {merchant.isOnline ? (
+                        {merchantChannel(merchant) === "ONLINE" ? (
                           <span className="inline-flex rounded-full border border-gold-accent/80 bg-black/30 px-2.5 py-1 text-[11px] font-medium text-gold-accent">
                             Global/Online
+                          </span>
+                        ) : merchantChannel(merchant) === "HYBRID" ? (
+                          <span className="inline-flex rounded-full border border-gold-accent/80 bg-black/30 px-2.5 py-1 text-[11px] font-medium text-gold-accent">
+                            Online + In-store
                           </span>
                         ) : (
                           <p className="text-xs text-violet-100/80">{merchant.locationOrCoverage}</p>
@@ -272,9 +280,13 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
                   onError={() => markHeroError(merchant.id)}
                 />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                {merchant.isOnline ? (
+                {merchantChannel(merchant) === "ONLINE" ? (
                   <span className="absolute right-3 top-3 inline-flex rounded-full border border-gold-accent/70 bg-black/45 px-2 py-1 text-[10px] font-medium text-gold-accent backdrop-blur-md">
                     Global/Online
+                  </span>
+                ) : merchantChannel(merchant) === "HYBRID" ? (
+                  <span className="absolute right-3 top-3 inline-flex rounded-full border border-gold-accent/70 bg-black/45 px-2 py-1 text-[10px] font-medium text-gold-accent backdrop-blur-md">
+                    Online + In-store
                   </span>
                 ) : null}
               </div>
@@ -295,7 +307,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
                 <p className="mt-1 text-sm text-violet-100/75">{merchant.description}</p>
                 <p className="mt-4 text-sm text-gold-accent">{merchant.discount}</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
-                  {merchant.isOnline ? (
+                  {merchantChannel(merchant) === "ONLINE" ? (
                     <span className="text-xs text-violet-100/55">Worldwide</span>
                   ) : (
                     <p className="text-xs text-violet-100/65">{merchant.locationOrCoverage}</p>

@@ -1,6 +1,11 @@
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { deriveMerchantId, listingDraftSchema } from "@/lib/dbSchemas";
+import {
+  deriveMerchantId,
+  formatZodError,
+  listingDraftSchema,
+  normaliseMerchantType,
+} from "@/lib/dbSchemas";
 
 export async function GET(): Promise<Response> {
   const session = await getSession();
@@ -39,9 +44,10 @@ export async function POST(request: Request): Promise<Response> {
 
   const parsed = listingDraftSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.issues[0]?.message ?? "Invalid payload" }, { status: 400 });
+    return Response.json({ error: formatZodError(parsed.error) }, { status: 400 });
   }
   const data = parsed.data;
+  const { merchantType, isOnline, hasPhysicalLocation } = normaliseMerchantType(data);
   const merchantId = deriveMerchantId(data);
 
   const profile = await db.merchantProfile.findUnique({
@@ -70,12 +76,13 @@ export async function POST(request: Request): Promise<Response> {
       businessName: data.businessName,
       businessBrief: data.businessBrief,
       category: data.category,
-      isOnline: data.isOnline,
-      country: data.isOnline ? "" : data.country,
-      city: data.isOnline ? "" : data.city,
-      fullAddress: data.isOnline ? "" : data.fullAddress,
-      lat: data.isOnline ? null : data.lat,
-      lng: data.isOnline ? null : data.lng,
+      isOnline,
+      merchantType,
+      country: hasPhysicalLocation ? data.country : "",
+      city: hasPhysicalLocation ? data.city : "",
+      fullAddress: hasPhysicalLocation ? data.fullAddress : "",
+      lat: hasPhysicalLocation ? data.lat : null,
+      lng: hasPhysicalLocation ? data.lng : null,
       website: data.website,
       logoUrl: data.logoUrl,
       heroImageUrl: data.heroImageUrl,

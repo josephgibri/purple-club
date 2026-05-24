@@ -28,15 +28,35 @@ enum ReviewAction {
 }
 
 model User {
-  id           String            @id @default(cuid())
-  email        String            @unique
-  username     String            @unique
+  id           String               @id @default(cuid())
+  email        String               @unique
+  username     String               @unique
   passwordHash String
-  role         UserRole          @default(MERCHANT)
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  role         UserRole             @default(MERCHANT)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
   profile      MerchantProfile?
-  reviews      ListingReview[]   @relation("AdminReviews")
+  reviews      ListingReview[]      @relation("AdminReviews")
+  resetTokens  PasswordResetToken[]
+}
+
+/**
+ * Single-use password reset tokens. We persist the SHA-256 hash of the
+ * raw token (never the raw token itself), so even a leaked DB dump
+ * can't be replayed against the /reset endpoint. The raw token is only
+ * ever surfaced once — via the reset email link.
+ */
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model MerchantProfile {
@@ -57,6 +77,17 @@ model MerchantListing {
   businessBrief    String
   category         String
   isOnline         Boolean
+  /**
+   * Channel mix. Values: "ONLINE" | "LOCAL" | "HYBRID".
+   * - ONLINE: website only, no physical address shown.
+   * - LOCAL:  physical storefront only, redeems via the Purple Club pass at the counter.
+   * - HYBRID: both — has a website AND a physical storefront, so a promo code AND an
+   *           in-person pass scan are both valid redemption paths.
+   * Existing rows are backfilled from `isOnline` at migration time
+   * (true → "ONLINE", false → "LOCAL") so legacy listings keep
+   * working without any data loss.
+   */
+  merchantType     String         @default("LOCAL")
   country          String
   city             String
   fullAddress      String

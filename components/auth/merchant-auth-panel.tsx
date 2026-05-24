@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 type Mode = "login" | "register";
 
@@ -9,6 +11,7 @@ export function MerchantAuthPanel() {
   const [mode, setMode] = useState<Mode>("login");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     identifier: "",
     email: "",
@@ -114,14 +117,36 @@ export function MerchantAuthPanel() {
           </>
         )}
         <label className="grid gap-1 text-sm">
-          <span className="text-violet-100/85">Password</span>
-          <input
-            type="password"
-            value={form.password}
-            onChange={(e) => setField("password", e.target.value)}
-            className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm outline-none focus:border-purple-accent"
-            placeholder="At least 8 characters"
-          />
+          <div className="flex items-center justify-between">
+            <span className="text-violet-100/85">Password</span>
+            {mode === "login" ? (
+              <Link
+                href="/forgot"
+                className="text-[11px] uppercase tracking-[0.18em] text-violet-100/55 hover:text-violet-100"
+              >
+                Forgot?
+              </Link>
+            ) : null}
+          </div>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={form.password}
+              onChange={(e) => setField("password", e.target.value)}
+              className="w-full rounded-xl border border-border bg-surface-muted px-4 py-3 pr-12 text-sm outline-none focus:border-purple-accent"
+              placeholder="At least 8 characters"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              className="absolute inset-y-0 right-2 my-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-violet-100/60 hover:bg-white/5 hover:text-violet-100"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
         </label>
         {error ? <p className="text-xs text-rose-300">{error}</p> : null}
         <button

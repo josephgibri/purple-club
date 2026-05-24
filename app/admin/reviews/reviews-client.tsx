@@ -2,7 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { MERCHANT_CATEGORIES, type MerchantCategory, SOCIAL_PLATFORMS, type SocialPlatform } from "@/data/merchants";
+import {
+  CATEGORY_LABELS,
+  MERCHANT_CATEGORIES,
+  type MerchantCategory,
+  type MerchantType,
+  SOCIAL_PLATFORMS,
+  type SocialPlatform,
+} from "@/data/merchants";
 
 type ListingStatus = "DRAFT" | "SUBMITTED" | "UNDER_REVIEW" | "APPROVED" | "REJECTED";
 
@@ -13,6 +20,7 @@ type Listing = {
   businessBrief: string;
   category: MerchantCategory;
   isOnline: boolean;
+  merchantType?: MerchantType | null;
   country: string;
   city: string;
   fullAddress: string;
@@ -42,6 +50,7 @@ type FormState = {
   businessName: string;
   businessBrief: string;
   category: MerchantCategory;
+  merchantType: MerchantType;
   isOnline: boolean;
   country: string;
   city: string;
@@ -65,22 +74,37 @@ type FormState = {
 
 const FILTERS: ListingStatus[] = ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED", "DRAFT"];
 
-const CATEGORY_LABELS: Record<MerchantCategory, string> = {
-  retail_goods: "Retail & Goods",
-  dining_nightlife: "Dining & Nightlife",
-  tech_digital: "Tech & Digital",
-  travel_leisure: "Travel & Leisure",
-  wellness_beauty: "Wellness & Beauty",
-  professional_services: "Professional Services",
+const MERCHANT_TYPE_LABEL: Record<MerchantType, string> = {
+  ONLINE: "Online / Global",
+  LOCAL: "Local / In-person",
+  HYBRID: "Hybrid — online + in-store",
 };
 
+function merchantTypeOf(listing: Listing): MerchantType {
+  if (listing.merchantType === "ONLINE" || listing.merchantType === "LOCAL" || listing.merchantType === "HYBRID") {
+    return listing.merchantType;
+  }
+  return listing.isOnline ? "ONLINE" : "LOCAL";
+}
+
+function merchantTypeLabel(listing: Listing): string {
+  return MERCHANT_TYPE_LABEL[merchantTypeOf(listing)];
+}
+
 function listingToForm(l: Listing): FormState {
+  const merchantType: MerchantType =
+    l.merchantType === "ONLINE" || l.merchantType === "LOCAL" || l.merchantType === "HYBRID"
+      ? l.merchantType
+      : l.isOnline
+        ? "ONLINE"
+        : "LOCAL";
   return {
     merchantId: l.merchantId,
     businessName: l.businessName,
     businessBrief: l.businessBrief,
     category: l.category,
-    isOnline: l.isOnline,
+    merchantType,
+    isOnline: merchantType === "ONLINE",
     country: l.country,
     city: l.city,
     fullAddress: l.fullAddress,
@@ -442,7 +466,14 @@ function VerificationBadges({ listing }: { listing: Listing }) {
     <div className="flex flex-wrap gap-2 text-xs">
       <Badge ok={Boolean(listing.fsqId)} label="Foursquare match" />
       <Badge ok={Boolean(domainMatch)} label="Email domain matches website" />
-      <Badge ok={!listing.isOnline ? Boolean(listing.lat && listing.lng) : true} label="Has coordinates" />
+      <Badge
+        ok={
+          merchantTypeOf(listing) === "ONLINE"
+            ? true
+            : Boolean(listing.lat && listing.lng)
+        }
+        label="Has coordinates"
+      />
     </div>
   );
 }
@@ -467,8 +498,8 @@ function ReadOnlyView({ listing }: { listing: Listing }) {
     <div className="grid gap-2 text-sm text-violet-100/85">
       <p className="text-violet-100/95">{listing.businessBrief}</p>
       <Row label="Category" value={listing.category} />
-      <Row label="Type" value={listing.isOnline ? "Online / Global" : "Local / In-person"} />
-      {!listing.isOnline ? (
+      <Row label="Type" value={merchantTypeLabel(listing)} />
+      {merchantTypeOf(listing) !== "ONLINE" ? (
         <>
           <Row label="City" value={`${listing.city}, ${listing.country}`} />
           <Row label="Address" value={listing.fullAddress} />
@@ -518,14 +549,19 @@ function EditForm({
       />
       <Selector
         label="Type"
-        value={form.isOnline ? "online" : "local"}
-        onChange={(v) => setField("isOnline", v === "online")}
+        value={form.merchantType}
+        onChange={(v) => {
+          const nextType = v as MerchantType;
+          setField("merchantType", nextType);
+          setField("isOnline", nextType === "ONLINE");
+        }}
         options={[
-          ["local", "Local / In-person"],
-          ["online", "Online / Global"],
+          ["LOCAL", "Local / In-person"],
+          ["ONLINE", "Online / Global"],
+          ["HYBRID", "Hybrid — online + in-store"],
         ]}
       />
-      {!form.isOnline ? (
+      {form.merchantType !== "ONLINE" ? (
         <>
           <Input label="City" value={form.city} onChange={(v) => setField("city", v)} />
           <Input label="Country" value={form.country} onChange={(v) => setField("country", v)} />

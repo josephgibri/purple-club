@@ -1,12 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 
+import { AddressAutocomplete, type AddressSelection } from "@/components/join/address-autocomplete";
 import { CityAutocomplete, type CitySelection } from "@/components/join/city-autocomplete";
 import { ImageUploadField } from "@/components/uploads/image-upload-field";
-import { MERCHANT_CATEGORIES, type MerchantCategory, SOCIAL_PLATFORMS, type SocialPlatform } from "@/data/merchants";
+import {
+  CATEGORY_LABELS,
+  MERCHANT_CATEGORIES,
+  type MerchantCategory,
+  type MerchantType,
+  SOCIAL_PLATFORMS,
+  type SocialPlatform,
+} from "@/data/merchants";
 import type { SessionPayload } from "@/lib/auth";
+import { findCountryByCode, findCountryByName, getCountries } from "@/lib/countries";
+
+const LocationMapPicker = dynamic(
+  () => import("@/components/join/location-map-picker"),
+  { ssr: false },
+);
 
 type Listing = {
   id: string;
@@ -15,6 +30,7 @@ type Listing = {
   businessBrief: string;
   category: MerchantCategory;
   isOnline: boolean;
+  merchantType?: MerchantType | null;
   country: string;
   city: string;
   fullAddress: string;
@@ -41,8 +57,21 @@ type FormState = {
   businessName: string;
   businessBrief: string;
   category: MerchantCategory;
+  /**
+   * Channel mix. Drives address-fields visibility, promo-code
+   * requirements, and the locationOrCoverage label rendered in the
+   * directory. `isOnline` is derived from this for back-compat reads
+   * against legacy code that still checks the boolean.
+   */
+  merchantType: MerchantType;
   isOnline: boolean;
   country: string;
+  /**
+   * ISO-2 country code, kept in sync with `country` so the city
+   * autocomplete can scope results to the chosen country. Not
+   * persisted server-side — derived from `country` at load time.
+   */
+  countryCode: string;
   city: string;
   fullAddress: string;
   lat?: number;
@@ -60,34 +89,17 @@ type FormState = {
   status: "DRAFT" | "SUBMITTED";
 };
 
-type FsqMatch = {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  country: string;
-  lat: number | null;
-  lng: number | null;
-  category: string;
-  website: string;
-};
-
-const CATEGORY_LABELS: Record<MerchantCategory, string> = {
-  retail_goods: "Retail & Goods",
-  dining_nightlife: "Dining & Nightlife",
-  tech_digital: "Tech & Digital",
-  travel_leisure: "Travel & Leisure",
-  wellness_beauty: "Wellness & Beauty",
-  professional_services: "Professional Services",
-};
+const COUNTRY_OPTIONS = getCountries();
 
 const EMPTY_FORM: FormState = {
   merchantId: "",
   businessName: "",
   businessBrief: "",
   category: "retail_goods",
+  merchantType: "LOCAL",
   isOnline: false,
   country: "",
+  countryCode: "",
   city: "",
   fullAddress: "",
   website: "",
@@ -104,13 +116,25 @@ const EMPTY_FORM: FormState = {
 };
 
 function mapListingToForm(listing: Listing): FormState {
+  // Fall back to the legacy isOnline boolean for any pre-hybrid rows
+  // whose merchantType column was added after their creation.
+  const merchantType: MerchantType =
+    listing.merchantType === "ONLINE" ||
+    listing.merchantType === "LOCAL" ||
+    listing.merchantType === "HYBRID"
+      ? listing.merchantType
+      : listing.isOnline
+        ? "ONLINE"
+        : "LOCAL";
   return {
     merchantId: listing.merchantId,
     businessName: listing.businessName,
     businessBrief: listing.businessBrief,
     category: listing.category,
-    isOnline: listing.isOnline,
+    merchantType,
+    isOnline: merchantType === "ONLINE",
     country: listing.country,
+    countryCode: findCountryByName(listing.country)?.code ?? "",
     city: listing.city,
     fullAddress: listing.fullAddress,
     lat: listing.lat ?? undefined,
@@ -137,9 +161,12 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [fsqMatches, setFsqMatches] = useState<FsqMatch[]>([]);
-  const [fsqLoading, setFsqLoading] = useState(false);
-  const [fsqError, setFsqError] = useState<string | null>(null);
+  // Controlled accordion — only one step open at a time so a fresh
+  // merchant isn't dumped into 3 simultaneously-open panels. When
+  // they're editing an existing listing we open the whole form (step
+  // = "all") since they're scanning for what to change rather than
+  // walking through it linearly.
+  const [openStep, setOpenStep] = useState<1 | 2 | 3 | "all">(1);
 
   const selectedListing = useMemo(
     () => listings.find((item) => item.id === selectedId) ?? null,
@@ -162,10 +189,12 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
       if (active) {
         setSelectedId(active.id);
         setForm(mapListingToForm(active));
+        setOpenStep("all");
       }
     } else {
       setSelectedId(null);
       setForm(EMPTY_FORM);
+      setOpenStep(1);
     }
     setIsLoading(false);
   }
@@ -176,59 +205,87 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
     setError(null);
   }
 
+  function onMerchantTypeChange(next: MerchantType) {
+    setForm((prev) => {
+      const losingPhysical =
+        prev.merchantType !== "ONLINE" && next === "ONLINE";
+      return {
+        ...prev,
+        merchantType: next,
+        isOnline: next === "ONLINE",
+        // When switching to ONLINE we wipe address-related fields so
+        // they don't ghost-save behind a hidden UI. Switching the
+        // other way is non-destructive — the merchant fills the address
+        // fresh.
+        country: losingPhysical ? "" : prev.country,
+        countryCode: losingPhysical ? "" : prev.countryCode,
+        city: losingPhysical ? "" : prev.city,
+        fullAddress: losingPhysical ? "" : prev.fullAddress,
+        lat: losingPhysical ? undefined : prev.lat,
+        lng: losingPhysical ? undefined : prev.lng,
+        fsqId: losingPhysical ? "" : prev.fsqId,
+        fsqName: losingPhysical ? "" : prev.fsqName,
+        fsqAddress: losingPhysical ? "" : prev.fsqAddress,
+      };
+    });
+  }
+
+  function onCountrySelect(code: string) {
+    const country = findCountryByCode(code);
+    setForm((prev) => {
+      const isSwitchingCountry = code && code !== prev.countryCode && prev.city !== "";
+      return {
+        ...prev,
+        country: country?.name ?? "",
+        countryCode: code,
+        // Clear the city + coords when the merchant switches country,
+        // otherwise we end up with a stale "Paris, FR" address sitting
+        // under a new "Country: Germany" selection.
+        city: isSwitchingCountry ? "" : prev.city,
+        fullAddress: isSwitchingCountry ? "" : prev.fullAddress,
+        lat: isSwitchingCountry ? undefined : prev.lat,
+        lng: isSwitchingCountry ? undefined : prev.lng,
+        fsqId: isSwitchingCountry ? "" : prev.fsqId,
+        fsqName: isSwitchingCountry ? "" : prev.fsqName,
+        fsqAddress: isSwitchingCountry ? "" : prev.fsqAddress,
+      };
+    });
+  }
+
   function onCitySelect(city: CitySelection) {
     setForm((prev) => ({
       ...prev,
       city: city.name,
       country: city.country,
+      countryCode: city.countryCode,
       lat: city.lat,
       lng: city.lng,
     }));
   }
 
-  async function lookupFsq() {
-    setFsqError(null);
-    setFsqLoading(true);
-    setFsqMatches([]);
-    try {
-      const params = new URLSearchParams();
-      params.set("q", form.businessName);
-      if (form.lat && form.lng) {
-        params.set("ll", `${form.lat},${form.lng}`);
-      } else if (form.city || form.country) {
-        params.set("near", [form.city, form.country].filter(Boolean).join(", "));
-      }
-      const res = await fetch(`/api/places/search?${params.toString()}`);
-      const data = (await res.json()) as { matches?: FsqMatch[]; error?: string };
-      if (!res.ok) {
-        setFsqError(data.error ?? "Lookup failed.");
-      } else {
-        setFsqMatches(data.matches ?? []);
-        if ((data.matches ?? []).length === 0) {
-          setFsqError("No matches. Try a different spelling or set city first.");
-        }
-      }
-    } catch {
-      setFsqError("Network error. Try again.");
-    } finally {
-      setFsqLoading(false);
-    }
+  function onAddressSelect(selection: AddressSelection) {
+    setForm((prev) => {
+      const matchedCountry = selection.country
+        ? findCountryByName(selection.country)
+        : undefined;
+      return {
+        ...prev,
+        fullAddress: selection.address || prev.fullAddress,
+        city: selection.city || prev.city,
+        country: matchedCountry?.name ?? selection.country ?? prev.country,
+        countryCode: matchedCountry?.code ?? prev.countryCode,
+        lat: selection.lat ?? prev.lat,
+        lng: selection.lng ?? prev.lng,
+        fsqId: selection.fsqId,
+        fsqName: selection.fsqName,
+        fsqAddress: selection.address,
+      };
+    });
   }
 
-  function applyFsqMatch(match: FsqMatch) {
-    setForm((prev) => ({
-      ...prev,
-      fsqId: match.id,
-      fsqName: match.name,
-      fsqAddress: match.address,
-      fullAddress: match.address || prev.fullAddress,
-      city: match.city || prev.city,
-      country: match.country || prev.country,
-      lat: match.lat ?? prev.lat,
-      lng: match.lng ?? prev.lng,
-    }));
-    setFsqMatches([]);
-    setFsqError(null);
+  function onMapMove(lat: number, lng: number) {
+    setField("lat", lat);
+    setField("lng", lng);
   }
 
   function clearFsqMatch() {
@@ -240,8 +297,14 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
     setError(null);
     setMessage(null);
     try {
+      // Coerce empty strings to `undefined` so Zod's `.optional()` actually
+      // treats them as absent. Without this, a blank "Custom slug" field
+      // ships as "" and fails the `min(2)` rule with the unhelpful
+      // "String must contain at least 2 character(s)" message. Same trap
+      // for socialHandle/socialPlatform/fsq* — keeping them all in sync.
       const payload = {
         ...form,
+        merchantId: form.merchantId || undefined,
         socialPlatform: form.socialPlatform || undefined,
         socialHandle: form.socialHandle || undefined,
         fsqId: form.fsqId || undefined,
@@ -346,6 +409,7 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
                 setForm(EMPTY_FORM);
                 setMessage(null);
                 setError(null);
+                setOpenStep(1);
               }}
             >
               New
@@ -364,6 +428,7 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
                   onClick={() => {
                     setSelectedId(item.id);
                     setForm(mapListingToForm(item));
+                    setOpenStep("all");
                   }}
                   className={`rounded-lg border p-3 text-left text-sm ${
                     selectedId === item.id
@@ -400,7 +465,10 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
 
           <div className="mt-4 grid gap-3">
             <FormStep
-              defaultOpen={!selectedListing}
+              open={openStep === 1 || openStep === "all"}
+              onToggle={(next) =>
+                setOpenStep((prev) => (prev === "all" ? "all" : next ? 1 : prev === 1 ? 2 : prev))
+              }
               step={1}
               title="Identity"
               subtitle="Who you are and what category you fit."
@@ -424,111 +492,157 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
               <label className="grid gap-1 text-sm">
                 <span className="text-violet-100/85">Merchant Type</span>
                 <select
-                  value={form.isOnline ? "online" : "local"}
-                  onChange={(e) => setField("isOnline", e.target.value === "online")}
+                  value={form.merchantType}
+                  onChange={(event) => onMerchantTypeChange(event.target.value as MerchantType)}
                   className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm"
                 >
-                  <option value="local">Local / In-person</option>
-                  <option value="online">Online / Global</option>
+                  <option value="LOCAL">Local / In-person</option>
+                  <option value="ONLINE">Online / Global</option>
+                  <option value="HYBRID">Hybrid — online + in-store</option>
                 </select>
+                <span className="text-[11px] text-violet-100/55">
+                  {form.merchantType === "HYBRID"
+                    ? "Members can redeem online (with your promo code) AND walk in (you scan their pass)."
+                    : form.merchantType === "ONLINE"
+                      ? "Pure web checkout. We hide the address fields."
+                      : "Physical storefront only. No promo code needed — you scan the member's pass."}
+                </span>
               </label>
               <Input label="Custom slug (optional)" value={form.merchantId} onChange={(v) => setField("merchantId", v)} />
+              {openStep !== "all" ? (
+                <StepNavButtons onContinue={() => setOpenStep(2)} />
+              ) : null}
             </FormStep>
 
             <FormStep
-              defaultOpen={!selectedListing}
+              open={openStep === 2 || openStep === "all"}
+              onToggle={(next) =>
+                setOpenStep((prev) => (prev === "all" ? "all" : next ? 2 : prev === 2 ? 3 : prev))
+              }
               step={2}
-              title={form.isOnline ? "Reach" : "Location & verification"}
+              title={form.merchantType === "ONLINE" ? "Reach" : "Location & verification"}
               subtitle={
-                form.isOnline
+                form.merchantType === "ONLINE"
                   ? "Online merchants serve members worldwide — no address needed."
-                  : "Where members can find you, plus a free Foursquare match."
+                  : form.merchantType === "HYBRID"
+                    ? "Your physical storefront — members can also redeem online."
+                    : "Where members can find you, plus a free Foursquare match."
               }
             >
-              {form.isOnline ? (
+              {form.merchantType === "ONLINE" ? (
                 <p className="rounded-lg border border-border bg-surface-muted p-3 text-xs text-violet-100/75">
                   You&apos;re listed as <strong>Online / Global</strong>. Skip ahead to step 3.
                 </p>
               ) : (
                 <>
                   <label className="grid gap-1 text-sm">
+                    <span className="text-violet-100/85">Country</span>
+                    <select
+                      value={form.countryCode}
+                      onChange={(event) => onCountrySelect(event.target.value)}
+                      className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm"
+                    >
+                      <option value="">Select country…</option>
+                      {COUNTRY_OPTIONS.map((country) => (
+                        <option key={country.code} value={country.code}>
+                          {country.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="grid gap-1 text-sm">
                     <span className="text-violet-100/85">City</span>
                     <CityAutocomplete
                       value={form.city}
                       onChange={(v) => setField("city", v)}
                       onSelect={onCitySelect}
-                      placeholder="Start typing city"
+                      placeholder={
+                        form.countryCode
+                          ? `Start typing a city in ${form.country}`
+                          : "Pick a country first"
+                      }
+                      disabled={!form.countryCode}
+                      countryCode={form.countryCode || undefined}
                     />
                   </label>
-                  <Input label="Country" value={form.country} onChange={(v) => setField("country", v)} />
-                  <Input
-                    label="Full Address"
-                    value={form.fullAddress}
-                    onChange={(v) => setField("fullAddress", v)}
-                  />
 
-                  <div className="rounded-xl border border-border bg-surface-muted p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.2em] text-gold-accent">
-                          Verify business on Foursquare
-                        </p>
-                        <p className="mt-1 text-xs text-violet-100/70">
-                          Optional but recommended. Helps the admin approve faster.
-                        </p>
-                      </div>
+                  <label className="grid gap-1 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-violet-100/85">Shop name or full address</span>
                       {form.fsqId ? (
-                        <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs text-emerald-200">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-0.5 text-[11px] font-semibold text-emerald-200">
                           ✓ Verified: {form.fsqName}
+                          <button
+                            type="button"
+                            onClick={clearFsqMatch}
+                            className="text-emerald-200/80 hover:text-white"
+                            aria-label="Clear Foursquare match"
+                          >
+                            ×
+                          </button>
                         </span>
                       ) : null}
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => void lookupFsq()}
-                        disabled={fsqLoading || form.businessName.trim().length < 2}
-                        className="rounded-xl border border-gold-accent/60 bg-gold-accent/10 px-3 py-2 text-xs font-semibold text-gold-accent disabled:opacity-50"
-                      >
-                        {fsqLoading ? "Searching..." : "Search Foursquare"}
-                      </button>
-                      {form.fsqId ? (
-                        <button
-                          type="button"
-                          onClick={clearFsqMatch}
-                          className="rounded-xl border border-border bg-surface px-3 py-2 text-xs text-violet-100/85"
-                        >
-                          Clear match
-                        </button>
-                      ) : null}
+                    <AddressAutocomplete
+                      value={form.fullAddress}
+                      onChange={(v) => setField("fullAddress", v)}
+                      onSelect={onAddressSelect}
+                      near={
+                        form.city && form.country
+                          ? `${form.city}, ${form.country}`
+                          : form.city || form.country || undefined
+                      }
+                      ll={
+                        typeof form.lat === "number" && typeof form.lng === "number"
+                          ? `${form.lat},${form.lng}`
+                          : undefined
+                      }
+                      disabled={!form.countryCode}
+                    />
+                    <span className="text-[11px] text-violet-100/55">
+                      Pick a suggestion to autofill the address, pin, and Foursquare
+                      verification badge — or type freeform.
+                    </span>
+                  </label>
+
+                  {typeof form.lat === "number" && typeof form.lng === "number" ? (
+                    <div className="grid gap-2">
+                      <div className="flex items-center justify-between text-xs text-violet-100/75">
+                        <span>
+                          Drag the pin (or click the map) to fine-tune the exact storefront
+                          location.
+                        </span>
+                        <span className="font-mono text-[11px] text-violet-100/55">
+                          {form.lat.toFixed(5)}, {form.lng.toFixed(5)}
+                        </span>
+                      </div>
+                      <LocationMapPicker
+                        lat={form.lat}
+                        lng={form.lng}
+                        onMove={onMapMove}
+                      />
                     </div>
-                    {fsqError ? <p className="mt-2 text-xs text-rose-300">{fsqError}</p> : null}
-                    {fsqMatches.length > 0 ? (
-                      <ul className="mt-3 grid gap-2">
-                        {fsqMatches.map((match) => (
-                          <li key={match.id}>
-                            <button
-                              type="button"
-                              onClick={() => applyFsqMatch(match)}
-                              className="w-full rounded-lg border border-border bg-surface p-3 text-left text-sm hover:border-gold-accent/60"
-                            >
-                              <p className="font-semibold">{match.name}</p>
-                              <p className="text-xs text-violet-100/70">
-                                {match.address || "—"}
-                                {match.category ? ` · ${match.category}` : ""}
-                              </p>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </div>
+                  ) : (
+                    <p className="rounded-lg border border-border bg-surface-muted p-3 text-xs text-violet-100/70">
+                      Map preview appears once you pick a city or an address suggestion.
+                    </p>
+                  )}
                 </>
               )}
+              {openStep !== "all" ? (
+                <StepNavButtons
+                  onBack={() => setOpenStep(1)}
+                  onContinue={() => setOpenStep(3)}
+                />
+              ) : null}
             </FormStep>
 
             <FormStep
-              defaultOpen={!selectedListing}
+              open={openStep === 3 || openStep === "all"}
+              onToggle={(next) =>
+                setOpenStep((prev) => (prev === "all" ? "all" : next ? 3 : prev))
+              }
               step={3}
               title="Offer & branding"
               subtitle="What members get and how your listing looks."
@@ -550,7 +664,32 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
                 aspect="wide"
                 hint="Wide cover (16:9) showcasing your storefront, product, or brand."
               />
-              <Input label="Promo Code" value={form.promoCode} onChange={(v) => setField("promoCode", v)} />
+              {form.merchantType === "ONLINE" ? (
+                <Input
+                  label="Promo Code *"
+                  value={form.promoCode}
+                  onChange={(v) => setField("promoCode", v)}
+                  hint="Required for online merchants — members paste this at your checkout."
+                />
+              ) : form.merchantType === "HYBRID" ? (
+                <Input
+                  label="Promo Code *"
+                  value={form.promoCode}
+                  onChange={(v) => setField("promoCode", v)}
+                  hint="Required for the online side. In-store members can also redeem by showing their pass — no code needed."
+                />
+              ) : (
+                <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-3 text-xs text-emerald-100/90">
+                  <p className="font-semibold text-emerald-100">No promo code needed</p>
+                  <p className="mt-1 text-emerald-100/80">
+                    Members show their live{" "}
+                    <Link href="/pass" className="underline underline-offset-2 hover:text-white">
+                      Purple Club pass
+                    </Link>{" "}
+                    at the counter — your staff applies the discount.
+                  </p>
+                </div>
+              )}
               <Input
                 label="Discount Details"
                 value={form.discountDetails}
@@ -619,17 +758,23 @@ function FormStep({
   title,
   subtitle,
   children,
-  defaultOpen,
+  open,
+  onToggle,
 }: {
   step: number;
   title: string;
   subtitle: string;
   children: React.ReactNode;
-  defaultOpen: boolean;
+  open: boolean;
+  onToggle: (next: boolean) => void;
 }) {
   return (
     <details
-      open={defaultOpen}
+      open={open}
+      onToggle={(event) => {
+        const target = event.currentTarget;
+        if (target.open !== open) onToggle(target.open);
+      }}
       className="group overflow-hidden rounded-2xl border border-border bg-surface-muted [&[open]>summary>span.indicator]:rotate-90"
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm">
@@ -706,10 +851,12 @@ function Input({
   label,
   value,
   onChange,
+  hint,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  hint?: string;
 }) {
   return (
     <label className="grid gap-1 text-sm">
@@ -719,6 +866,45 @@ function Input({
         onChange={(e) => onChange(e.target.value)}
         className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm"
       />
+      {hint ? <span className="text-[11px] text-violet-100/60">{hint}</span> : null}
     </label>
+  );
+}
+
+/**
+ * Step-pagination footer rendered inside `FormStep` while the accordion
+ * is in step-by-step mode (i.e. a brand-new merchant filling out the
+ * form for the first time). Hidden once the user picks an existing
+ * listing — at that point we open all panels so they can scan the
+ * whole form at once.
+ */
+function StepNavButtons({
+  onBack,
+  onContinue,
+}: {
+  onBack?: () => void;
+  onContinue: () => void;
+}) {
+  return (
+    <div className="mt-4 flex items-center justify-between gap-2">
+      {onBack ? (
+        <button
+          type="button"
+          onClick={onBack}
+          className="rounded-xl border border-border bg-surface px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-violet-100/85 hover:border-purple-accent"
+        >
+          ← Back
+        </button>
+      ) : (
+        <span />
+      )}
+      <button
+        type="button"
+        onClick={onContinue}
+        className="rounded-xl bg-gold-accent/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-black hover:bg-gold-accent"
+      >
+        Continue →
+      </button>
+    </div>
   );
 }

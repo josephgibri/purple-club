@@ -3,16 +3,11 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-import { merchants as bundledMerchants, type Merchant, type MerchantCategory } from "@/data/merchants";
-
-const DEFAULT_HERO_BY_CATEGORY: Record<MerchantCategory, string> = {
-  retail_goods: "/templates/retail-template.svg",
-  dining_nightlife: "/templates/dining-template.svg",
-  tech_digital: "/templates/tech-template.svg",
-  travel_leisure: "/templates/travel-template.svg",
-  wellness_beauty: "/templates/wellness-template.svg",
-  professional_services: "/templates/professional-template.svg",
-};
+import {
+  CATEGORY_HERO_FALLBACK as DEFAULT_HERO_BY_CATEGORY,
+  merchants as bundledMerchants,
+  type Merchant,
+} from "@/data/merchants";
 
 /**
  * Public-facing teaser strip. Renders 3 anchor merchants by name + logo +

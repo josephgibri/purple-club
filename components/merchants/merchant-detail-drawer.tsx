@@ -5,7 +5,10 @@ import dynamic from "next/dynamic";
 import { Copy, ExternalLink, MapPin, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { Merchant, MerchantCategory } from "@/data/merchants";
+import {
+  CATEGORY_HERO_FALLBACK as DEFAULT_HERO_BY_CATEGORY,
+  type Merchant,
+} from "@/data/merchants";
 
 const MerchantLocationMap = dynamic(
   () => import("@/components/merchants/merchant-location-map"),
@@ -16,15 +19,6 @@ type MerchantDetailDrawerProps = {
   merchant: Merchant | null;
   isOpen: boolean;
   onClose: () => void;
-};
-
-const DEFAULT_HERO_BY_CATEGORY: Record<MerchantCategory, string> = {
-  retail_goods: "/templates/retail-template.svg",
-  dining_nightlife: "/templates/dining-template.svg",
-  tech_digital: "/templates/tech-template.svg",
-  travel_leisure: "/templates/travel-template.svg",
-  wellness_beauty: "/templates/wellness-template.svg",
-  professional_services: "/templates/professional-template.svg",
 };
 
 const FOCUSABLE =

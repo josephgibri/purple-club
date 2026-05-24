@@ -41,10 +41,20 @@ body:
       options:
         - retail_goods
         - dining_nightlife
-        - tech_digital
+        - fashion_apparel
+        - groceries_markets
+        - home_lifestyle
+        - arts_entertainment
         - travel_leisure
         - wellness_beauty
+        - fitness_sports
+        - kids_family
+        - education_learning
+        - tech_digital
         - professional_services
+        - automotive
+        - pets
+        - crypto_web3
     validations:
       required: true
   - type: dropdown

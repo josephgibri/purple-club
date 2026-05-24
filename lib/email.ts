@@ -104,6 +104,51 @@ Thanks for joining the network.
   });
 }
 
+export type PasswordResetEmailInput = {
+  to: string;
+  resetUrl: string;
+  ttlMinutes: number;
+};
+
+/**
+ * Email sent in response to a /forgot request. The link contains a
+ * one-time token that lasts `ttlMinutes`; clicking it lands on the
+ * /reset page where the user picks a new password.
+ *
+ * We intentionally don't disclose whether the email matched a real
+ * account in the response to /forgot — the email itself is the
+ * only confirmation channel. Failing to send (Resend offline) is
+ * silently swallowed by `sendEmail`.
+ */
+export async function sendPasswordResetEmail(input: PasswordResetEmailInput): Promise<void> {
+  const text = `Someone asked to reset the password on your Purple Club account.
+
+Reset your password (expires in ${input.ttlMinutes} minutes):
+${input.resetUrl}
+
+If this wasn't you, you can ignore this email — your password won't change.
+
+— The Purple Club team`;
+
+  const html = wrapHtml(`
+    <h2 style="font-size: 22px; margin: 0 0 12px; color: #ffffff;">Reset your password</h2>
+    <p style="margin: 0 0 16px; color: #ddd6fe;">Someone asked to reset the password on your Purple Club account. If that was you, click below within the next ${input.ttlMinutes} minutes.</p>
+    <p style="margin: 0 0 24px;">
+      <a href="${input.resetUrl}" style="display:inline-block; background:#d4af37; color:#0b0618; padding:10px 18px; border-radius:10px; text-decoration:none; font-weight:600;">Reset password</a>
+    </p>
+    <p style="margin: 0 0 8px; font-size: 13px; color: #a89bd1;">Or paste this URL into your browser:</p>
+    <p style="margin: 0 0 24px; word-break: break-all; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #8b7ec3;">${input.resetUrl}</p>
+    <p style="margin: 0; font-size: 13px; color: #a89bd1;">If this wasn't you, ignore this email — your password won't change.</p>
+  `);
+
+  await sendEmail({
+    to: input.to,
+    subject: "Reset your Purple Club password",
+    text,
+    html,
+  });
+}
+
 export type ListingRejectedEmailInput = {
   to: string;
   businessName: string;

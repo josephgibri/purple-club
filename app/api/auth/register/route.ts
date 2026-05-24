@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { deriveUsername, registerSchema } from "@/lib/dbSchemas";
+import { deriveUsername, formatZodError, registerSchema } from "@/lib/dbSchemas";
 import { setSessionCookie, signSession } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 
@@ -13,7 +13,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const parsed = registerSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.issues[0]?.message ?? "Invalid payload" }, { status: 400 });
+    return Response.json({ error: formatZodError(parsed.error) }, { status: 400 });
   }
 
   const data = parsed.data;

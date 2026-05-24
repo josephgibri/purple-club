@@ -1,6 +1,11 @@
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { adminListingEditSchema, deriveMerchantId } from "@/lib/dbSchemas";
+import {
+  adminListingEditSchema,
+  deriveMerchantId,
+  formatZodError,
+  normaliseMerchantType,
+} from "@/lib/dbSchemas";
 import { sendListingApprovedEmail, sendListingRejectedEmail } from "@/lib/email";
 
 type Params = { params: Promise<{ id: string }> };
@@ -26,12 +31,10 @@ export async function PATCH(request: Request, { params }: Params): Promise<Respo
   }
   const parsed = adminListingEditSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid payload" },
-      { status: 400 },
-    );
+    return Response.json({ error: formatZodError(parsed.error) }, { status: 400 });
   }
   const data = parsed.data;
+  const { merchantType, isOnline, hasPhysicalLocation } = normaliseMerchantType(data);
   const merchantId = deriveMerchantId(data);
 
   const duplicate = await db.merchantListing.findFirst({
@@ -57,12 +60,13 @@ export async function PATCH(request: Request, { params }: Params): Promise<Respo
         businessName: data.businessName,
         businessBrief: data.businessBrief,
         category: data.category,
-        isOnline: data.isOnline,
-        country: data.isOnline ? "" : data.country,
-        city: data.isOnline ? "" : data.city,
-        fullAddress: data.isOnline ? "" : data.fullAddress,
-        lat: data.isOnline ? null : data.lat,
-        lng: data.isOnline ? null : data.lng,
+        isOnline,
+        merchantType,
+        country: hasPhysicalLocation ? data.country : "",
+        city: hasPhysicalLocation ? data.city : "",
+        fullAddress: hasPhysicalLocation ? data.fullAddress : "",
+        lat: hasPhysicalLocation ? data.lat : null,
+        lng: hasPhysicalLocation ? data.lng : null,
         website: data.website,
         logoUrl: data.logoUrl,
         heroImageUrl: data.heroImageUrl,
