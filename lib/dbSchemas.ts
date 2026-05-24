@@ -105,9 +105,6 @@ const baseListingShape = {
   discountDetails: z.string().trim().min(4),
   socialPlatform: z.enum(SOCIAL_PLATFORMS).optional(),
   socialHandle: optionalNonEmpty(z.string().trim().min(1).max(60)),
-  fsqId: optionalNonEmpty(z.string().trim().min(1)),
-  fsqName: optionalNonEmpty(z.string().trim().min(1)),
-  fsqAddress: optionalNonEmpty(z.string().trim().min(1)),
 } as const;
 
 /**

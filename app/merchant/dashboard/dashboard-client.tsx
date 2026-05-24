@@ -47,10 +47,6 @@ type Listing = {
   discountDetails: string;
   socialPlatform: SocialPlatform | null;
   socialHandle: string | null;
-  fsqId: string | null;
-  fsqName: string | null;
-  fsqAddress: string | null;
-  fsqVerifiedAt: string | null;
   status: "DRAFT" | "SUBMITTED" | "UNDER_REVIEW" | "APPROVED" | "REJECTED";
   rejectionReason: string | null;
   updatedAt: string;
@@ -87,9 +83,6 @@ type FormState = {
   discountDetails: string;
   socialPlatform: SocialPlatform | "";
   socialHandle: string;
-  fsqId: string;
-  fsqName: string;
-  fsqAddress: string;
   status: "DRAFT" | "SUBMITTED";
 };
 
@@ -113,9 +106,6 @@ const EMPTY_FORM: FormState = {
   discountDetails: "",
   socialPlatform: "",
   socialHandle: "",
-  fsqId: "",
-  fsqName: "",
-  fsqAddress: "",
   status: "SUBMITTED",
 };
 
@@ -150,9 +140,6 @@ function mapListingToForm(listing: Listing): FormState {
     discountDetails: listing.discountDetails,
     socialPlatform: listing.socialPlatform ?? "",
     socialHandle: listing.socialHandle ?? "",
-    fsqId: listing.fsqId ?? "",
-    fsqName: listing.fsqName ?? "",
-    fsqAddress: listing.fsqAddress ?? "",
     status: listing.status === "DRAFT" ? "DRAFT" : "SUBMITTED",
   };
 }
@@ -267,9 +254,6 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
         fullAddress: losingPhysical ? "" : prev.fullAddress,
         lat: losingPhysical ? undefined : prev.lat,
         lng: losingPhysical ? undefined : prev.lng,
-        fsqId: losingPhysical ? "" : prev.fsqId,
-        fsqName: losingPhysical ? "" : prev.fsqName,
-        fsqAddress: losingPhysical ? "" : prev.fsqAddress,
       };
     });
   }
@@ -289,9 +273,6 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
         fullAddress: isSwitchingCountry ? "" : prev.fullAddress,
         lat: isSwitchingCountry ? undefined : prev.lat,
         lng: isSwitchingCountry ? undefined : prev.lng,
-        fsqId: isSwitchingCountry ? "" : prev.fsqId,
-        fsqName: isSwitchingCountry ? "" : prev.fsqName,
-        fsqAddress: isSwitchingCountry ? "" : prev.fsqAddress,
       };
     });
   }
@@ -320,9 +301,6 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
         countryCode: matchedCountry?.code ?? prev.countryCode,
         lat: selection.lat ?? prev.lat,
         lng: selection.lng ?? prev.lng,
-        fsqId: selection.fsqId,
-        fsqName: selection.fsqName,
-        fsqAddress: selection.address,
       };
     });
   }
@@ -332,8 +310,33 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
     setField("lng", lng);
   }
 
-  function clearFsqMatch() {
-    setForm((prev) => ({ ...prev, fsqId: "", fsqName: "", fsqAddress: "" }));
+  /**
+   * Fired ~700ms after the merchant drops the pin. We use the
+   * reverse-geocoded address to fill any blank address fields, and
+   * we ALWAYS overwrite the `fullAddress` so the visible input
+   * stays in sync with where the pin actually is. City / country
+   * are only filled if blank — the merchant's explicit choice in
+   * the dropdown above takes precedence over an OSM-resolved one
+   * that might differ (e.g. "Greater London" vs "London").
+   */
+  function onAddressResolvedFromMap(resolved: {
+    address: string;
+    city: string;
+    country: string;
+    countryCode: string;
+  }) {
+    setForm((prev) => {
+      const matchedCountry = resolved.country
+        ? findCountryByName(resolved.country)
+        : undefined;
+      return {
+        ...prev,
+        fullAddress: resolved.address || prev.fullAddress,
+        city: prev.city || resolved.city,
+        country: prev.country || matchedCountry?.name || resolved.country,
+        countryCode: prev.countryCode || matchedCountry?.code || resolved.countryCode,
+      };
+    });
   }
 
   async function save() {
@@ -344,16 +347,13 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
       // Coerce empty strings to `undefined` so Zod's `.optional()` actually
       // treats them as absent. Without this, a blank "Custom slug" field
       // ships as "" and fails the `min(2)` rule with the unhelpful
-      // "String must contain at least 2 character(s)" message. Same trap
-      // for socialHandle/socialPlatform/fsq* — keeping them all in sync.
+      // "String must contain at least 2 character(s)" message. Same
+      // trap for socialHandle / socialPlatform.
       const payload = {
         ...form,
         merchantId: form.merchantId || undefined,
         socialPlatform: form.socialPlatform || undefined,
         socialHandle: form.socialHandle || undefined,
-        fsqId: form.fsqId || undefined,
-        fsqName: form.fsqName || undefined,
-        fsqAddress: form.fsqAddress || undefined,
       };
       const endpoint = selectedListing
         ? `/api/merchant/listings/${selectedListing.id}`
@@ -481,13 +481,8 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
                   }`}
                 >
                   <p className="font-semibold">{item.businessName}</p>
-                  <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-violet-100/70">
-                    <span>Status: {item.status}</span>
-                    {item.fsqId ? (
-                      <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] text-emerald-200">
-                        FSQ ✓
-                      </span>
-                    ) : null}
+                  <p className="mt-1 text-xs text-violet-100/70">
+                    Status: {item.status}
                   </p>
                 </button>
               ))}
@@ -560,13 +555,13 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
               open={openStep === 2 || openStep === "all"}
               onToggle={(next) => toggleStep(2, next)}
               step={2}
-              title={form.merchantType === "ONLINE" ? "Reach" : "Location & verification"}
+              title={form.merchantType === "ONLINE" ? "Reach" : "Address"}
               subtitle={
                 form.merchantType === "ONLINE"
                   ? "Online merchants serve members worldwide — no address needed."
                   : form.merchantType === "HYBRID"
-                    ? "Your physical storefront — members can also redeem online."
-                    : "Where members can find you, plus a free Foursquare match."
+                    ? "Where members can walk in. They can also redeem online."
+                    : "Where members can find you. Drop the pin or type your address."
               }
             >
               {form.merchantType === "ONLINE" ? (
@@ -608,41 +603,16 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
                   </label>
 
                   <label className="grid gap-1 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-violet-100/85">Shop name or full address</span>
-                      {form.fsqId ? (
-                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-0.5 text-[11px] font-semibold text-emerald-200">
-                          ✓ Verified: {form.fsqName}
-                          <button
-                            type="button"
-                            onClick={clearFsqMatch}
-                            className="text-emerald-200/80 hover:text-white"
-                            aria-label="Clear Foursquare match"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ) : null}
-                    </div>
+                    <span className="text-violet-100/85">Street address</span>
                     <AddressAutocomplete
                       value={form.fullAddress}
                       onChange={(v) => setField("fullAddress", v)}
                       onSelect={onAddressSelect}
-                      near={
-                        form.city && form.country
-                          ? `${form.city}, ${form.country}`
-                          : form.city || form.country || undefined
-                      }
-                      ll={
-                        typeof form.lat === "number" && typeof form.lng === "number"
-                          ? `${form.lat},${form.lng}`
-                          : undefined
-                      }
+                      countryCode={form.countryCode || undefined}
                       disabled={!form.countryCode}
                     />
                     <span className="text-[11px] text-violet-100/55">
-                      Pick a suggestion to autofill the address, pin, and Foursquare
-                      verification badge — or type freeform.
+                      Pick a suggestion — or just drop the pin on the map below and we&apos;ll fill this for you.
                     </span>
                   </label>
 
@@ -650,8 +620,7 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
                     <div className="grid gap-2">
                       <div className="flex items-center justify-between text-xs text-violet-100/75">
                         <span>
-                          Drag the pin (or click the map) to fine-tune the exact storefront
-                          location.
+                          Drag the pin (or tap the map) to your exact storefront — the address updates automatically.
                         </span>
                         <span className="font-mono text-[11px] text-violet-100/55">
                           {form.lat.toFixed(5)}, {form.lng.toFixed(5)}
@@ -661,11 +630,12 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
                         lat={form.lat}
                         lng={form.lng}
                         onMove={onMapMove}
+                        onAddressResolved={onAddressResolvedFromMap}
                       />
                     </div>
                   ) : (
                     <p className="rounded-lg border border-border bg-surface-muted p-3 text-xs text-violet-100/70">
-                      Map preview appears once you pick a city or an address suggestion.
+                      Map appears once you pick a city or address suggestion above.
                     </p>
                   )}
                 </>

@@ -33,10 +33,6 @@ type Listing = {
   discountDetails: string;
   socialPlatform: SocialPlatform | null;
   socialHandle: string | null;
-  fsqId: string | null;
-  fsqName: string | null;
-  fsqAddress: string | null;
-  fsqVerifiedAt: string | null;
   adminNotes: string | null;
   status: ListingStatus;
   rejectionReason: string | null;
@@ -64,9 +60,6 @@ type FormState = {
   discountDetails: string;
   socialPlatform: SocialPlatform | "";
   socialHandle: string;
-  fsqId: string;
-  fsqName: string;
-  fsqAddress: string;
   adminNotes: string;
   status: ListingStatus;
   rejectionReason: string;
@@ -117,9 +110,6 @@ function listingToForm(l: Listing): FormState {
     discountDetails: l.discountDetails,
     socialPlatform: l.socialPlatform ?? "",
     socialHandle: l.socialHandle ?? "",
-    fsqId: l.fsqId ?? "",
-    fsqName: l.fsqName ?? "",
-    fsqAddress: l.fsqAddress ?? "",
     adminNotes: l.adminNotes ?? "",
     status: l.status,
     rejectionReason: l.rejectionReason ?? "",
@@ -207,9 +197,6 @@ export function AdminReviewsClient() {
       status: targetStatus ?? form.status,
       socialPlatform: form.socialPlatform || undefined,
       socialHandle: form.socialHandle || undefined,
-      fsqId: form.fsqId || undefined,
-      fsqName: form.fsqName || undefined,
-      fsqAddress: form.fsqAddress || undefined,
       adminNotes: form.adminNotes || undefined,
       rejectionReason: targetStatus === "REJECTED" ? form.rejectionReason || undefined : undefined,
     };
@@ -319,11 +306,6 @@ export function AdminReviewsClient() {
                     {listing.profile.user.email}
                   </p>
                   <p className="mt-1 flex flex-wrap gap-1 text-[10px]">
-                    {listing.fsqId ? (
-                      <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-emerald-200">
-                        FSQ ✓
-                      </span>
-                    ) : null}
                     {emailDomain(listing.profile.user.email) === websiteDomain(listing.website) &&
                     websiteDomain(listing.website) ? (
                       <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-emerald-200">
@@ -464,7 +446,6 @@ function VerificationBadges({ listing }: { listing: Listing }) {
 
   return (
     <div className="flex flex-wrap gap-2 text-xs">
-      <Badge ok={Boolean(listing.fsqId)} label="Foursquare match" />
       <Badge ok={Boolean(domainMatch)} label="Email domain matches website" />
       <Badge
         ok={
@@ -510,12 +491,6 @@ function ReadOnlyView({ listing }: { listing: Listing }) {
       <Row label="Hero URL" value={listing.heroImageUrl} />
       <Row label="Promo code" value={listing.promoCode ?? "—"} />
       <Row label="Discount" value={listing.discountDetails} />
-      {listing.fsqId ? (
-        <>
-          <Row label="FSQ name" value={listing.fsqName ?? "—"} />
-          <Row label="FSQ address" value={listing.fsqAddress ?? "—"} />
-        </>
-      ) : null}
     </div>
   );
 }
@@ -584,9 +559,6 @@ function EditForm({
         options={[["", "None"], ...SOCIAL_PLATFORMS.map((p) => [p, p] as const)]}
       />
       <Input label="Social handle" value={form.socialHandle} onChange={(v) => setField("socialHandle", v.replace(/^@+/, ""))} />
-      <Input label="Foursquare ID" value={form.fsqId} onChange={(v) => setField("fsqId", v)} />
-      <Input label="Foursquare name" value={form.fsqName} onChange={(v) => setField("fsqName", v)} />
-      <Input label="Foursquare address" value={form.fsqAddress} onChange={(v) => setField("fsqAddress", v)} />
       <label className="grid gap-1 text-sm">
         <span className="text-violet-100/85">Admin notes (internal)</span>
         <textarea

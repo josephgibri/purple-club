@@ -29,6 +29,13 @@ type LeafletIconDefaultWithPath = typeof L.Icon.Default & {
 };
 (L.Icon.Default as LeafletIconDefaultWithPath).imagePath = LEAFLET_ICON_BASE;
 
+export type ResolvedAddress = {
+  address: string;
+  city: string;
+  country: string;
+  countryCode: string;
+};
+
 type LocationMapPickerProps = {
   lat: number;
   lng: number;
@@ -38,6 +45,18 @@ type LocationMapPickerProps = {
    * form can persist them back to `form.lat` / `form.lng`.
    */
   onMove: (lat: number, lng: number) => void;
+  /**
+   * Fired ~700ms after the pin settles, with the address Nominatim
+   * resolved for the new coordinates. This is what makes the map the
+   * primary address-entry mechanism: drop the pin, get the address.
+   * The parent merges the resolved fields into the form so the
+   * address input stays in sync.
+   *
+   * Skipped (callback never fires) when reverse geocoding fails so
+   * the merchant's hand-typed address isn't blown away by a transient
+   * upstream outage.
+   */
+  onAddressResolved?: (address: ResolvedAddress) => void;
   className?: string;
 };
 
@@ -67,21 +86,66 @@ const PIN_ICON = L.divIcon({
  * it on their actual storefront.
  *
  * The component is fully controlled — the parent owns lat/lng. When
- * the parent updates them (e.g. after picking a Foursquare result),
- * the marker and view animate to the new coords without remounting
- * the map.
+ * the parent updates them (e.g. after picking an address suggestion
+ * or reverse-geocoded result), the marker and view animate to the
+ * new coords without remounting the map.
  */
+const REVERSE_DEBOUNCE_MS = 700;
+
 export default function LocationMapPicker(props: LocationMapPickerProps) {
-  const { lat, lng, onMove, className } = props;
+  const { lat, lng, onMove, onAddressResolved, className } = props;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const onMoveRef = useRef(onMove);
+  const onAddressResolvedRef = useRef(onAddressResolved);
+  const reverseTimerRef = useRef<number | null>(null);
+  const reverseAbortRef = useRef<AbortController | null>(null);
 
-  // Keep the callback fresh without remounting the map.
+  // Keep the callbacks fresh without remounting the map.
   useEffect(() => {
     onMoveRef.current = onMove;
   }, [onMove]);
+  useEffect(() => {
+    onAddressResolvedRef.current = onAddressResolved;
+  }, [onAddressResolved]);
+
+  const scheduleReverse = (nextLat: number, nextLng: number) => {
+    if (!onAddressResolvedRef.current) return;
+    if (reverseTimerRef.current) window.clearTimeout(reverseTimerRef.current);
+    if (reverseAbortRef.current) reverseAbortRef.current.abort();
+    reverseTimerRef.current = window.setTimeout(async () => {
+      const controller = new AbortController();
+      reverseAbortRef.current = controller;
+      try {
+        const params = new URLSearchParams({
+          lat: String(nextLat),
+          lng: String(nextLng),
+        });
+        const res = await fetch(`/api/geocode/reverse?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          suggestion?: {
+            label: string;
+            city: string;
+            country: string;
+            countryCode: string;
+          } | null;
+        };
+        if (!data.suggestion) return;
+        onAddressResolvedRef.current?.({
+          address: data.suggestion.label,
+          city: data.suggestion.city,
+          country: data.suggestion.country,
+          countryCode: data.suggestion.countryCode,
+        });
+      } catch {
+        // Aborted by next drag or transient network error — fine.
+      }
+    }, REVERSE_DEBOUNCE_MS);
+  };
 
   useEffect(() => {
     ensureLeafletStylesheet();
@@ -105,22 +169,26 @@ export default function LocationMapPicker(props: LocationMapPickerProps) {
     marker.on("dragend", () => {
       const pos = marker.getLatLng();
       onMoveRef.current(pos.lat, pos.lng);
+      scheduleReverse(pos.lat, pos.lng);
     });
     map.on("click", (event: L.LeafletMouseEvent) => {
       marker.setLatLng(event.latlng);
       onMoveRef.current(event.latlng.lat, event.latlng.lng);
+      scheduleReverse(event.latlng.lat, event.latlng.lng);
     });
 
     mapRef.current = map;
     markerRef.current = marker;
 
     return () => {
+      if (reverseTimerRef.current) window.clearTimeout(reverseTimerRef.current);
+      if (reverseAbortRef.current) reverseAbortRef.current.abort();
       map.remove();
       mapRef.current = null;
       markerRef.current = null;
     };
-    // We intentionally omit lat/lng here — the next effect handles
-    // parent-driven coordinate updates without rebuilding the map.
+    // We intentionally omit lat/lng/scheduleReverse here — the next effect
+    // handles parent-driven coordinate updates without rebuilding the map.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
