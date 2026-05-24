@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Purple Prime",
-    short_name: "PurplePrime",
+    name: "Purple Club",
+    short_name: "PurpleClub",
     description: "Token-gated merchant discount network for PBTC holders.",
     start_url: "/",
     display: "standalone",

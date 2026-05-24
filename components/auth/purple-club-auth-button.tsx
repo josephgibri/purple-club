@@ -132,7 +132,7 @@ function AuthButtonInner() {
       title={error ?? undefined}
     >
       <Sparkles size={14} />
-      {isPending ? "Connecting…" : "Enter Purple Prime"}
+      {isPending ? "Connecting…" : "Enter Purple Club"}
     </button>
   );
 }

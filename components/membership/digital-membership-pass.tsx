@@ -1,7 +1,10 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef } from "react";
+
+import { MembershipPassCard } from "@/components/membership/membership-pass-card";
 
 type DigitalMembershipPassProps = {
   isOpen: boolean;
@@ -15,10 +18,12 @@ type DigitalMembershipPassProps = {
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-function formatClock(now: Date): string {
-  return now.toLocaleTimeString("en-GB", { hour12: false });
-}
-
+/**
+ * Modal wrapper around `MembershipPassCard`. The card is rendered with
+ * `enabled={isOpen}` so the underlying pass-token mint and live clock
+ * only run while the dialog is visible — closing the modal releases
+ * the auto-refresh timer and stops the per-second re-render.
+ */
 export function DigitalMembershipPass({
   isOpen,
   onClose,
@@ -27,21 +32,12 @@ export function DigitalMembershipPass({
   signaturePrefix,
   signedAtIso,
 }: DigitalMembershipPassProps) {
-  const [clock, setClock] = useState(() => formatClock(new Date()));
-  const [showVerification, setShowVerification] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const close = useCallback(() => {
-    setShowVerification(false);
     onClose();
   }, [onClose]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const timer = setInterval(() => setClock(formatClock(new Date())), 1000);
-    return () => clearInterval(timer);
-  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -73,20 +69,6 @@ export function DigitalMembershipPass({
     };
   }, [isOpen, close]);
 
-  const shortWallet = useMemo(() => {
-    if (!walletAddress) return "Wallet connected";
-    return `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`;
-  }, [walletAddress]);
-
-  const signedAtLabel = useMemo(() => {
-    if (!signedAtIso) return null;
-    try {
-      return new Date(signedAtIso).toLocaleString();
-    } catch {
-      return signedAtIso;
-    }
-  }, [signedAtIso]);
-
   if (!isOpen) return null;
 
   return (
@@ -103,82 +85,30 @@ export function DigitalMembershipPass({
           ref={closeButtonRef}
           type="button"
           onClick={close}
-          className="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-violet-200/20 bg-black/35 text-white"
+          className="absolute right-4 top-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-violet-200/20 bg-black/35 text-white"
           aria-label="Close membership pass"
         >
           <X size={22} />
         </button>
 
-        <div className="relative mt-10 overflow-hidden rounded-3xl border border-gold-accent/35 bg-gradient-to-br from-[#1a0c39] via-[#2a1256] to-[#160a33] p-5">
-          <div className="hologram-shimmer pointer-events-none absolute -inset-[35%]" />
-          <div className="relative z-10">
-            <p className="text-xs uppercase tracking-[0.28em] text-gold-accent/90">
-              Purple Club Pass
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold text-white">
-              Active Membership
-            </h2>
-            <p className="mt-1 text-xs text-violet-100/80">Verified Active</p>
-
-            <div className="mt-6 rounded-2xl border border-violet-200/20 bg-black/25 p-4">
-              <p className="text-xs text-violet-100/80">Live Verification Clock</p>
-              <p className="font-mono text-4xl font-semibold tracking-wider text-gold-accent">
-                {clock}
-              </p>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-xl border border-violet-200/15 bg-black/20 p-3">
-                <p className="text-xs text-violet-100/70">Wallet</p>
-                <p className="mt-1 font-mono text-white">{shortWallet}</p>
-              </div>
-              <div className="rounded-xl border border-violet-200/15 bg-black/20 p-3">
-                <p className="text-xs text-violet-100/70">PBTC Balance</p>
-                <p className="mt-1 font-semibold text-white">
-                  {pbtcBalance.toLocaleString(undefined, {
-                    maximumFractionDigits: 6,
-                  })}
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className="mt-10">
+          <MembershipPassCard
+            enabled={isOpen}
+            walletAddress={walletAddress}
+            pbtcBalance={pbtcBalance}
+            signaturePrefix={signaturePrefix}
+            signedAtIso={signedAtIso}
+            variant="modal"
+          />
         </div>
 
-        {signaturePrefix || signedAtLabel ? (
-          <div className="mt-4 rounded-xl border border-violet-200/15 bg-black/25">
-            <button
-              type="button"
-              onClick={() => setShowVerification((v) => !v)}
-              aria-expanded={showVerification}
-              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.2em] text-violet-100/80 hover:text-white"
-            >
-              View Verification Details
-              <span aria-hidden className="text-sm">
-                {showVerification ? "−" : "+"}
-              </span>
-            </button>
-            {showVerification ? (
-              <div className="space-y-2 border-t border-violet-200/10 px-4 py-3 text-xs text-violet-100/80">
-                {signaturePrefix ? (
-                  <p>
-                    <span className="text-violet-100/60">Signature:</span>{" "}
-                    <span className="font-mono text-violet-100">
-                      {signaturePrefix}
-                    </span>
-                  </p>
-                ) : null}
-                {signedAtLabel ? (
-                  <p>
-                    <span className="text-violet-100/60">Signed at:</span>{" "}
-                    <span className="font-mono text-violet-100">
-                      {signedAtLabel}
-                    </span>
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+        <Link
+          href="/pass"
+          onClick={close}
+          className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-gold-accent/40 bg-black/25 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-gold-accent hover:bg-black/35"
+        >
+          Open Full-Screen Pass
+        </Link>
       </div>
     </div>
   );

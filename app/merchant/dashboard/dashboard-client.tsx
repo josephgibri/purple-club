@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { CityAutocomplete, type CitySelection } from "@/components/join/city-autocomplete";
@@ -282,6 +283,11 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
     window.location.href = "/join";
   }
 
+  const approvedListing = listings.find((l) => l.status === "APPROVED");
+  const stickerHref = approvedListing
+    ? `/sticker?merchant=${encodeURIComponent(approvedListing.merchantId)}`
+    : "/sticker";
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-border bg-surface p-5">
@@ -302,6 +308,31 @@ export function MerchantDashboardClient({ session }: { session: SessionPayload }
           </button>
         </div>
       </div>
+
+      <Link
+        href={stickerHref}
+        className="block rounded-2xl border border-gold-accent/40 bg-gradient-to-br from-[#1a0c39] via-[#140a2d] to-[#0e0722] p-5 transition hover:border-gold-accent"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.28em] text-gold-accent">
+              Window sticker
+            </p>
+            <h2 className="mt-1 text-lg font-semibold text-white">
+              {approvedListing
+                ? `Print a sticker for ${approvedListing.businessName}`
+                : "Get your Purple Club window sticker"}
+            </h2>
+            <p className="mt-1 text-xs text-violet-100/75">
+              Customers scan the QR → install Phantom → buy 1 PBTC → walk back
+              in for the discount.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-black">
+            Open sticker →
+          </span>
+        </div>
+      </Link>
 
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         <aside className="rounded-2xl border border-border bg-surface p-4">

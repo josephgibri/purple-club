@@ -1,4 +1,4 @@
-# Purple Prime
+# Purple Club
 
 This project is migrating from the legacy GitHub-issue approval relay to a database-backed merchant and admin dashboard model.
 

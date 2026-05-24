@@ -331,7 +331,7 @@ export function AdminReviewsClient() {
                 <div className="flex flex-wrap gap-2">
                   <a
                     href={`mailto:${selected.profile.user.email}?subject=${encodeURIComponent(
-                      `Purple Prime listing: ${selected.businessName}`,
+                      `Purple Club listing: ${selected.businessName}`,
                     )}`}
                     className="rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-semibold text-violet-100"
                   >

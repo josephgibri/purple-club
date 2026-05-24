@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { TopNav } from "@/components/navigation/top-nav";
 import { SolanaProvider } from "@/components/providers/solana-provider";
+import { BasePathFetch } from "@/components/base-path-fetch";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Purple Prime",
+  title: "Purple Club",
   description: "Token-gated merchant discount network powered by PBTC.",
   manifest: "/manifest.webmanifest",
   icons: {
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Purple Prime",
+    title: "Purple Club",
     statusBarStyle: "black-translucent",
   },
 };
@@ -44,6 +45,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <BasePathFetch />
         <SolanaProvider>
           <TopNav />
           {children}

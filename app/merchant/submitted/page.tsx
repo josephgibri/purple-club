@@ -120,6 +120,26 @@ function Submitted() {
         link for you within minutes.
       </div>
 
+      <div className="mt-6 rounded-2xl border border-gold-accent/40 bg-gradient-to-br from-[#1a0c39] via-[#140a2d] to-[#0e0722] p-5">
+        <p className="text-[10px] uppercase tracking-[0.28em] text-gold-accent">
+          While you wait
+        </p>
+        <h2 className="mt-2 text-lg font-semibold text-white">
+          Grab your window sticker
+        </h2>
+        <p className="mt-1 text-sm text-violet-100/75">
+          Print a Purple Club &ldquo;Member Merchant&rdquo; sticker for your shop. The
+          QR walks new customers through getting a wallet and 1 PBTC — so when
+          they walk back in, they qualify for your discount.
+        </p>
+        <Link
+          href={merchantId ? `/sticker?merchant=${encodeURIComponent(merchantId)}` : "/sticker"}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-gold-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-black transition hover:brightness-110"
+        >
+          Open sticker
+        </Link>
+      </div>
+
       <div className="mt-6 text-sm text-violet-100/70">
         <Link href="/" className="underline underline-offset-4">
           Back to Purple Club

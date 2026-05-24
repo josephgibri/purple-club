@@ -15,12 +15,12 @@ function getClient(): Resend | null {
 
 function getFromAddress(): string {
   return (
-    process.env.RESEND_FROM_EMAIL ?? "Purple Prime <onboarding@resend.dev>"
+    process.env.RESEND_FROM_EMAIL ?? "Purple Club <onboarding@resend.dev>"
   );
 }
 
 function getSiteOrigin(): string {
-  return process.env.PUBLIC_SITE_URL?.replace(/\/+$/, "") ?? "https://purpleprime.xyz";
+  return process.env.PUBLIC_SITE_URL?.replace(/\/+$/, "") ?? "https://purpleclub.xyz";
 }
 
 export type SendEmailInput = {
@@ -59,7 +59,7 @@ function wrapHtml(body: string): string {
   return `
   <div style="${baseStyles}">
     <div style="max-width: 560px; margin: 0 auto; background: #150a30; border: 1px solid #2c1d4a; border-radius: 16px; padding: 28px;">
-      <h1 style="font-size: 14px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: #d4af37; margin: 0 0 16px;">Purple Prime</h1>
+      <h1 style="font-size: 14px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: #d4af37; margin: 0 0 16px;">Purple Club</h1>
       ${body}
     </div>
     <p style="text-align: center; font-size: 12px; color: #a89bd1; margin: 24px 0 0;">A private discount network for the PBTC community.</p>
@@ -77,14 +77,14 @@ export async function sendListingApprovedEmail(input: ListingApprovedEmailInput)
   const dashboardUrl = `${origin}/merchant/dashboard`;
   const directoryUrl = `${origin}/?merchant=${encodeURIComponent(input.merchantId)}`;
 
-  const text = `Great news — ${input.businessName} is now live on Purple Prime.
+  const text = `Great news — ${input.businessName} is now live on Purple Club.
 
 Members can find your listing here: ${directoryUrl}
 
 Manage your listing anytime: ${dashboardUrl}
 
 Thanks for joining the network.
-— The Purple Prime team`;
+— The Purple Club team`;
 
   const html = wrapHtml(`
     <h2 style="font-size: 22px; margin: 0 0 12px; color: #ffffff;">Your listing is live ✓</h2>
@@ -98,7 +98,7 @@ Thanks for joining the network.
 
   await sendEmail({
     to: input.to,
-    subject: `Approved: ${input.businessName} is live on Purple Prime`,
+    subject: `Approved: ${input.businessName} is live on Purple Club`,
     text,
     html,
   });
@@ -114,14 +114,14 @@ export async function sendListingRejectedEmail(input: ListingRejectedEmailInput)
   const origin = getSiteOrigin();
   const dashboardUrl = `${origin}/merchant/dashboard`;
 
-  const text = `Hi — your Purple Prime listing for ${input.businessName} needs a few changes before we can approve it.
+  const text = `Hi — your Purple Club listing for ${input.businessName} needs a few changes before we can approve it.
 
 Reviewer note:
 ${input.reason}
 
 Update your listing and resubmit here: ${dashboardUrl}
 
-— The Purple Prime team`;
+— The Purple Club team`;
 
   const html = wrapHtml(`
     <h2 style="font-size: 22px; margin: 0 0 12px; color: #ffffff;">Changes requested</h2>

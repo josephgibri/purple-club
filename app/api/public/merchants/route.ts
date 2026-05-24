@@ -29,7 +29,7 @@ export async function GET(): Promise<Response> {
     logoUrl: item.logoUrl,
     heroImageUrl: item.heroImageUrl,
     promoCode: item.promoCode ?? undefined,
-    verificationHint: item.approvedAt ? "Approved by Purple Prime admin." : undefined,
+    verificationHint: item.approvedAt ? "Approved by Purple Club admin." : undefined,
     lat: item.lat ?? undefined,
     lng: item.lng ?? undefined,
     socialPlatform: item.socialPlatform ?? undefined,

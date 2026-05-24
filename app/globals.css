@@ -111,3 +111,26 @@ body {
       transparent 9px
     );
 }
+
+/* /sticker print rules — hide app chrome (top nav, side panel) and
+   render only the sticker SVG sized to a 4.5" portrait card. Browsers
+   will still let merchants set their own scale via the print dialog. */
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+  header,
+  nav,
+  footer,
+  aside,
+  .print\:hidden {
+    display: none !important;
+  }
+  [data-purple-club-sticker] {
+    width: 90vw !important;
+    max-width: 4.5in !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0.5in auto !important;
+  }
+}

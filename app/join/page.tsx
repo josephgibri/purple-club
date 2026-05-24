@@ -18,11 +18,11 @@ export default async function JoinPage() {
           Merchant Join
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-          Join the Purple Prime Network
+          Join the Purple Club Network
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-violet-100/75">
           Get free exposure to PBTC holders actively looking for premium offers.
-          Purple Prime sends qualified community members to trusted merchants.
+          Purple Club sends qualified community members to trusted merchants.
         </p>
 
         <div className="mt-6">
@@ -64,7 +64,7 @@ export default async function JoinPage() {
 
         <div className="mt-8 text-sm text-violet-100/70">
           <Link href="/" className="underline underline-offset-4">
-            Back to Purple Prime
+            Back to Purple Club
           </Link>
         </div>
       </div>
