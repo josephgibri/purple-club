@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 
+import { PURPLE_BITCOIN_ICON_DATA_URI } from "@/lib/purple-bitcoin-icon";
+
 type PurpleClubStickerProps = {
   /** Absolute URL the QR code resolves to. */
   qrUrl: string;
@@ -15,11 +17,12 @@ type PurpleClubStickerProps = {
 /**
  * Self-contained Purple Club window sticker as inline SVG so it
  * downloads sharp, prints crisp, and survives copy-paste into a
- * customer's design tool. The Purple Bitcoin coin from
- * `public/purple-club-logo.svg` is inlined here so the downloaded
- * SVG is fully portable — a merchant can drop it straight into
- * Canva or their print shop's preflight tool without missing
- * assets.
+ * customer's design tool. The PurpleBitcoin (PBTC) glyph is embedded
+ * as a base64 data URI (see `lib/purple-bitcoin-icon.ts`) so the
+ * downloaded SVG is fully portable — a merchant can drop it straight
+ * into Canva or their print shop's preflight tool without missing
+ * assets, and the canvas-based PNG export below stays untainted (no
+ * cross-origin image loads).
  *
  * Sized 4:5 portrait (600 × 750) which prints comfortably as a
  * 4"x5" window cling at 150 DPI or 5.3"x6.7" at 112 DPI.
@@ -140,26 +143,26 @@ export function PurpleClubSticker({
         </text>
       </g>
 
-      {/* Purple Bitcoin coin — inlined from public/purple-club-logo.svg */}
-      <g transform="translate(220 120) scale(0.31)">
-        <circle cx="256" cy="256" r="240" fill="#150a30" />
+      {/* PurpleBitcoin coin — base64 from lib/purple-bitcoin-icon.ts.
+          A thin gold ring keeps the coin coherent with the wider sticker
+          frame and gives a little luminance kick against the purple bg. */}
+      <g transform="translate(220 120)">
         <circle
-          cx="256"
-          cy="256"
-          r="150"
+          cx="80"
+          cy="80"
+          r="82"
           fill="none"
           stroke="url(#pc-gold)"
-          strokeWidth="28"
+          strokeWidth="2"
+          opacity="0.7"
         />
-        <path
-          d="M220 176h56c43 0 68 21 68 56 0 22-11 39-31 48 28 8 44 28 44 57 0 43-31 67-83 67h-54V176zm48 92h8c16 0 24-7 24-20 0-13-8-20-24-20h-8v40zm0 84h12c19 0 29-9 29-24 0-16-10-24-29-24h-12v48z"
-          fill="#f6f0ff"
-        />
-        <path
-          d="M170 152l26 26m120 156l26 26m0-208l-26 26m-120 156l-26 26"
-          stroke="#f6c453"
-          strokeWidth="14"
-          strokeLinecap="round"
+        <image
+          href={PURPLE_BITCOIN_ICON_DATA_URI}
+          x="0"
+          y="0"
+          width="160"
+          height="160"
+          preserveAspectRatio="xMidYMid meet"
         />
       </g>
 

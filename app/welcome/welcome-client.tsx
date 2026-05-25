@@ -65,7 +65,7 @@ export function WelcomeClient() {
 
       <header className="relative flex items-center gap-3">
         <Image
-          src="/purple-club-logo.svg"
+          src="/purple-club-icon.png"
           alt="Purple Bitcoin"
           width={56}
           height={56}
