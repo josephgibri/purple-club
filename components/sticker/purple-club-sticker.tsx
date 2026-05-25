@@ -103,9 +103,12 @@ export function PurpleClubSticker({
         </radialGradient>
         {/* Circular crop for the PBTC PNG — the source asset has a dark
             navy square baked behind the magenta circle, so we clip it out
-            and let the purple sticker gradient show through the corners. */}
-        <clipPath id="pc-coin-clip">
-          <circle cx="64" cy="64" r="60" />
+            and let the purple sticker gradient show through the corners.
+            objectBoundingBox units so the clip scales with whatever size
+            we render the image at. r=0.47 matches the magenta disc edge
+            (the source PNG's circle is ~480/512 across). */}
+        <clipPath id="pc-coin-clip" clipPathUnits="objectBoundingBox">
+          <circle cx="0.5" cy="0.5" r="0.47" />
         </clipPath>
       </defs>
 
@@ -152,15 +155,15 @@ export function PurpleClubSticker({
       {/* PurpleBitcoin coin — base64 from lib/purple-bitcoin-icon.ts,
           clipped to a circle via #pc-coin-clip so the source PNG's dark
           navy backdrop disappears and the brand mark sits cleanly on the
-          gradient. 128×128 leaves ~30px of breathing room above the
-          wordmark below at y=340. */}
-      <g transform="translate(236 118)">
+          gradient. 160×160 keeps ~30px of breathing room above the
+          wordmark at y=340 and 16px below the eyebrow at y=92. */}
+      <g transform="translate(220 108)">
         <image
           href={PURPLE_BITCOIN_ICON_DATA_URI}
           x="0"
           y="0"
-          width="128"
-          height="128"
+          width="160"
+          height="160"
           preserveAspectRatio="xMidYMid meet"
           clipPath="url(#pc-coin-clip)"
         />

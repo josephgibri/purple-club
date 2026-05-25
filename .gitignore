@@ -43,3 +43,7 @@ next-env.d.ts
 
 # GeoNames raw downloads — data/cities.ts is generated from these
 /data/_cache/
+
+# scratch / commit-message scratch files
+*.tmp
+.git-msg.tmp
