@@ -1,0 +1,17 @@
+fix(sticker): clip PBTC icon to a circle + reflow so wordmark stops colliding
+
+Two regressions from the previous icon swap:
+
+1. The source PNG has a navy `#150a30` backdrop baked in around the
+   magenta circle, so it rendered as a dark square behind the coin
+   instead of floating cleanly on the gradient.
+2. The 160×160 icon's bottom edge (y=280) clipped into the ascender
+   of the "Purple Club" wordmark (text top ≈ y=274), creating a
+   visible collision.
+
+Adds a `<clipPath id="pc-coin-clip">` (circle r=60) and applies it to
+the embedded image so only the magenta disc renders. Shrinks the coin
+to 128×128, repositions it slightly higher (y=118), and pushes the
+wordmark down to y=340 / fontSize 52 with the tagline at y=372 — gives
+~50px of breathing room between coin and wordmark while still leaving
+24px above the QR plate at y=400.

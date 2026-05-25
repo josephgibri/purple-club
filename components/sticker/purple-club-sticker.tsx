@@ -101,6 +101,12 @@ export function PurpleClubSticker({
           <stop offset="0%" stopColor="#7b2ff7" stopOpacity="0.5" />
           <stop offset="100%" stopColor="#1a0b3d" stopOpacity="0" />
         </radialGradient>
+        {/* Circular crop for the PBTC PNG — the source asset has a dark
+            navy square baked behind the magenta circle, so we clip it out
+            and let the purple sticker gradient show through the corners. */}
+        <clipPath id="pc-coin-clip">
+          <circle cx="64" cy="64" r="60" />
+        </clipPath>
       </defs>
 
       <rect width="600" height="750" rx="48" fill="url(#pc-bg)" />
@@ -143,36 +149,30 @@ export function PurpleClubSticker({
         </text>
       </g>
 
-      {/* PurpleBitcoin coin — base64 from lib/purple-bitcoin-icon.ts.
-          A thin gold ring keeps the coin coherent with the wider sticker
-          frame and gives a little luminance kick against the purple bg. */}
-      <g transform="translate(220 120)">
-        <circle
-          cx="80"
-          cy="80"
-          r="82"
-          fill="none"
-          stroke="url(#pc-gold)"
-          strokeWidth="2"
-          opacity="0.7"
-        />
+      {/* PurpleBitcoin coin — base64 from lib/purple-bitcoin-icon.ts,
+          clipped to a circle via #pc-coin-clip so the source PNG's dark
+          navy backdrop disappears and the brand mark sits cleanly on the
+          gradient. 128×128 leaves ~30px of breathing room above the
+          wordmark below at y=340. */}
+      <g transform="translate(236 118)">
         <image
           href={PURPLE_BITCOIN_ICON_DATA_URI}
           x="0"
           y="0"
-          width="160"
-          height="160"
+          width="128"
+          height="128"
           preserveAspectRatio="xMidYMid meet"
+          clipPath="url(#pc-coin-clip)"
         />
       </g>
 
       {/* Wordmark */}
       <text
         x="300"
-        y="320"
+        y="340"
         textAnchor="middle"
         fontFamily="ui-serif, Georgia, 'Times New Roman', serif"
-        fontSize="56"
+        fontSize="52"
         fontWeight="700"
         fill="#FFFFFF"
         letterSpacing="2"
@@ -181,10 +181,10 @@ export function PurpleClubSticker({
       </text>
       <text
         x="300"
-        y="356"
+        y="372"
         textAnchor="middle"
         fontFamily="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
-        fontSize="14"
+        fontSize="13"
         letterSpacing="3"
         fontWeight="600"
         fill="#DDD6FE"
