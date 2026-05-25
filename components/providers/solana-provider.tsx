@@ -12,6 +12,9 @@ import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
 import { clusterApiUrl } from "@solana/web3.js";
 import { useMemo } from "react";
 
+import { MobileWalletHost } from "@/components/auth/mobile-wallet-host";
+import { MobileWalletProvider } from "@/components/auth/mobile-wallet-context";
+
 type SolanaProviderProps = {
   children: React.ReactNode;
 };
@@ -27,10 +30,20 @@ export function SolanaProvider({ children }: SolanaProviderProps) {
     [],
   );
 
+  // autoConnect is intentionally off so `useWalletSignIn` can drive the
+  // connect → SIWS state machine itself. With autoConnect on, the
+  // adapter races the hook on mount and the deep-link auto-resume
+  // sometimes lands before `connect()` has a chance to fire, leaving
+  // users with a selected-but-disconnected wallet.
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
+      <WalletProvider wallets={wallets} autoConnect={false}>
+        <WalletModalProvider>
+          <MobileWalletProvider>
+            {children}
+            <MobileWalletHost />
+          </MobileWalletProvider>
+        </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
