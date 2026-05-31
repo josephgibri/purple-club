@@ -16,7 +16,7 @@
 
 const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
 const USER_AGENT =
-  "Purple-Club-Merchant-Onboarding/1.0 (https://purpleclub.xyz; hello@purpleclub.xyz)";
+  "Purple-Club-Merchant-Onboarding/1.0 (https://purpleclub.org; hello@purpleclub.org)";
 
 export type AddressSuggestion = {
   /** Stable id from Nominatim (`osm_type:osm_id`). Used as React key. */

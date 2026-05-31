@@ -7,7 +7,7 @@
  *   npx tsx scripts/generate-edit-token.ts <email> <merchantId> [origin]
  *
  * Example:
- *   npx tsx scripts/generate-edit-token.ts owner@goldsgym.com golds-gym https://purpleclub.xyz
+ *   npx tsx scripts/generate-edit-token.ts owner@goldsgym.com golds-gym https://purpleclub.org
  *
  * Loads JWT_SIGNING_SECRET from .env.local. Prints a URL suitable for DMing.
  */
@@ -55,7 +55,7 @@ async function main() {
   }
 
   const origin =
-    originArg ?? process.env.PURPLE_CLUB_ORIGIN ?? "https://purpleclub.xyz";
+    originArg ?? process.env.PURPLE_CLUB_ORIGIN ?? "https://purpleclub.org";
 
   const token = await signEditToken({ merchantId, email });
   const url = buildEditUrl(origin, token);

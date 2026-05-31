@@ -26,7 +26,7 @@ type StickerClientProps = {
  * which we already attribute in `welcome-client.tsx`.
  */
 export function StickerClient({ merchantId }: StickerClientProps) {
-  const [origin, setOrigin] = useState<string>("https://purpleclub.xyz");
+  const [origin, setOrigin] = useState<string>("https://purpleclub.org");
   const [verifierCopied, setVerifierCopied] = useState(false);
   const stickerRef = useRef<HTMLDivElement | null>(null);
 

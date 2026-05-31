@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import nacl from "tweetnacl";
 
 const SESSION_KEY_PREFIX = "pc_auth:";
-const DOMAIN = "purple.club";
+const DOMAIN = "purpleclub.org";
 const PROOF_TTL_MS = 24 * 60 * 60 * 1000;
 const PROOF_EVENT = "pc:auth:updated";
 

@@ -20,7 +20,7 @@ function getFromAddress(): string {
 }
 
 function getSiteOrigin(): string {
-  return process.env.PUBLIC_SITE_URL?.replace(/\/+$/, "") ?? "https://purpleclub.xyz";
+  return process.env.PUBLIC_SITE_URL?.replace(/\/+$/, "") ?? "https://purpleclub.org";
 }
 
 export type SendEmailInput = {

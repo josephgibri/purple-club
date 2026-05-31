@@ -279,7 +279,7 @@ export function PurpleClubSticker({
         letterSpacing="2"
         fill="#F5D78E"
       >
-        purpleclub.xyz
+        purpleclub.org
       </text>
     </svg>
   );

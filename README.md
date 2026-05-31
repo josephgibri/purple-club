@@ -34,7 +34,7 @@ Copy `.env.example` to `.env.local` and fill in the values you need. Production 
 | `JWT_SIGNING_SECRET`              | 32+ char random string. Signs merchant edit tokens (HS256).                                    |
 | `TURNSTILE_SECRET_KEY`            | Cloudflare Turnstile server secret.                                                            |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`  | Cloudflare Turnstile client site key.                                                          |
-| `PURPLE_CLUB_ORIGIN`              | Origin used by `scripts/generate-edit-token.ts` (defaults to `https://purpleclub.xyz`).        |
+| `PURPLE_CLUB_ORIGIN`              | Origin used by `scripts/generate-edit-token.ts` (defaults to `https://purpleclub.org`).        |
 | `NEXT_PUBLIC_SOLANA_RPC_URL`      | Optional Solana RPC. Falls back to `clusterApiUrl("mainnet-beta")`.                            |
 
 ### Future: enabling email (v1.1)
@@ -71,7 +71,7 @@ Merchants bookmark the edit link from `/merchant/submitted`. Opening `/merchant/
 Merchant DMs `@purpleclubhq` on Telegram or `@purpleclub` on X with the email they submitted. A maintainer runs:
 
 ```bash
-npx tsx scripts/generate-edit-token.ts owner@goldsgym.com golds-gym https://purpleclub.xyz
+npx tsx scripts/generate-edit-token.ts owner@goldsgym.com golds-gym https://purpleclub.org
 ```
 
 ...and DMs the freshly signed URL back. The secret is read from `.env.local`.

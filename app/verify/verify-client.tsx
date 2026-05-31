@@ -28,7 +28,7 @@ const MERCHANT_STORAGE_KEY = "purpleclub:verifier_merchant";
  * Merchant-facing verifier.
  *
  * The verifier is intentionally session-less and access-less: a barista or
- * shop owner opens `purpleclub.xyz/verify` (or scans a QR pointing at it),
+ * shop owner opens `purpleclub.org/verify` (or scans a QR pointing at it),
  * points the camera at a member's pass, and gets an instant pass/fail
  * decision. No accounts, no app store install, no "merchant onboarding"
  * dance — that's what kept the rest of the codebase from shipping a
@@ -196,7 +196,7 @@ export function VerifyClient({ initialToken, initialMerchantId }: VerifyClientPr
                   inputMode="url"
                   value={pasteValue}
                   onChange={(e) => setPasteValue(e.target.value)}
-                  placeholder="https://purpleclub.xyz/verify?t=…"
+                  placeholder="https://purpleclub.org/verify?t=…"
                   className="flex-1 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm outline-none focus:border-emerald-300/50"
                 />
                 <button
@@ -354,7 +354,7 @@ function formatTime(iso: string): string {
 }
 
 /**
- * The QR encodes a full URL like `https://purpleclub.xyz/verify?t=<jwt>`,
+ * The QR encodes a full URL like `https://purpleclub.org/verify?t=<jwt>`,
  * but holders might also paste a raw JWT or some camera apps strip the
  * origin. Extract the `t` param if it looks like a URL, otherwise treat
  * the input as the raw token (with a basic shape check).
