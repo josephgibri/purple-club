@@ -29,8 +29,8 @@ export function TopNav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0618]/70 backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2">
+      <div className="mx-auto grid w-full max-w-5xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-3 sm:px-6">
+        <Link href="/" className="flex items-center gap-2 justify-self-start">
           <span
             aria-hidden
             className="inline-block h-2.5 w-2.5 rounded-full bg-gold-accent shadow-[0_0_18px_rgba(246,196,83,0.65)]"
@@ -40,19 +40,28 @@ export function TopNav() {
           </span>
         </Link>
 
-        <div className="hidden items-center gap-2 md:flex">
-          <NavLinks pathname={pathname} />
-          {!isVerifyRoute ? <PurpleClubAuthButton /> : null}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setOpen((value) => !value)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/5 md:hidden"
-          aria-label="Toggle mobile navigation"
+        <nav
+          aria-label="Main"
+          className="hidden items-center justify-center gap-1 md:flex"
         >
-          {open ? <X size={18} /> : <Menu size={18} />}
-        </button>
+          <NavLinks pathname={pathname} />
+        </nav>
+
+        <div className="flex items-center justify-end gap-2 justify-self-end">
+          {!isVerifyRoute ? (
+            <div className="hidden md:block">
+              <PurpleClubAuthButton />
+            </div>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/5 md:hidden"
+            aria-label="Toggle mobile navigation"
+          >
+            {open ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
       </div>
 
       {open ? (
