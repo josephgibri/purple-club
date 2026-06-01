@@ -7,12 +7,10 @@ import {
   ClipboardCheck,
   Crown,
   Gift,
-  Landmark,
   Megaphone,
   Plane,
   ShieldCheck,
   Sparkles,
-  Store,
   Wrench,
 } from "lucide-react";
 import Link from "next/link";
@@ -65,14 +63,6 @@ function AccountDashboard() {
             Welcome back.
           </h1>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsPassOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-full bg-gold-accent px-4 py-2 text-xs font-semibold text-black transition hover:brightness-110"
-        >
-          <Sparkles size={14} />
-          Open Pass
-        </button>
       </header>
 
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
@@ -92,7 +82,6 @@ function AccountDashboard() {
             balance={balance}
             onOpenPass={() => setIsPassOpen(true)}
           />
-          <QuickLinks />
         </div>
       </div>
 
@@ -260,13 +249,6 @@ function WalletCard({ walletAddress, balance, onOpenPass }: WalletCardProps) {
           <Sparkles size={14} />
           Open Pass
         </button>
-        <Link
-          href="/pass"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-violet-100/85 transition hover:border-white/20 hover:text-white"
-        >
-          Full-screen pass
-          <ArrowRight size={12} />
-        </Link>
       </div>
     </section>
   );
@@ -317,13 +299,13 @@ function MemberTools() {
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <ConsoleTile
-          href="/stay"
+          href="/stay/bookings"
           label="My bookings"
           description="Track hotel requests, offers, payments and vouchers."
           icon={<Plane size={16} />}
         />
         <ConsoleTile
-          href="/stay"
+          href="/stay/bookings"
           label="Gift Vault"
           description="Gifts you've sent and received across the club."
           icon={<Gift size={16} />}
@@ -439,36 +421,6 @@ function RoleConsole() {
             />
           </>
         ) : null}
-      </div>
-    </section>
-  );
-}
-
-function QuickLinks() {
-  const links = [
-    { href: "/perks", label: "Perks & Benefits", icon: <Store size={15} /> },
-    { href: "/stay", label: "Hotels", icon: <BedDouble size={15} /> },
-    { href: "/lend", label: "Lend", icon: <Landmark size={15} /> },
-  ];
-  return (
-    <section className="rounded-3xl border border-border bg-surface p-6 shadow-2xl shadow-black/20">
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
-        Explore the club
-      </p>
-      <div className="mt-4 grid gap-2">
-        {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="group flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-violet-100/85 transition hover:border-gold-accent/40 hover:text-white"
-          >
-            <span className="flex items-center gap-2">
-              {link.icon}
-              {link.label}
-            </span>
-            <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
-          </Link>
-        ))}
       </div>
     </section>
   );
