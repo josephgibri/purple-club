@@ -19,7 +19,7 @@ export async function POST(request: Request): Promise<Response> {
   const data = parsed.data;
   const identifier = data.identifier.toLowerCase();
 
-  const user = await db.user.findFirst({
+  const user = await db.merchant.findFirst({
     where: {
       OR: [{ email: identifier }, { username: identifier }],
     },

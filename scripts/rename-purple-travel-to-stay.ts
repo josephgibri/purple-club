@@ -45,7 +45,7 @@ const CANONICAL = {
 const db = new PrismaClient();
 
 async function main() {
-  const user = await db.user.findUnique({
+  const user = await db.merchant.findUnique({
     where: { email: OWNER_EMAIL },
     select: { id: true, email: true },
   });

@@ -4,14 +4,19 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import {
   ArrowRight,
   BedDouble,
+  ClipboardCheck,
   Crown,
+  Gift,
   Landmark,
+  Megaphone,
+  Plane,
   ShieldCheck,
   Sparkles,
   Store,
+  Wrench,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ProductGate } from "@/components/access/product-gate";
 import { DigitalMembershipPass } from "@/components/membership/digital-membership-pass";
@@ -90,6 +95,9 @@ function AccountDashboard() {
           <QuickLinks />
         </div>
       </div>
+
+      <MemberTools />
+      <RoleConsole />
 
       <DigitalMembershipPass
         isOpen={isPassOpen}
@@ -259,6 +267,178 @@ function WalletCard({ walletAddress, balance, onOpenPass }: WalletCardProps) {
           Full-screen pass
           <ArrowRight size={12} />
         </Link>
+      </div>
+    </section>
+  );
+}
+
+type TileProps = {
+  href: string;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  accent?: boolean;
+};
+
+function ConsoleTile({ href, label, description, icon, accent }: TileProps) {
+  return (
+    <Link
+      href={href}
+      className={`group flex items-start gap-3 rounded-2xl border px-4 py-3.5 transition ${
+        accent
+          ? "border-gold-accent/40 bg-gold-accent/10 hover:border-gold-accent/70"
+          : "border-white/10 bg-white/5 hover:border-white/25"
+      }`}
+    >
+      <span
+        className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+          accent ? "bg-gold-accent/20 text-gold-accent" : "bg-white/10 text-violet-100/85"
+        }`}
+      >
+        {icon}
+      </span>
+      <span className="flex-1">
+        <span className="flex items-center justify-between gap-2 text-sm font-semibold text-white">
+          {label}
+          <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
+        </span>
+        <span className="mt-0.5 block text-xs text-violet-100/60">{description}</span>
+      </span>
+    </Link>
+  );
+}
+
+/** Always-available member surfaces: bookings + the gift vault live in /stay. */
+function MemberTools() {
+  return (
+    <section className="rounded-3xl border border-border bg-surface p-6 shadow-2xl shadow-black/20">
+      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
+        Your activity
+      </p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <ConsoleTile
+          href="/stay"
+          label="My bookings"
+          description="Track hotel requests, offers, payments and vouchers."
+          icon={<Plane size={16} />}
+        />
+        <ConsoleTile
+          href="/stay"
+          label="Gift Vault"
+          description="Gifts you've sent and received across the club."
+          icon={<Gift size={16} />}
+        />
+      </div>
+    </section>
+  );
+}
+
+type SessionState = {
+  authenticated?: boolean;
+  isAgent?: boolean;
+  isFounder?: boolean;
+  isPerksAdmin?: boolean;
+  isConcierge?: boolean;
+  isPromoter?: boolean;
+};
+
+/**
+ * Role-aware console. One wallet identity unlocks different surfaces; founder
+ * wallets are super admins and see everything. Cards only render for the
+ * capabilities the connected wallet actually holds.
+ */
+function RoleConsole() {
+  const { publicKey, connected } = useWallet();
+  const [session, setSession] = useState<SessionState | null>(null);
+
+  useEffect(() => {
+    if (!connected || !publicKey) {
+      setSession(null);
+      return;
+    }
+    let cancelled = false;
+    void fetch("/api/wallet-auth/session")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled) setSession(data);
+      })
+      .catch(() => {
+        if (!cancelled) setSession(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [connected, publicKey]);
+
+  if (!session?.authenticated) return null;
+
+  const showConcierge = session.isConcierge || session.isAgent || session.isFounder;
+  const showPerks = session.isPerksAdmin || session.isFounder;
+  const showPromoter = session.isPromoter || session.isFounder;
+  const showFounder = session.isFounder;
+
+  if (!showConcierge && !showPerks && !showPromoter) return null;
+
+  return (
+    <section className="rounded-3xl border border-gold-accent/25 bg-surface p-6 shadow-2xl shadow-black/20">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
+        <Wrench size={14} />
+        Operator console
+        {showFounder ? (
+          <span className="rounded-full border border-gold-accent/40 bg-gold-accent/10 px-2 py-0.5 text-[10px] tracking-[0.18em] text-gold-accent">
+            Founder · super admin
+          </span>
+        ) : null}
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {showConcierge ? (
+          <ConsoleTile
+            href="/admin/travel"
+            label="Concierge desk"
+            description="Manage hotel requests, offers, payments and vouchers."
+            icon={<BedDouble size={16} />}
+            accent
+          />
+        ) : null}
+        {showPerks ? (
+          <ConsoleTile
+            href="/admin/reviews"
+            label="Perks review queue"
+            description="Approve, edit or send back merchant listings."
+            icon={<ClipboardCheck size={16} />}
+            accent
+          />
+        ) : null}
+        {showPromoter ? (
+          <ConsoleTile
+            href="/promoter"
+            label="Promoter portal"
+            description="Mint and track invite codes for your campaigns."
+            icon={<Megaphone size={16} />}
+          />
+        ) : null}
+        {showFounder ? (
+          <>
+            <ConsoleTile
+              href="/admin/travel/campaigns"
+              label="Campaigns"
+              description="Create and manage influencer campaigns."
+              icon={<Megaphone size={16} />}
+            />
+            <ConsoleTile
+              href="/admin/travel/burns"
+              label="Burn ledger"
+              description="Record and publish PBTC burn events."
+              icon={<Sparkles size={16} />}
+            />
+            <ConsoleTile
+              href="/admin/travel/gifts"
+              label="Gifts admin"
+              description="Oversee gift claims and fulfillment."
+              icon={<Gift size={16} />}
+            />
+          </>
+        ) : null}
       </div>
     </section>
   );

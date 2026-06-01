@@ -4,8 +4,20 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
+
+// ---------------------------------------------------------------------------
+// Merchant identity (external businesses — email/password).
+//
+// This was the original `User` model. It was renamed to `Merchant` during
+// the PurpleStay consolidation so the wallet-keyed member can take the
+// canonical `User` name. The DB table is renamed in lockstep via a manual
+// `ALTER TABLE "User" RENAME TO "Merchant"` so existing rows are preserved.
+//
+// The `ADMIN` role value is retired in favor of wallet-based Perks admins
+// (PERKS_ADMIN_WALLETS); the enum is kept to avoid a destructive column
+// migration.
+// ---------------------------------------------------------------------------
 
 enum UserRole {
   MERCHANT
@@ -43,7 +55,7 @@ enum ListingEventType {
   PASS_SCAN
 }
 
-model User {
+model Merchant {
   id           String               @id @default(cuid())
   email        String               @unique
   username     String               @unique
@@ -69,7 +81,7 @@ model PasswordResetToken {
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      Merchant @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
@@ -81,7 +93,7 @@ model MerchantProfile {
   displayName String
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        Merchant          @relation(fields: [userId], references: [id], onDelete: Cascade)
   listings    MerchantListing[]
 }
 
@@ -156,10 +168,311 @@ model MerchantListing {
 model ListingReview {
   id           String          @id @default(cuid())
   listingId    String
-  adminUserId  String
+  // Legacy reviewer FK (email-based ADMIN merchant). Kept nullable for old
+  // rows; new reviews are wallet-based and recorded via `adminWallet`.
+  adminUserId  String?
+  // Wallet pubkey of the reviewer (founder / perks admin) — the canonical
+  // reviewer identity now that the Perks desk is wallet-gated.
+  adminWallet  String?
   action       ReviewAction
   notes        String?
   createdAt    DateTime        @default(now())
   listing      MerchantListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  admin        User            @relation("AdminReviews", fields: [adminUserId], references: [id], onDelete: Cascade)
+  admin        Merchant?       @relation("AdminReviews", fields: [adminUserId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Member identity + Travel / Gifts / Campaigns / Burn (ported from PurpleStay).
+//
+// The canonical `User` is keyed by Solana wallet pubkey. Members, agents,
+// founders, and promoters all authenticate as this single wallet identity;
+// elevated roles are resolved from env allowlists (not stored here).
+// ---------------------------------------------------------------------------
+
+enum TravelRequestStatus {
+  PENDING
+  OFFER_READY
+  OFFER_EXPIRED
+  PAYMENT_SUBMITTED
+  PAYMENT_VERIFIED
+  CONFIRMED
+  CANCELLED
+}
+
+enum CancellationKind {
+  PRE_PAYMENT
+  REFUND_REQUESTED
+}
+
+enum CancellationStatus {
+  OPEN
+  PROCESSED
+  REJECTED
+}
+
+enum CancellationActor {
+  MEMBER
+  AGENT
+}
+
+enum GiftStatus {
+  CREATED
+  CLAIMED
+  FULFILLING
+  FULFILLED
+  FULFILLMENT_FAILED
+  REJECTED
+}
+
+enum CampaignClaimStatus {
+  CLAIMED
+  FULFILLING
+  FULFILLED
+  FULFILLMENT_FAILED
+}
+
+enum OfferMode {
+  REQUESTED_HOTEL
+  ALTERNATIVES
+  BOTH
+}
+
+enum RefundabilityPreference {
+  REFUNDABLE
+  NON_REFUNDABLE
+  FLEXIBLE
+}
+
+enum PaymentMethod {
+  STRIPE
+  USDC
+  CASH
+}
+
+enum MealPreference {
+  ROOM_ONLY
+  BREAKFAST
+  HALF_BOARD
+  FULL_BOARD
+  ALL_INCLUSIVE
+}
+
+enum ChangeRequestStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+enum BurnEventKind {
+  GENESIS
+  MONTHLY
+}
+
+/// How a campaign distributes its PBTC reward.
+///
+/// PUBLIC_SLUG (legacy default) is the shared /invite/{slug} link — anyone
+/// with the link can claim once per wallet up to `maxClaims`.
+///
+/// UNIQUE_CODES is the curated mode: the promoter signs in at /promoter
+/// (gated by `promoterWallet`) and mints one-shot GiftClaim codes per
+/// invitee. Each invitee redeems via /claim/{code} like any other gift.
+enum CampaignMode {
+  PUBLIC_SLUG
+  UNIQUE_CODES
+}
+
+model User {
+  id                       String                    @id @default(cuid())
+  wallet                   String                    @unique
+  email                    String?
+  hasUnlockedGifting       Boolean                   @default(false)
+  travelRequests           TravelRequest[]
+  giftClaimsCreated        GiftClaim[]               @relation("GiftClaimCreator")
+  giftClaimsRedeemed       GiftClaim[]               @relation("GiftClaimRecipient")
+  campaignClaimsRedeemed   InfluencerCampaignClaim[] @relation("CampaignClaimRecipient")
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+}
+
+model TravelRequest {
+  id                       String                  @id @default(cuid())
+  requestCode              String                  @unique
+  userId                   String
+  user                     User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet                   String
+  hotelUrl                 String
+  checkInDate              DateTime
+  checkOutDate             DateTime
+  roomType                 String
+  occupancy                Int
+  childrenCount            Int                     @default(0)
+  infantsCount             Int                     @default(0)
+  refundabilityPreference  RefundabilityPreference
+  nationality              String?
+  mealPreference           MealPreference          @default(BREAKFAST)
+  status                   TravelRequestStatus     @default(PENDING)
+  offerMode                OfferMode               @default(REQUESTED_HOTEL)
+  requestedHotelName       String?
+  publicPriceUsd           Decimal?                @db.Decimal(10, 2)
+  purplePriceUsd           Decimal?                @db.Decimal(10, 2)
+  requestedHotelOffers     Json?
+  alternativeOffers        Json?
+  selectedOfferKey         String?
+  bookingGuests            Json?
+  stripePaymentLink        String?
+  voucherUrl               String?
+  voucherFileName          String?
+  voucherUploadedAt        DateTime?
+  usdcPaymentAddress       String?
+  paymentMethod            PaymentMethod?
+  paymentReference         String?
+  paymentNote              String?
+  paymentSubmittedAt       DateTime?
+  paymentRejectReason      String?
+  expectedUsdcLamports     BigInt?
+  paymentReferencePubkey   String?
+  paymentTxSignature       String?                 @unique
+  paymentVerifiedAt        DateTime?
+  paymentVerifiedAmountLamports BigInt?
+  changeRequestStatus      ChangeRequestStatus?
+  changeRequestType        String?
+  changeRequestNote        String?
+  changeRequestOpenedAt    DateTime?
+  changeRequestResolvedAt  DateTime?
+  agentChangeReply         String?
+  offerSentAt              DateTime?
+  offerExpiresAt           DateTime?
+  offerHistory             Json?
+  cancelledAt              DateTime?
+  cancelReason             String?
+  cancelActor              CancellationActor?
+  archivedAt               DateTime?
+  githubIssueNumber        Int?
+  githubIssueUrl           String?
+  submittedAt              DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+  cancellation             Cancellation?
+}
+
+model Cancellation {
+  id                String              @id @default(cuid())
+  travelRequestId   String              @unique
+  travelRequest     TravelRequest       @relation(fields: [travelRequestId], references: [id], onDelete: Cascade)
+  kind              CancellationKind
+  status            CancellationStatus  @default(OPEN)
+  actor             CancellationActor
+  reason            String?
+  refundAmountUsd     Decimal?            @db.Decimal(10, 2)
+  refundFeePercent    Int?
+  policySnapshot      Json?
+  agentNote           String?
+  /// Solana tx signature for USDC refunds, or Stripe refund ID for card
+  /// refunds. Unique so the agent cannot accidentally double-process the
+  /// same tx onto two cancellations.
+  refundTxSignature   String?             @unique
+  refundProcessedBy   String?
+  requestedAt         DateTime            @default(now())
+  processedAt         DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+}
+
+model GiftClaim {
+  id                    String              @id @default(cuid())
+  code                  String              @unique
+  creatorUserId         String
+  creator               User                @relation("GiftClaimCreator", fields: [creatorUserId], references: [id], onDelete: Cascade)
+  recipientUserId       String?
+  recipient             User?               @relation("GiftClaimRecipient", fields: [recipientUserId], references: [id])
+  recipientWallet       String?
+  recipientEmail        String?
+  status                GiftStatus          @default(CREATED)
+  txSignature           String?
+  agentNote             String?
+  fulfillmentError      String?
+  fulfillmentAttempts   Int                 @default(0)
+  fulfillmentStartedAt  DateTime?
+  /// When this claim was minted by a promoter under a UNIQUE_CODES
+  /// campaign, the source campaign. Nullable for organic member-to-member
+  /// gifts (created via POST /api/gifts).
+  campaignId            String?
+  campaign              InfluencerCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  createdAt             DateTime            @default(now())
+  claimedAt             DateTime?
+  fulfilledAt           DateTime?
+  updatedAt             DateTime            @updatedAt
+
+  @@index([creatorUserId])
+  @@index([recipientUserId])
+  @@index([campaignId])
+}
+
+model InfluencerCampaign {
+  id              String                    @id @default(cuid())
+  slug            String                    @unique
+  label           String
+  notes           String?
+  maxClaims       Int
+  claimsUsed      Int                       @default(0)
+  rewardLamports  String                    @default("1000000000")
+  endsAt          DateTime
+  paused          Boolean                   @default(false)
+  createdByWallet String?
+  /// Distribution model — see `CampaignMode`.
+  mode            CampaignMode              @default(PUBLIC_SLUG)
+  /// For UNIQUE_CODES campaigns, the promoter wallet allowed to mint codes.
+  promoterWallet  String?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  claims          InfluencerCampaignClaim[]
+  /// Codes minted under this campaign in UNIQUE_CODES mode.
+  giftClaims      GiftClaim[]
+
+  @@index([endsAt])
+  @@index([paused])
+  @@index([promoterWallet])
+}
+
+model InfluencerCampaignClaim {
+  id                    String              @id @default(cuid())
+  campaignId            String
+  campaign              InfluencerCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  recipientUserId       String?
+  recipient             User?               @relation("CampaignClaimRecipient", fields: [recipientUserId], references: [id])
+  recipientWallet       String
+  recipientEmail        String?
+  status                CampaignClaimStatus @default(CLAIMED)
+  txSignature           String?
+  fulfillmentError      String?
+  fulfillmentAttempts   Int                 @default(0)
+  fulfillmentStartedAt  DateTime?
+  claimedAt             DateTime            @default(now())
+  fulfilledAt           DateTime?
+  updatedAt             DateTime            @updatedAt
+  ipHash                String?
+
+  @@unique([campaignId, recipientWallet])
+  @@index([campaignId])
+  @@index([recipientUserId])
+  @@index([campaignId, ipHash])
+}
+
+model BurnEvent {
+  id                  String         @id @default(cuid())
+  kind                BurnEventKind  @default(MONTHLY)
+  periodLabel         String         @unique
+  fulfilledStaysCount Int?
+  usdSpent            Decimal?       @db.Decimal(12, 2)
+  pbtcLamportsBurned  BigInt
+  txSignature         String?        @unique
+  txSignatures        Json?
+  note                String?
+  committedAt         DateTime       @default(now())
+  committedBy         String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@index([kind])
+  @@index([committedAt])
 }

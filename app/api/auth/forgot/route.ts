@@ -42,7 +42,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const email = parsed.data.email.toLowerCase();
-  const user = await db.user.findUnique({ where: { email }, select: { id: true } });
+  const user = await db.merchant.findUnique({ where: { email }, select: { id: true } });
 
   if (user) {
     const { raw: token, hash, expiresAt } = createResetToken();

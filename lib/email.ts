@@ -1,5 +1,16 @@
 import { Resend } from "resend";
 
+const BASIC_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Ported from Purple Club — validates + normalizes a free-form email input. */
+export function normalizeEmail(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const email = value.trim().toLowerCase();
+  if (!email || email.length > 254) return null;
+  if (!BASIC_EMAIL_RE.test(email)) return null;
+  return email;
+}
+
 let cachedClient: Resend | null = null;
 
 export function isEmailEnabled(): boolean {

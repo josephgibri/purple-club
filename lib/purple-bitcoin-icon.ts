@@ -4,7 +4,7 @@
 // external <image href="/icon.png"> dependency, no taint-canvas blowup
 // in the SVG -> PNG export path inside `sticker-client.tsx`.
 //
-// Source file is `public/purple-club-icon.png` (a copy of PurpleStay's
+// Source file is `public/purple-club-icon.png` (a copy of Purple Club's
 // `icon-512.png`). To re-embed after the source changes, run from the
 // `Purple Club` directory:
 //

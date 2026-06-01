@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
+import { Toaster } from "sonner";
 import { TopNav } from "@/components/navigation/top-nav";
 import { SiteFooter } from "@/components/navigation/site-footer";
 import { SolanaProvider } from "@/components/providers/solana-provider";
@@ -67,6 +68,7 @@ export default function RootLayout({
           {children}
           <SiteFooter />
         </SolanaProvider>
+        <Toaster theme="dark" position="top-center" richColors />
       </body>
     </html>
   );

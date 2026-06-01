@@ -24,7 +24,7 @@ export async function POST(request: Request): Promise<Response> {
   const role = adminEmails.includes(data.email.toLowerCase()) ? "ADMIN" : "MERCHANT";
 
   const emailLower = data.email.toLowerCase();
-  const existing = await db.user.findUnique({
+  const existing = await db.merchant.findUnique({
     where: { email: emailLower },
     select: { id: true },
   });
@@ -34,13 +34,13 @@ export async function POST(request: Request): Promise<Response> {
 
   let username = deriveUsername(emailLower);
   for (let attempt = 0; attempt < 5; attempt += 1) {
-    const taken = await db.user.findUnique({ where: { username }, select: { id: true } });
+    const taken = await db.merchant.findUnique({ where: { username }, select: { id: true } });
     if (!taken) break;
     username = `${deriveUsername(emailLower)}_${Math.random().toString(36).slice(2, 5)}`;
   }
 
   const passwordHash = await hashPassword(data.password);
-  const user = await db.user.create({
+  const user = await db.merchant.create({
     data: {
       email: emailLower,
       username,

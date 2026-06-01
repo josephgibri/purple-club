@@ -1,9 +1,9 @@
 "use client";
 
-import { BedDouble, CircleUser, Landmark, Menu, ShieldCheck, Store, X } from "lucide-react";
+import { BedDouble, CircleUser, Landmark, Menu, Store, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { PurpleClubAuthButton } from "@/components/auth/purple-club-auth-button";
 
@@ -17,12 +17,15 @@ import { PurpleClubAuthButton } from "@/components/auth/purple-club-auth-button"
  * Verify (the public merchant scanner) lives in the footer now, and the
  * membership pass is reached from inside My Account rather than a
  * dedicated header link.
+ *
+ * Elevated surfaces (concierge desk, Perks review queue, promoter portal,
+ * founder consoles) are all reached from My Account — there's a single
+ * wallet identity, so the header stays the same for everyone.
  */
 export function TopNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const isVerifyRoute = pathname === "/verify";
-  const isAdmin = useIsAdmin();
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0618]/70 backdrop-blur-xl">
@@ -38,7 +41,7 @@ export function TopNav() {
         </Link>
 
         <div className="hidden items-center gap-2 md:flex">
-          <NavLinks pathname={pathname} isAdmin={isAdmin} />
+          <NavLinks pathname={pathname} />
           {!isVerifyRoute ? <PurpleClubAuthButton /> : null}
         </div>
 
@@ -57,7 +60,6 @@ export function TopNav() {
           <div className="mx-auto flex w-full max-w-5xl flex-col gap-3">
             <NavLinks
               pathname={pathname}
-              isAdmin={isAdmin}
               onNavigate={() => setOpen(false)}
               mobile
             />
@@ -69,37 +71,8 @@ export function TopNav() {
   );
 }
 
-/**
- * Lightweight session probe that only triggers a single GET on mount.
- * We don't put this in a global context because admin status is rare
- * and not worth dragging through the whole tree — the nav is the only
- * place that needs it today.
- */
-function useIsAdmin(): boolean {
-  const [isAdmin, setIsAdmin] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { user?: { role?: string } } | null) => {
-        if (cancelled) return;
-        setIsAdmin(data?.user?.role === "ADMIN");
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setIsAdmin(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-  return isAdmin;
-}
-
 type NavLinksProps = {
   pathname: string;
-  isAdmin: boolean;
   onNavigate?: () => void;
   mobile?: boolean;
 };
@@ -111,7 +84,7 @@ const PRODUCT_TABS = [
   { href: "/perks", label: "Perks & Benefits", icon: Store },
 ] as const;
 
-function NavLinks({ pathname, isAdmin, onNavigate, mobile }: NavLinksProps) {
+function NavLinks({ pathname, onNavigate, mobile }: NavLinksProps) {
   const base = mobile
     ? "flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm"
     : "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm";
@@ -142,21 +115,6 @@ function NavLinks({ pathname, isAdmin, onNavigate, mobile }: NavLinksProps) {
       <Link href="/join" onClick={onNavigate} className={classFor("/join")}>
         For Merchants
       </Link>
-      {isAdmin ? (
-        <Link
-          href="/admin/reviews"
-          onClick={onNavigate}
-          className={
-            mobile
-              ? "flex items-center gap-2 rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-amber-100 transition hover:border-rose-300/70 hover:bg-rose-500/15"
-              : "inline-flex items-center gap-1.5 rounded-full border border-rose-400/40 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100 transition hover:border-rose-300/70 hover:bg-rose-500/15"
-          }
-          aria-label="Admin review queue"
-        >
-          <ShieldCheck size={14} />
-          Admin
-        </Link>
-      ) : null}
     </>
   );
 }

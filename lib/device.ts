@@ -1,7 +1,7 @@
 /**
  * Mobile detection + wallet deep-link helpers.
  *
- * Ported from PurpleStay's purple-travel-app and Purple Council's
+ * Ported from Purple Club's purple-travel-app and Purple Council's
  * battle-tested mobile flow. The short version:
  *
  *  * On Android Chrome, the default @solana/wallet-adapter-react-ui

@@ -80,6 +80,28 @@ function clearStoredProof(publicKey: string): void {
   );
 }
 
+// Bridge the client proof into the server `pc_session` cookie used by the
+// travel / gifts / admin APIs. Fire-and-forget: the client-side gate does
+// not depend on this, it only powers server routes.
+function syncServerSession(proof: Proof): void {
+  if (typeof window === "undefined") return;
+  void fetch("/api/wallet-auth/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      publicKey: proof.publicKey,
+      message: proof.message,
+      signature: proof.signature,
+      issuedAt: proof.issuedAt,
+    }),
+  }).catch(() => {});
+}
+
+function endServerSession(): void {
+  if (typeof window === "undefined") return;
+  void fetch("/api/wallet-auth/logout", { method: "POST" }).catch(() => {});
+}
+
 export function useWalletAuth(): WalletAuthState {
   const { publicKey, connected, signMessage } = useWallet();
   const [proof, setProof] = useState<Proof | null>(null);
@@ -94,7 +116,11 @@ export function useWalletAuth(): WalletAuthState {
       return;
     }
     const address = publicKey.toBase58();
-    setProof(readStoredProof(address));
+    const stored = readStoredProof(address);
+    setProof(stored);
+    // Re-establish the server cookie from a still-valid stored proof after a
+    // reload, so the travel/admin APIs stay authenticated without re-signing.
+    if (stored) syncServerSession(stored);
 
     function onProofChange(e: Event) {
       const detail = (e as CustomEvent<{ publicKey?: string }>).detail;
@@ -148,6 +174,7 @@ export function useWalletAuth(): WalletAuthState {
 
       writeStoredProof(verified);
       setProof(verified);
+      syncServerSession(verified);
     } catch (value) {
       const msg =
         value instanceof Error
@@ -165,6 +192,7 @@ export function useWalletAuth(): WalletAuthState {
     if (publicKey) clearStoredProof(publicKey.toBase58());
     setProof(null);
     setError(null);
+    endServerSession();
   }, [publicKey]);
 
   // eslint-disable-next-line react-hooks/purity

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { getSession } from "@/lib/auth";
+import { hasPerksAdminAccess, readSession } from "@/lib/wallet-session";
 import { db } from "@/lib/db";
 import { sendListingRejectedEmail } from "@/lib/email";
 
@@ -11,8 +11,8 @@ const rejectSchema = z.object({
 });
 
 export async function POST(request: Request, { params }: Params): Promise<Response> {
-  const session = await getSession();
-  if (!session || session.role !== "ADMIN") {
+  const session = await readSession();
+  if (!session || !hasPerksAdminAccess(session.wallet)) {
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
   const { id } = await params;
@@ -37,7 +37,7 @@ export async function POST(request: Request, { params }: Params): Promise<Respon
       approvedAt: null,
       reviews: {
         create: {
-          adminUserId: session.uid,
+          adminWallet: session.wallet,
           action: "REJECTED",
           notes: parsed.data.reason,
         },

@@ -56,7 +56,7 @@ export async function POST(request: Request): Promise<Response> {
   const passwordHash = await hashPassword(parsed.data.password);
 
   await db.$transaction([
-    db.user.update({
+    db.merchant.update({
       where: { id: record.userId },
       data: { passwordHash },
     }),

@@ -1,9 +1,9 @@
-import { getSession } from "@/lib/auth";
+import { hasPerksAdminAccess, readSession } from "@/lib/wallet-session";
 import { db } from "@/lib/db";
 
 export async function GET(request: Request): Promise<Response> {
-  const session = await getSession();
-  if (!session || session.role !== "ADMIN") {
+  const session = await readSession();
+  if (!session || !hasPerksAdminAccess(session.wallet)) {
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
