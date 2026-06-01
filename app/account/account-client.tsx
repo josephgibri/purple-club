@@ -82,10 +82,10 @@ function AccountDashboard() {
             balance={balance}
             onOpenPass={() => setIsPassOpen(true)}
           />
+          <MemberTools />
         </div>
       </div>
 
-      <MemberTools />
       <RoleConsole />
 
       <DigitalMembershipPass
@@ -297,7 +297,7 @@ function MemberTools() {
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
         Your activity
       </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-3">
         <ConsoleTile
           href="/account/bookings"
           label="My bookings"
