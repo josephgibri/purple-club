@@ -35,6 +35,13 @@ export type WalletSession = {
 
 const LOGGED_OUT: WalletSession = { authenticated: false };
 
+// The server `pc_session` cookie is minted asynchronously right after the
+// SIWS proof is written (fire-and-forget POST /api/wallet-auth/verify). On a
+// fresh sign-in our first /session read can therefore land before the cookie
+// exists. We poll a few times with backoff so role-gated UI (e.g. the founder
+// Operator console) appears without a manual refresh + re-sign-in.
+const RETRY_DELAYS_MS = [600, 1200, 2000, 3000];
+
 export function useWalletSession(): WalletSession {
   const { connected, publicKey } = useWallet();
   const { isVerified } = useWalletAuth();
@@ -42,7 +49,7 @@ export function useWalletSession(): WalletSession {
 
   useEffect(() => {
     let cancelled = false;
-    let retry: ReturnType<typeof setTimeout> | undefined;
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
     async function load(): Promise<boolean> {
       if (!connected || !publicKey) {
@@ -50,7 +57,7 @@ export function useWalletSession(): WalletSession {
         return true;
       }
       try {
-        const res = await fetch("/api/wallet-auth/session");
+        const res = await fetch("/api/wallet-auth/session", { cache: "no-store" });
         const data = await res.json();
         if (cancelled) return true;
         if (data?.authenticated) {
@@ -79,15 +86,29 @@ export function useWalletSession(): WalletSession {
       }
     }
 
+    function scheduleRetries() {
+      // Only worth retrying when the client proof exists but the server
+      // cookie hasn't caught up yet. Each retry re-checks; once authenticated
+      // load() returns true and no further timers fire (they no-op via the
+      // cancelled guard, but we also stop scheduling new ones).
+      for (const delay of RETRY_DELAYS_MS) {
+        const t = setTimeout(() => {
+          if (cancelled) return;
+          void load();
+        }, delay);
+        timers.push(t);
+      }
+    }
+
     void load().then((settled) => {
       if (!settled && !cancelled && isVerified) {
-        retry = setTimeout(() => void load(), 1200);
+        scheduleRetries();
       }
     });
 
     return () => {
       cancelled = true;
-      if (retry) clearTimeout(retry);
+      timers.forEach((t) => clearTimeout(t));
     };
   }, [connected, publicKey, isVerified]);
 
