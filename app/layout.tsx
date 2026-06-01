@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import { TopNav } from "@/components/navigation/top-nav";
+import { SiteFooter } from "@/components/navigation/site-footer";
 import { SolanaProvider } from "@/components/providers/solana-provider";
 import { BasePathFetch } from "@/components/base-path-fetch";
 import "./globals.css";
@@ -64,6 +65,7 @@ export default function RootLayout({
         <SolanaProvider>
           <TopNav />
           {children}
+          <SiteFooter />
         </SolanaProvider>
       </body>
     </html>

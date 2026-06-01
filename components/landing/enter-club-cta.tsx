@@ -13,9 +13,9 @@ const JUPITER_BUY_URL = `https://jup.ag/swap/SOL-${PBTC_MINT}`;
 
 type EnterClubCtaProps = {
   /**
-   * When true, a successful sign-in pushes the holder straight into the
-   * gated directory. The landing page sets this; the /directory page
-   * leaves it false so the gate panel can stay in place without an
+   * When true, a successful sign-in pushes the holder straight into
+   * their account dashboard. The landing page sets this; gated pages
+   * leave it false so the gate panel can stay in place without an
    * extra navigation loop.
    */
   redirectOnEnter?: boolean;
@@ -23,7 +23,7 @@ type EnterClubCtaProps = {
 
 /**
  * The single primary action on the landing page. Status-aware so a
- * returning member who's already verified jumps straight to /directory
+ * returning member who's already verified jumps straight to /account
  * without re-signing, while a logged-out visitor gets the gold CTA
  * that opens the wallet modal.
  */
@@ -38,7 +38,7 @@ export function EnterClubCta({ redirectOnEnter = true }: EnterClubCtaProps) {
     if (!redirectOnEnter) return;
     if (isMember && !navigatedRef.current) {
       navigatedRef.current = true;
-      router.push("/directory");
+      router.push("/account");
     }
   }, [isMember, redirectOnEnter, router]);
 
@@ -59,11 +59,11 @@ export function EnterClubCta({ redirectOnEnter = true }: EnterClubCtaProps) {
     return (
       <button
         type="button"
-        onClick={() => router.push("/directory")}
+        onClick={() => router.push("/account")}
         className="inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-emerald-100 transition hover:bg-emerald-500/25"
       >
         <ShieldCheck size={16} />
-        Enter Directory
+        Enter the Club
       </button>
     );
   }

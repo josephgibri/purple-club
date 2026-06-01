@@ -109,11 +109,11 @@ export function PassClient() {
       <div className="relative flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
           <Link
-            href="/directory"
+            href="/account"
             className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-100/80 hover:border-white/20 hover:text-white"
           >
             <ArrowLeft size={12} />
-            Directory
+            My Account
           </Link>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-100">
             <ShieldCheck size={12} />

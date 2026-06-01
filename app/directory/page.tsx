@@ -1,13 +1,10 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { DirectoryClient } from "./directory-client";
-
-export const metadata: Metadata = {
-  title: "Directory · Purple Club",
-  description:
-    "Browse the full Purple Club merchant directory and live promo codes.",
-};
-
-export default function DirectoryPage() {
-  return <DirectoryClient />;
+/**
+ * `/directory` was renamed to `/perks` ("Perks & Benefits") during the
+ * ecosystem consolidation. Keep this permanent redirect so old links,
+ * bookmarks, and printed QR codes still land in the right place.
+ */
+export default function DirectoryRedirect() {
+  redirect("/perks");
 }

@@ -1,7 +1,7 @@
 # Purple Club: Strategic Overview
 
 ## The Mission
-Purple Club is a decentralized Merchant Discount Network. It is a "Social Layer" utility for the Purple Bitcoin (PBTC) community (a Community Takeover / CTO project). 
+Purple Club is the single members-only platform for the Purple Bitcoin (PBTC) community (a Community Takeover / CTO project). It is the umbrella for merchant discounts (Perks & Benefits), hotel discounts (Hotels), lending (post-audit), and governance (Council). Membership is one wallet login + one PBTC gate. There is no separate social/chat product — community standing lives in The Purple Court ranks on the member dashboard.
 
 ## The Business Logic
 1. **The Membership Key:** Holding exactly 1 PBTC or more is the only requirement for access. 

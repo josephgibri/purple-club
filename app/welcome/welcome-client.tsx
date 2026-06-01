@@ -13,7 +13,7 @@ import { useMembershipGate } from "@/hooks/useMembershipGate";
  * Cold-start onboarding page. The Purple Club window-sticker QR resolves
  * here, and so does any "Get started" link from the landing page.
  *
- * We auto-route a returning member straight to `/directory` once
+ * We auto-route a returning member straight to `/perks` once
  * verification + balance check clear, so a member re-scanning a sticker
  * doesn't see the onboarding wall again.
  *
@@ -52,9 +52,9 @@ export function WelcomeClient() {
     navigatedRef.current = true;
     // Drop the visitor into the merchant they came in for, if any.
     if (merchantId) {
-      router.push(`/directory?merchant=${encodeURIComponent(merchantId)}`);
+      router.push(`/perks?merchant=${encodeURIComponent(merchantId)}`);
     } else {
-      router.push("/directory");
+      router.push("/perks");
     }
   }, [isMember, merchantId, router]);
 
