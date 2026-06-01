@@ -428,7 +428,7 @@ function buildAgentTemplate(
 ): EmailBlocks | null {
   const code = escapeHtml(ctx.requestCode);
   const hotelHtml = safeHotelHtml(ctx.hotelName);
-  const adminUrl = appUrl("/admin/stay");
+  const adminUrl = appUrl("/admin/travel");
 
   switch (event) {
     case "request_received":

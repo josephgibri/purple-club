@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -56,18 +56,32 @@ function emptyCampaignClaimCounts(): CampaignClaimCounts {
 }
 
 async function readTreasuryBalances() {
+  let treasuryWallet: string;
+  let treasuryAta: string;
   try {
-    const connection = new Connection(getRpcUrl(), "confirmed");
     const treasury = getTreasuryPublicKey();
     const mint = getPbtcMintAddress();
-
-    const ata = getAssociatedTokenAddressSync(
+    treasuryWallet = treasury.toBase58();
+    treasuryAta = getAssociatedTokenAddressSync(
       mint,
       treasury,
       false,
       TOKEN_PROGRAM_ID,
       ASSOCIATED_TOKEN_PROGRAM_ID,
-    );
+    ).toBase58();
+  } catch (error) {
+    return {
+      ok: false as const,
+      errorKind: "config" as const,
+      error: error instanceof Error ? error.message : "Treasury key not configured.",
+    };
+  }
+
+  try {
+    const connection = new Connection(getRpcUrl(), "confirmed");
+    const treasury = new PublicKey(treasuryWallet);
+    const mint = getPbtcMintAddress();
+    const ata = new PublicKey(treasuryAta);
 
     const [solLamports, pbtcAccount] = await Promise.all([
       connection.getBalance(treasury, "confirmed"),
@@ -76,8 +90,8 @@ async function readTreasuryBalances() {
 
     return {
       ok: true as const,
-      treasuryWallet: treasury.toBase58(),
-      treasuryAta: ata.toBase58(),
+      treasuryWallet,
+      treasuryAta,
       solLamports: solLamports.toString(),
       solBalance: solLamports / LAMPORTS_PER_SOL,
       pbtcLamports: pbtcAccount ? pbtcAccount.amount.toString() : "0",
@@ -86,7 +100,10 @@ async function readTreasuryBalances() {
   } catch (error) {
     return {
       ok: false as const,
+      errorKind: "rpc" as const,
       error: error instanceof Error ? error.message : "Treasury read failed.",
+      treasuryWallet,
+      treasuryAta,
     };
   }
 }

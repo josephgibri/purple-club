@@ -22,7 +22,7 @@ const ONE_PBTC_LAMPORTS = 10n ** BigInt(PBTC_DECIMALS);
 let cachedKeypair: Keypair | null = null;
 
 function decodeSecret(raw: string): Uint8Array {
-  const trimmed = raw.trim();
+  const trimmed = raw.trim().replace(/^["']|["']$/g, "");
   if (!trimmed) {
     throw new Error("Treasury secret key is empty.");
   }
@@ -38,20 +38,24 @@ function decodeSecret(raw: string): Uint8Array {
 
 export function getTreasuryKeypair(): Keypair {
   if (cachedKeypair) return cachedKeypair;
-  const raw = process.env.GIFT_TREASURY_SECRET_KEY;
+  const raw = process.env.GIFT_TREASURY_SECRET_KEY?.trim();
   if (!raw) {
     throw new Error(
       "GIFT_TREASURY_SECRET_KEY is not configured (base58 or JSON-array secret key required).",
     );
   }
   const bytes = decodeSecret(raw);
-  if (bytes.length !== 64) {
-    throw new Error(
-      `Treasury secret key must be 64 bytes (got ${bytes.length}).`,
-    );
+  if (bytes.length === 32) {
+    cachedKeypair = Keypair.fromSeed(bytes);
+    return cachedKeypair;
   }
-  cachedKeypair = Keypair.fromSecretKey(bytes);
-  return cachedKeypair;
+  if (bytes.length === 64) {
+    cachedKeypair = Keypair.fromSecretKey(bytes);
+    return cachedKeypair;
+  }
+  throw new Error(
+    `Treasury secret key must be 32 bytes (seed) or 64 bytes (full secret); got ${bytes.length}.`,
+  );
 }
 
 export function getTreasuryPublicKey(): PublicKey {

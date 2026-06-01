@@ -67,7 +67,13 @@ type StatsResponse = {
         pbtcLamports: string;
         pbtcAtaExists: boolean;
       }
-    | { ok: false; error: string };
+    | {
+        ok: false;
+        errorKind?: "config" | "rpc";
+        error: string;
+        treasuryWallet?: string;
+        treasuryAta?: string;
+      };
   failures: {
     gifts: Array<{
       id: string;
@@ -357,7 +363,7 @@ export default function AdminGiftsPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
-              href="/admin/stay"
+              href="/admin/travel"
               className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white/65 hover:text-white"
             >
               ← Concierge desk
@@ -421,11 +427,15 @@ export default function AdminGiftsPage() {
                       stats.treasury.ok ? `${formatPbtc(stats.treasury.pbtcLamports)} PBTC` : "—"
                     }
                     sub={
-                      !stats.treasury.ok
-                        ? stats.treasury.error
-                        : lowVault
+                      stats.treasury.ok
+                        ? lowVault
                           ? "Low balance — top up soon"
                           : "Treasury vault funded"
+                        : stats.treasury.errorKind === "config"
+                          ? stats.treasury.error
+                          : stats.treasury.errorKind === "rpc"
+                            ? "Balances unavailable — check SOLANA_RPC_URL or HELIUS_API_KEY"
+                            : stats.treasury.error
                     }
                     tone={!stats.treasury.ok || lowVault ? "warn" : "ok"}
                   />
@@ -438,11 +448,15 @@ export default function AdminGiftsPage() {
                       stats.treasury.ok ? `${formatSol(stats.treasury.solBalance)} SOL` : "—"
                     }
                     sub={
-                      !stats.treasury.ok
-                        ? "RPC unavailable"
-                        : lowSol
+                      stats.treasury.ok
+                        ? lowSol
                           ? "Low — fund SOL for tx fees"
                           : "Fee runway healthy"
+                        : stats.treasury.errorKind === "rpc"
+                          ? stats.treasury.error
+                          : stats.treasury.errorKind === "config"
+                            ? "Configure GIFT_TREASURY_SECRET_KEY first"
+                            : stats.treasury.error
                     }
                     tone={!stats.treasury.ok || lowSol ? "warn" : "ok"}
                   />
@@ -461,13 +475,21 @@ export default function AdminGiftsPage() {
                   />
                   <StatTile
                     eyebrow="Treasury wallet"
-                    value={stats.treasury.ok ? shortWallet(stats.treasury.treasuryWallet) : "—"}
+                    value={
+                      stats.treasury.ok
+                        ? shortWallet(stats.treasury.treasuryWallet)
+                        : stats.treasury.treasuryWallet
+                          ? shortWallet(stats.treasury.treasuryWallet)
+                          : "—"
+                    }
                     sub={
                       stats.treasury.ok
                         ? stats.treasury.pbtcAtaExists
                           ? "Vault ATA initialized"
                           : "Vault ATA missing — fund first"
-                        : "—"
+                        : stats.treasury.treasuryWallet
+                          ? "Key configured · balances need RPC"
+                          : "—"
                     }
                     tone={
                       stats.treasury.ok && !stats.treasury.pbtcAtaExists ? "warn" : undefined

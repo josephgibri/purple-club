@@ -326,7 +326,7 @@ export default function AdminBurnsPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
-              href="/admin/stay"
+              href="/admin/travel"
               className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white/65 hover:text-white"
             >
               ← Concierge desk
