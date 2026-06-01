@@ -299,13 +299,13 @@ function MemberTools() {
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <ConsoleTile
-          href="/stay/bookings"
+          href="/account/bookings"
           label="My bookings"
           description="Track hotel requests, offers, payments and vouchers."
           icon={<Plane size={16} />}
         />
         <ConsoleTile
-          href="/stay/bookings"
+          href="/account/bookings"
           label="Gift Vault"
           description="Gifts you've sent and received across the club."
           icon={<Gift size={16} />}

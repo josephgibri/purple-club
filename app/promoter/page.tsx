@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { PurpleHeader } from "@/components/purple-header";
+
+import { useWalletSession } from "@/hooks/useWalletSession";
 
 /**
  * Promoter portal — wallet-gated workspace for influencers running
@@ -27,15 +28,6 @@ import { PurpleHeader } from "@/components/purple-header";
  * routes through the shared AndroidWalletPicker, so the cold-start
  * flow is identical to the rest of the app.
  */
-
-type SessionState = {
-  authenticated: boolean;
-  isMaintainer?: boolean;
-  isAdmin?: boolean;
-  isAgent?: boolean;
-  isFounder?: boolean;
-  wallet?: string;
-};
 
 type GiftCodeStatus =
   | "CREATED"
@@ -90,7 +82,7 @@ function maskWallet(wallet: string | null | undefined) {
 }
 
 export default function PromoterPage() {
-  const [session, setSession] = useState<SessionState>({ authenticated: false });
+  const session = useWalletSession();
   const [campaigns, setCampaigns] = useState<PromoterCampaign[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -168,7 +160,6 @@ export default function PromoterPage() {
     <main className="relative flex min-h-screen flex-col">
       <div className="pointer-events-none absolute inset-0 pt-star-field opacity-25" />
       <div className="pointer-events-none absolute -top-40 right-[-140px] h-[440px] w-[440px] rounded-full bg-[#7C3AED]/20 blur-3xl" />
-      <PurpleHeader onSessionChange={setSession} />
 
       <section className="relative z-10 mx-auto w-full max-w-4xl px-6 py-10">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">

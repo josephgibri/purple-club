@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { PurpleHeader } from "@/components/purple-header";
 import { SaveBookBurnLoop } from "@/components/save-book-burn-loop";
 
 const PBTC_DECIMALS = 9;
@@ -129,8 +128,6 @@ export default function BurnPage() {
       <div className="pointer-events-none absolute inset-0 pt-star-field opacity-40" />
       <div className="pointer-events-none absolute -top-40 right-[-140px] h-[440px] w-[440px] rounded-full bg-[#7C3AED]/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-40 left-[-160px] h-[460px] w-[460px] rounded-full bg-[#EAB308]/10 blur-3xl" />
-
-      <PurpleHeader />
 
       <section className="relative z-10 mx-auto w-full max-w-5xl px-6 py-12">
         <div className="mb-10 text-center">

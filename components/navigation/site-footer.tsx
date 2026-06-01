@@ -27,13 +27,14 @@ const COLUMNS: {
       { label: "Manifesto", href: "/manifesto" },
       { label: "Investor thesis", href: "/investors" },
       { label: "Become a Partner", href: "/partners" },
+      { label: "Partners Login", href: "/join" },
     ],
   },
   {
     heading: "More",
     links: [
       { label: "Verify a pass", href: "/verify" },
-      { label: "For Merchants", href: "/join" },
+      { label: "Burn proof", href: "/burn" },
       { label: "Purple Council", href: SURFACE_URLS.council, external: true },
     ],
   },

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { PurpleHeader } from "@/components/purple-header";
+import { useWalletSession } from "@/hooks/useWalletSession";
 import { decodeHotelUrl } from "@/lib/url-decoder";
 import { countryFlagEmoji, getCountryName } from "@/lib/countries";
 import { MEAL_OPTIONS, mealLabel, type MealValue } from "@/lib/meals";
@@ -183,15 +183,6 @@ type EditableState = {
   showPriorRound: boolean;
   refundTxSignature: string;
   refundAgentNote: string;
-};
-
-type SessionState = {
-  authenticated: boolean;
-  wallet?: string;
-  isMaintainer?: boolean;
-  isAdmin?: boolean;
-  isAgent?: boolean;
-  isFounder?: boolean;
 };
 
 const statuses: RequestStatus[] = [
@@ -586,7 +577,7 @@ function changeRequestLabel(status: ChangeRequestStatusValue) {
 }
 
 export default function TravelAdminPage() {
-  const [session, setSession] = useState<SessionState>({ authenticated: false });
+  const session = useWalletSession();
   const [requests, setRequests] = useState<AdminRequestRow[]>([]);
   const [edited, setEdited] = useState<Record<string, EditableState>>({});
   const [loading, setLoading] = useState(false);
@@ -1203,8 +1194,6 @@ Purple Price: ${purplePrice}`;
     <main className="relative flex min-h-screen flex-col">
       <div className="pointer-events-none absolute inset-0 pt-star-field opacity-25" />
       <div className="pointer-events-none absolute -top-40 right-[-140px] h-[440px] w-[440px] rounded-full bg-[#7C3AED]/18 blur-3xl" />
-
-      <PurpleHeader onSessionChange={setSession} />
 
       <section className="relative z-10 mx-auto w-full max-w-6xl px-6 py-10">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">

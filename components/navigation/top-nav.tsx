@@ -112,9 +112,6 @@ function NavLinks({ pathname, onNavigate, mobile }: NavLinksProps) {
           </Link>
         );
       })}
-      <Link href="/join" onClick={onNavigate} className={classFor("/join")}>
-        For Merchants
-      </Link>
     </>
   );
 }

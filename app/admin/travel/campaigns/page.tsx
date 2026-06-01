@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { PurpleHeader } from "@/components/purple-header";
+
+import { useWalletSession } from "@/hooks/useWalletSession";
 
 type CampaignClaimStatus =
   | "CLAIMED"
@@ -64,15 +65,6 @@ type Campaign = {
   giftClaims: GiftCode[];
 };
 
-type SessionState = {
-  authenticated: boolean;
-  isMaintainer?: boolean;
-  isAdmin?: boolean;
-  isAgent?: boolean;
-  isFounder?: boolean;
-  wallet?: string;
-};
-
 function formatPbtcFromLamports(raw: string) {
   try {
     const lamports = BigInt(raw);
@@ -93,7 +85,7 @@ function formatLocalDateInput(iso: string) {
 }
 
 export default function AdminCampaignsPage() {
-  const [session, setSession] = useState<SessionState>({ authenticated: false });
+  const session = useWalletSession();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -289,8 +281,6 @@ export default function AdminCampaignsPage() {
     <main className="relative flex min-h-screen flex-col">
       <div className="pointer-events-none absolute inset-0 pt-star-field opacity-25" />
       <div className="pointer-events-none absolute -top-40 right-[-140px] h-[440px] w-[440px] rounded-full bg-[#7C3AED]/20 blur-3xl" />
-
-      <PurpleHeader onSessionChange={setSession} />
 
       <section className="relative z-10 mx-auto w-full max-w-5xl px-6 py-10">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">

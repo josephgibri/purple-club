@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { PurpleHeader } from "@/components/purple-header";
 import { ClaimProgressCard, ClaimTxRow } from "@/components/claim-progress";
 import { OnboardingSteps } from "@/components/onboarding-steps";
+import { useWalletSession } from "@/hooks/useWalletSession";
 
 type CampaignState = "live" | "paused" | "ended" | "exhausted";
 
@@ -30,8 +30,6 @@ type Claim = {
   fulfilledAt: string | null;
 };
 
-type SessionState = { authenticated: boolean; wallet?: string };
-
 function formatPbtcFromLamports(raw: string) {
   try {
     const lamports = BigInt(raw);
@@ -48,7 +46,7 @@ export default function InvitePage({ params }: { params: Promise<{ slug: string 
   const { slug } = use(params);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [session, setSession] = useState<SessionState>({ authenticated: false });
+  const session = useWalletSession();
   const [submitting, setSubmitting] = useState(false);
   const [claim, setClaim] = useState<Claim | null>(null);
 
@@ -110,10 +108,6 @@ export default function InvitePage({ params }: { params: Promise<{ slug: string 
     <main className="relative flex min-h-screen flex-col">
       <div className="pointer-events-none absolute inset-0 pt-star-field opacity-30" />
       <div className="pointer-events-none absolute -top-40 right-[-140px] h-[440px] w-[440px] rounded-full bg-[#7C3AED]/20 blur-3xl" />
-
-      <PurpleHeader
-        onSessionChange={(s) => setSession({ authenticated: s.authenticated, wallet: s.wallet })}
-      />
 
       <section className="relative z-10 mx-auto w-full max-w-2xl px-6 py-16">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-[#7C3AED]/40 bg-[#7C3AED]/15 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-[#DDD6FE]">

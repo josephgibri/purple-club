@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { PurpleHeader } from "@/components/purple-header";
+
+import { useWalletSession } from "@/hooks/useWalletSession";
 
 type GiftStatus =
   | "CREATED"
@@ -35,15 +36,6 @@ type AdminGift = {
   fulfilledAt: string | null;
   creator: { wallet: string; email: string } | null;
   recipient: { wallet: string; email: string } | null;
-};
-
-type SessionState = {
-  authenticated: boolean;
-  isMaintainer?: boolean;
-  isAdmin?: boolean;
-  isAgent?: boolean;
-  isFounder?: boolean;
-  wallet?: string;
 };
 
 type StatsResponse = {
@@ -147,7 +139,7 @@ function shortWallet(w: string | null | undefined): string {
 }
 
 export default function AdminGiftsPage() {
-  const [session, setSession] = useState<SessionState>({ authenticated: false });
+  const session = useWalletSession();
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState<string | null>(null);
@@ -348,8 +340,6 @@ export default function AdminGiftsPage() {
     <main className="relative flex min-h-screen flex-col">
       <div className="pointer-events-none absolute inset-0 pt-star-field opacity-25" />
       <div className="pointer-events-none absolute -top-40 right-[-140px] h-[440px] w-[440px] rounded-full bg-[#7C3AED]/20 blur-3xl" />
-
-      <PurpleHeader onSessionChange={setSession} />
 
       <section className="relative z-10 mx-auto w-full max-w-6xl px-6 py-10">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">

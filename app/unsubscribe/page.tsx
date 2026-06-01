@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PurpleHeader } from "@/components/purple-header";
 
 export const metadata: Metadata = {
   title: "Unsubscribe | Purple Club",
@@ -21,8 +20,6 @@ export default function UnsubscribePage() {
     <main className="relative flex min-h-screen flex-col">
       <div className="pointer-events-none absolute inset-0 pt-star-field opacity-35" />
       <div className="pointer-events-none absolute -top-40 right-[-140px] h-[440px] w-[440px] rounded-full bg-[#7C3AED]/20 blur-3xl" />
-
-      <PurpleHeader />
 
       <section className="relative z-10 mx-auto w-full max-w-2xl px-6 py-12">
         <div className="mb-8">
