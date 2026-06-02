@@ -2,7 +2,6 @@
 
 import clsx from "clsx";
 import Image from "next/image";
-import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -44,7 +43,6 @@ type MerchantDirectoryProps = {
 export function MerchantDirectory({ merchants, locked = false }: MerchantDirectoryProps) {
   const [activeCategory, setActiveCategory] = useState<MerchantCategory | "all">("all");
   const [activeLocation, setActiveLocation] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
   const [imgErr, setImgErr] = useState<ImgErrState>({ hero: {}, logo: {} });
@@ -113,18 +111,12 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
       ) {
         return false;
       }
-      if (
-        searchQuery.trim() &&
-        !item.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
-      ) {
-        return false;
-      }
       return true;
     });
 
     // Prioritize anchors only within the current filtered result set.
     return [...matches].sort((a, b) => Number(b.isAnchor) - Number(a.isAnchor));
-  }, [activeCategory, activeLocation, merchants, searchQuery]);
+  }, [activeCategory, activeLocation, merchants]);
 
   const anchorMerchants = useMemo(
     () => filtered.filter((item) => item.isAnchor),
@@ -169,19 +161,6 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
   return (
     <section className="mt-10 space-y-8">
       <div className="space-y-4">
-        <div className="group relative">
-          <Search
-            size={16}
-            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-violet-100/40 transition group-focus-within:text-gold-accent"
-          />
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search merchants..."
-            className="w-full rounded-full border border-white/[0.06] bg-white/[0.03] py-3 pl-11 pr-4 text-sm text-violet-50 outline-none backdrop-blur-sm transition placeholder:text-violet-100/35 focus:border-gold-accent/40 focus:bg-white/[0.05]"
-          />
-        </div>
         <div className="flex flex-wrap items-center gap-2">
           <FilterButton
             label="All"
