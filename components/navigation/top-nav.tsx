@@ -29,8 +29,10 @@ export function TopNav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0618]/70 backdrop-blur-xl">
-      <div className="mx-auto grid w-full max-w-5xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 justify-self-start">
+      {/* Mobile: flex so logo stays left and the menu sits on the right.
+          Desktop: 3-column grid keeps the nav links centered. */}
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6 md:grid md:grid-cols-[1fr_auto_1fr]">
+        <Link href="/" className="flex shrink-0 items-center gap-2 md:justify-self-start">
           <span
             aria-hidden
             className="inline-block h-2.5 w-2.5 rounded-full bg-gold-accent shadow-[0_0_18px_rgba(246,196,83,0.65)]"
@@ -47,7 +49,7 @@ export function TopNav() {
           <NavLinks pathname={pathname} />
         </nav>
 
-        <div className="flex items-center justify-end gap-2 justify-self-end">
+        <div className="flex shrink-0 items-center justify-end gap-2 md:justify-self-end">
           {!isVerifyRoute ? (
             <div className="hidden md:block">
               <PurpleClubAuthButton />
