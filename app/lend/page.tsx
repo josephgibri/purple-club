@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Landmark, Lock, ShieldCheck, Wallet } from "lucide-react";
 
-import { SURFACE_URLS } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Lend · Purple Club",
@@ -56,14 +55,6 @@ export default function LendPage() {
             Back to my account
             <ArrowRight size={14} />
           </Link>
-          <a
-            href={SURFACE_URLS.lendApp}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[11px] uppercase tracking-[0.2em] text-violet-100/55 hover:text-violet-100/85"
-          >
-            lend.purpleclub.org
-          </a>
         </div>
       </div>
     </main>

@@ -305,12 +305,6 @@ function MemberTools() {
           description="Track hotel requests, offers, payments and vouchers."
           icon={<Plane size={16} />}
         />
-        <ConsoleTile
-          href="/account/bookings"
-          label="Gift Vault"
-          description="Gifts you've sent and received across the club."
-          icon={<Gift size={16} />}
-        />
       </div>
     </section>
   );
