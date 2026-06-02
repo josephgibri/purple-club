@@ -2,6 +2,7 @@
 
 import clsx from "clsx";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -43,8 +44,6 @@ type MerchantDirectoryProps = {
 export function MerchantDirectory({ merchants, locked = false }: MerchantDirectoryProps) {
   const [activeCategory, setActiveCategory] = useState<MerchantCategory | "all">("all");
   const [activeLocation, setActiveLocation] = useState("all");
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteCopied, setInviteCopied] = useState(false);
   const [imgErr, setImgErr] = useState<ImgErrState>({ hero: {}, logo: {} });
   const { trackEvent } = useListingTracking();
   // De-dupe impressions within a page view. A merchant who appears in
@@ -140,14 +139,6 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
     params.delete("merchant");
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  }
-
-  async function copyInvitation() {
-    const joinUrl = typeof window !== "undefined" ? `${window.location.origin}/join` : "/join";
-    const text = `Hey! I'm a member of Purple Club. I'd love to see your business as a featured partner for our PBTC community. You can join the network here: ${joinUrl}`;
-    await navigator.clipboard.writeText(text);
-    setInviteCopied(true);
-    window.setTimeout(() => setInviteCopied(false), 1800);
   }
 
   const hasResults = filtered.length > 0;
@@ -330,34 +321,22 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
               Use your status to invite the first local partner and help expand
               the PBTC merchant network on Solana.
             </p>
-            <button
-              type="button"
-              onClick={() => setInviteOpen(true)}
-              className="mt-4 rounded-xl bg-[#EAB308] px-4 py-2 text-sm font-semibold text-black"
-            >
-              Send Invitation
-            </button>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                href="/partners"
+                className="inline-flex rounded-xl bg-gold-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110"
+              >
+                Send Invitation
+              </Link>
+              <Link
+                href="/partners"
+                className="inline-flex rounded-xl border border-gold-accent/50 px-4 py-2 text-sm font-semibold text-gold-accent transition hover:bg-gold-accent/10"
+              >
+                Register your business
+              </Link>
+            </div>
           </article>
         )}
-
-        <button
-          type="button"
-          onClick={() => setInviteOpen(true)}
-          className="ambassador-texture group relative overflow-hidden rounded-2xl border border-gold-accent/50 p-6 text-left transition hover:border-gold-accent hover:shadow-[0_0_40px_-15px_rgba(246,196,83,0.5)] sm:col-span-2"
-        >
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-gold-accent/5 via-transparent to-purple-accent/10" />
-          <div className="relative">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-gold-accent">Ambassador Mode</p>
-            <h3 className="mt-2 text-2xl font-semibold">Invite a Merchant</h3>
-            <p className="mt-2 max-w-2xl text-sm text-violet-100/80">
-              Know a business that belongs in Purple Club? Invite them to the
-              network and expand holder utility.
-            </p>
-            <span className="mt-4 inline-flex rounded-lg bg-gold-accent px-4 py-2 text-sm font-semibold text-black transition group-hover:brightness-110">
-              Open Invite
-            </span>
-          </div>
-        </button>
 
         {locked ? (
           <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40 p-6 text-center">
@@ -373,33 +352,6 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
         isOpen={Boolean(selectedMerchant)}
         onClose={closeMerchant}
       />
-      {inviteOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-lg rounded-2xl border border-gold-accent/60 bg-surface p-6 backdrop-blur-xl">
-            <h3 className="text-xl font-semibold">Invite a Merchant</h3>
-            <p className="mt-2 text-sm text-violet-100/80">
-              Know a business that belongs in Purple Club? Invite them to the
-              network.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => void copyInvitation()}
-                className="rounded-xl bg-[#EAB308] px-4 py-2 text-sm font-semibold text-black"
-              >
-                {inviteCopied ? "Copied!" : "Copy Invitation"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setInviteOpen(false)}
-                className="rounded-xl border border-border bg-surface-muted px-4 py-2 text-sm"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }
