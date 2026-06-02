@@ -7,10 +7,7 @@ import {
   WalletProvider,
 } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
-import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
 import { clusterApiUrl } from "@solana/web3.js";
-import { useMemo } from "react";
 
 import { MobileWalletHost } from "@/components/auth/mobile-wallet-host";
 import { MobileWalletProvider } from "@/components/auth/mobile-wallet-context";
@@ -25,11 +22,11 @@ export function SolanaProvider({ children }: SolanaProviderProps) {
     process.env.NEXT_PUBLIC_SOLANA_RPC_URL ??
     clusterApiUrl("mainnet-beta");
 
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    [],
-  );
-
+  // Phantom, Solflare, Backpack and any other Wallet Standard wallets
+  // auto-register themselves without needing an explicit adapter entry.
+  // Passing an empty array avoids the "Phantom was registered as a Standard
+  // Wallet — the adapter can be removed" console warning.
+  //
   // autoConnect is intentionally off so `useWalletSignIn` can drive the
   // connect → SIWS state machine itself. With autoConnect on, the
   // adapter races the hook on mount and the deep-link auto-resume
@@ -37,7 +34,7 @@ export function SolanaProvider({ children }: SolanaProviderProps) {
   // users with a selected-but-disconnected wallet.
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={false}>
+      <WalletProvider wallets={[]} autoConnect={false}>
         <WalletModalProvider>
           <MobileWalletProvider>
             {children}
