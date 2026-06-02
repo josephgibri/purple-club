@@ -99,6 +99,11 @@ export function useWalletSignIn(): SignInState {
       if (!wallet.connected) {
         await wallet.connect();
       }
+      // Close the wallet-picker modal as soon as the adapter is connected,
+      // before we even request the SIWS signature. Without this the modal
+      // stays open on top of the signature prompt (or stays open forever
+      // when the adapter was already selected from a previous session).
+      setVisible(false);
       await verify();
     } catch (value) {
       const raw =
@@ -124,6 +129,7 @@ export function useWalletSignIn(): SignInState {
     wallet.connected,
     verify,
     setError,
+    setVisible,
     clearWalletSelection,
   ]);
 
@@ -206,24 +212,30 @@ export function useWalletSignIn(): SignInState {
    * Single entry point. Branches by environment:
    *
    *   - Already SIWS-verified → no-op.
-   *   - Adapter already attached + connected → fire SIWS directly.
+   *   - Adapter attached + connected + publicKey → fire SIWS directly.
    *   - Inside a wallet's in-app browser → select the injected adapter
    *     and let the state machine handle connect + SIWS.
    *   - Mobile external browser → open the bottom-sheet picker that
    *     fires a `?walletAuth=` deep-link.
-   *   - Desktop (any OS) → standard wallet adapter modal so users can
-   *     pick between extensions; the state machine fires SIWS once
-   *     they select.
+   *   - Adapter already selected but not yet connected (e.g. remembered
+   *     from localStorage on a desktop reload) → skip the picker modal
+   *     and let the state machine connect + SIWS. Without this guard the
+   *     modal AND the extension popup both open simultaneously.
+   *   - Desktop with no adapter selected → open the wallet-picker modal;
+   *     the state machine fires SIWS once the user picks a wallet.
    */
   const enter = useCallback(async () => {
     setLocalError(null);
     if (isVerified) return;
 
+    // Already fully connected — just sign.
     if (wallet.wallet?.adapter && wallet.publicKey) {
       await runSignIn();
       return;
     }
 
+    // Mobile: in-wallet WebView takes priority so the injected adapter
+    // is selected before any other check.
     if (isMobileWalletWebView()) {
       const injected = getInjectedWalletKind();
       if (injected) {
@@ -241,11 +253,25 @@ export function useWalletSignIn(): SignInState {
       }
     }
 
+    // Mobile external browser: deep-link picker.
     if (isMobileExternalBrowser()) {
       openPicker();
       return;
     }
 
+    // Desktop: adapter already selected (remembered from a previous
+    // session) but not yet connected. Arm the state machine and skip
+    // opening the picker modal — otherwise the extension popup and the
+    // modal both appear at the same time.
+    if (wallet.wallet?.adapter) {
+      setIsPending(true);
+      setSiwsPending(true);
+      armWatchdog();
+      return;
+    }
+
+    // Desktop: no adapter selected — show the picker so the user can
+    // choose between installed extensions.
     setIsPending(true);
     setSiwsPending(true);
     armWatchdog();
