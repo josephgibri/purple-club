@@ -13,6 +13,28 @@ import {
   isMobileWalletWebView,
 } from "@/lib/device";
 
+// Must stay in sync with the key written by useWalletAuth.ts.
+const PC_AUTH_PREFIX = "pc_auth:";
+
+/**
+ * Returns true if sessionStorage already holds a non-expired SIWS proof
+ * for the given wallet address. Checked synchronously so we can skip
+ * re-requesting a signature when the adapter reconnects silently on a
+ * returning session (adapter remembered in localStorage, proof still
+ * valid in sessionStorage).
+ */
+function hasValidStoredProof(address: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = sessionStorage.getItem(PC_AUTH_PREFIX + address);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw) as { publicKey?: string; expiresAt?: number };
+    return parsed.publicKey === address && Boolean(parsed.expiresAt && parsed.expiresAt > Date.now());
+  } catch {
+    return false;
+  }
+}
+
 type SignInState = {
   isPending: boolean;
   error: string | null;
@@ -104,6 +126,14 @@ export function useWalletSignIn(): SignInState {
       // stays open on top of the signature prompt (or stays open forever
       // when the adapter was already selected from a previous session).
       setVisible(false);
+      // Skip re-signing if sessionStorage already holds a valid proof for
+      // this wallet. This happens when the adapter was remembered from
+      // localStorage (autoConnect=false so connected=false on load) but the
+      // 24-hour proof is still live — we reconnect silently without asking
+      // the user to sign again. useWalletAuth's own effect will re-sync the
+      // server cookie from the stored proof.
+      const address = wallet.publicKey?.toBase58();
+      if (address && hasValidStoredProof(address)) return;
       await verify();
     } catch (value) {
       const raw =
