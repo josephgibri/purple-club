@@ -6,6 +6,7 @@ import {
   listingDraftSchema,
   normaliseMerchantType,
 } from "@/lib/dbSchemas";
+import { sendListingSubmittedAdminEmail } from "@/lib/email";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -77,6 +78,14 @@ export async function PATCH(request: Request, { params }: Params): Promise<Respo
       approvedAt: null,
     },
   });
+
+  if (listing.status === "SUBMITTED") {
+    await sendListingSubmittedAdminEmail({
+      businessName: listing.businessName,
+      merchantId: listing.merchantId,
+      action: "updated",
+    });
+  }
 
   return Response.json({ ok: true, listing });
 }

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 const PBTC_MINT = "HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p";
-const JUPITER_BUY_URL = `https://jup.ag/swap/SOL-${PBTC_MINT}`;
+const JUPITER_BUY_URL = `https://jup.ag/?utm_source=phantom&utm_medium=list&buy=${PBTC_MINT}`;
 
 /**
  * Lightweight "What is PBTC?" affordance pulled out of the legacy home page

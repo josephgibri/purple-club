@@ -18,9 +18,12 @@ export const PBTC_TOTAL_SUPPLY_WHOLE = 21_000_000;
 export const PBTC_MINT_ADDRESS =
   process.env.NEXT_PUBLIC_PBTC_MINT ?? "HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p";
 
+// Jupiter "buy" deep link. The `?buy=<mint>` form preselects PBTC as the
+// output token (the legacy `/swap/SOL-<mint>` path did not reliably preselect
+// PBTC and could land on USDC-SOL). Overridable via env for staging.
 export const JUPITER_SWAP_URL =
   process.env.NEXT_PUBLIC_JUPITER_SWAP_URL ??
-  `https://jup.ag/swap/SOL-${PBTC_MINT_ADDRESS}`;
+  `https://jup.ag/?utm_source=phantom&utm_medium=list&buy=${PBTC_MINT_ADDRESS}`;
 
 export const SOLSCAN_TOKEN_URL = `https://solscan.io/token/${PBTC_MINT_ADDRESS}`;
 export const SOLSCAN_BURN_ACTIVITY_URL = `${SOLSCAN_TOKEN_URL}?activity_type=ACTIVITY_SPL_BURN`;

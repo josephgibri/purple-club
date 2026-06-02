@@ -66,7 +66,7 @@ type DispatchParams = {
 };
 
 const FROM_DEFAULT_NAME = "Purple Club Concierge";
-const LIST_UNSUBSCRIBE_MAILTO = "mailto:unsubscribe@purplestay.co";
+const LIST_UNSUBSCRIBE_MAILTO = "mailto:unsubscribe@purpleclub.org";
 
 function getResendClient() {
   const apiKey = process.env.RESEND_API_KEY;
@@ -77,10 +77,10 @@ function getResendClient() {
     ? fromEmail
     : `${fromName} <${fromEmail}>`;
   // Replies should land on a real inbox, not bounce off no-reply. We
-  // default to concierge@purplestay.co (matches the email footer link)
+  // default to concierge@purpleclub.org (matches the email footer link)
   // and let the env override for staging/test domains.
   const replyTo =
-    process.env.RESEND_REPLY_TO?.trim() || "concierge@purplestay.co";
+    process.env.RESEND_REPLY_TO?.trim() || "concierge@purpleclub.org";
   return { client: new Resend(apiKey), from, replyTo };
 }
 

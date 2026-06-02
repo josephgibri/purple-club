@@ -15,10 +15,10 @@ const BRAND_PURPLE = "#1A1033";
 const BRAND_BG = "#F4F1FA";
 const TEXT_PRIMARY = "#1A1033";
 const TEXT_MUTED = "#6B7280";
-const SUPPORT_EMAIL = "concierge@purplestay.co";
+const SUPPORT_EMAIL = "concierge@purpleclub.org";
 
 export function appBaseUrl() {
-  return (process.env.APP_URL ?? "https://purplestay.co").replace(/\/$/, "");
+  return (process.env.APP_URL ?? "https://purpleclub.org").replace(/\/$/, "");
 }
 
 export function appUrl(path: string) {
@@ -54,7 +54,7 @@ export function renderEmailLayout(blocks: EmailBlocks): string {
   const preheader = escapeHtml(blocks.preheader);
   const headline = escapeHtml(blocks.headline);
   const postal = escapeHtml(postalLine());
-  const logoUrl = `${appBaseUrl()}/icon-192.png`;
+  const logoUrl = `${appBaseUrl()}/purple-club-icon-192.png`;
   const unsubscribeUrl = `${appBaseUrl()}/unsubscribe`;
 
   const paragraphsHtml = blocks.paragraphs

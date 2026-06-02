@@ -6,6 +6,7 @@ import {
   listingDraftSchema,
   normaliseMerchantType,
 } from "@/lib/dbSchemas";
+import { sendListingSubmittedAdminEmail } from "@/lib/email";
 
 export async function GET(): Promise<Response> {
   const session = await getSession();
@@ -93,6 +94,14 @@ export async function POST(request: Request): Promise<Response> {
       status: data.status === "DRAFT" ? "DRAFT" : "SUBMITTED",
     },
   });
+
+  if (listing.status === "SUBMITTED") {
+    await sendListingSubmittedAdminEmail({
+      businessName: listing.businessName,
+      merchantId: listing.merchantId,
+      action: "submitted",
+    });
+  }
 
   return Response.json({ ok: true, listing });
 }

@@ -21,7 +21,7 @@ import {
 } from "@/lib/device";
 
 const PBTC_MINT = "HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p";
-const JUPITER_BUY_URL = `https://jup.ag/swap/SOL-${PBTC_MINT}`;
+const JUPITER_BUY_URL = `https://jup.ag/?utm_source=phantom&utm_medium=list&buy=${PBTC_MINT}`;
 
 /**
  * Stepped onboarding flow rendered on `/welcome` for cold-start visitors

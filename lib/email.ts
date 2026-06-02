@@ -35,11 +35,26 @@ function getSiteOrigin(): string {
 }
 
 export type SendEmailInput = {
-  to: string;
+  to: string | string[];
   subject: string;
   text: string;
   html?: string;
 };
+
+/**
+ * Recipients for perks-admin notifications (new / updated merchant listings).
+ * Parses PERKS_ADMIN_EMAIL — a comma- or semicolon-separated list — into a
+ * deduped, validated array so you can notify multiple reviewers.
+ */
+export function getPerksAdminEmails(): string[] {
+  const raw = process.env.PERKS_ADMIN_EMAIL ?? "";
+  const seen = new Set<string>();
+  for (const part of raw.split(/[,;]/)) {
+    const email = normalizeEmail(part);
+    if (email) seen.add(email);
+  }
+  return [...seen];
+}
 
 /**
  * Send transactional email if Resend is configured. Never throws — failures
@@ -195,6 +210,53 @@ Update your listing and resubmit here: ${dashboardUrl}
   await sendEmail({
     to: input.to,
     subject: `Action needed: ${input.businessName} listing review`,
+    text,
+    html,
+  });
+}
+
+export type ListingSubmittedAdminEmailInput = {
+  businessName: string;
+  merchantId: string;
+  /** Whether this is a brand-new submission or an edit to an existing one. */
+  action: "submitted" | "updated";
+};
+
+/**
+ * Notifies the perks admin team when a merchant submits a new listing or
+ * edits an existing one (so it re-enters the review queue). Recipients come
+ * from PERKS_ADMIN_EMAIL; if unset, this is a no-op.
+ */
+export async function sendListingSubmittedAdminEmail(
+  input: ListingSubmittedAdminEmailInput,
+): Promise<void> {
+  const recipients = getPerksAdminEmails();
+  if (recipients.length === 0) return;
+
+  const origin = getSiteOrigin();
+  const reviewUrl = `${origin}/admin/reviews`;
+  const verb = input.action === "submitted" ? "submitted a new" : "updated their";
+
+  const text = `${input.businessName} has ${verb} listing and it's waiting for review.
+
+Merchant: ${input.businessName} (${input.merchantId})
+
+Review it here: ${reviewUrl}
+
+— Purple Club`;
+
+  const html = wrapHtml(`
+    <h2 style="font-size: 22px; margin: 0 0 12px; color: #ffffff;">Listing needs review</h2>
+    <p style="margin: 0 0 16px; color: #ddd6fe;"><strong style="color:#ffffff;">${input.businessName}</strong> has ${verb} listing and it's now in the review queue.</p>
+    <p style="margin: 0 0 24px; font-size: 13px; color: #a89bd1;">Merchant slug: <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">${input.merchantId}</span></p>
+    <p style="margin: 0 0 8px;">
+      <a href="${reviewUrl}" style="display:inline-block; background:#d4af37; color:#0b0618; padding:10px 18px; border-radius:10px; text-decoration:none; font-weight:600;">Open review queue</a>
+    </p>
+  `);
+
+  await sendEmail({
+    to: recipients,
+    subject: `Review needed: ${input.businessName} (${input.action})`,
     text,
     html,
   });

@@ -41,10 +41,10 @@ export default function UnsubscribePage() {
           <p>
             If you would still like to stop receiving them, reply to{" "}
             <a
-              href="mailto:concierge@purplestay.co"
+              href="mailto:concierge@purpleclub.org"
               className="text-[#FDE047] underline-offset-2 hover:underline"
             >
-              concierge@purplestay.co
+              concierge@purpleclub.org
             </a>{" "}
             and the team will help you wrap up any open requests and remove
             your address from future notifications.

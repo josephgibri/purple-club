@@ -129,7 +129,7 @@ export default function InvitePage({ params }: { params: Promise<{ slug: string 
               <p className="mt-2 text-[11px] text-white/55">
                 Visit{" "}
                 <Link href="/" className="text-[#FDE68A] underline">
-                  purplestay.co
+                  purpleclub.org
                 </Link>{" "}
                 to learn how membership works.
               </p>

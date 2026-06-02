@@ -119,7 +119,7 @@ export default function ClaimGiftPage({
               <p className="mt-2 text-[11px] text-white/55">
                 Double-check the link with the friend who sent it, or visit{" "}
                 <Link href="/" className="text-[#FDE68A] underline">
-                  purplestay.co
+                  purpleclub.org
                 </Link>
                 .
               </p>

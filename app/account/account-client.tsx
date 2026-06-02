@@ -7,6 +7,7 @@ import {
   ClipboardCheck,
   Crown,
   Gift,
+  Mail,
   Megaphone,
   Plane,
   ShieldCheck,
@@ -14,7 +15,7 @@ import {
   Wrench,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ProductGate } from "@/components/access/product-gate";
 import { DigitalMembershipPass } from "@/components/membership/digital-membership-pass";
@@ -84,6 +85,7 @@ function AccountDashboard() {
             onOpenPass={() => setIsPassOpen(true)}
           />
           <MemberTools />
+          <AccountEmailCard />
         </div>
       </div>
 
@@ -306,6 +308,102 @@ function MemberTools() {
           icon={<Plane size={16} />}
         />
       </div>
+    </section>
+  );
+}
+
+/**
+ * Lets a member store a contact email on their wallet record. It autofills
+ * the email field when they request a hotel booking and gives the concierge
+ * a reliable way to reach them. Empty input clears the saved address.
+ */
+function AccountEmailCard() {
+  const session = useWalletSession();
+  const [value, setValue] = useState("");
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
+    "idle",
+  );
+  const [message, setMessage] = useState("");
+  const seeded = useRef(false);
+
+  useEffect(() => {
+    if (seeded.current) return;
+    if (session.authenticated && session.email !== undefined) {
+      setValue(session.email ?? "");
+      seeded.current = true;
+    }
+  }, [session.authenticated, session.email]);
+
+  async function save() {
+    setStatus("saving");
+    setMessage("");
+    try {
+      const res = await fetch("/api/wallet-auth/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: value.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setStatus("error");
+        setMessage(data?.error ?? "Could not save your email.");
+        return;
+      }
+      setStatus("saved");
+      setMessage(
+        value.trim()
+          ? "Saved — we'll autofill this on booking requests."
+          : "Email cleared.",
+      );
+    } catch {
+      setStatus("error");
+      setMessage("Network error — please try again.");
+    }
+  }
+
+  return (
+    <section className="rounded-3xl border border-border bg-surface p-6 shadow-2xl shadow-black/20">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
+        <Mail size={14} />
+        Account email
+      </div>
+      <p className="mt-2 text-xs text-violet-100/60">
+        Optional. Used to autofill your booking requests and let the concierge
+        reach you about offers and vouchers.
+      </p>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <input
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          autoCapitalize="off"
+          spellCheck={false}
+          placeholder="name@email.com"
+          value={value}
+          onChange={(event) => {
+            setValue(event.target.value);
+            if (status !== "idle") setStatus("idle");
+          }}
+          className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-violet-100/40 focus:border-gold-accent/60 focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={() => void save()}
+          disabled={status === "saving"}
+          className="rounded-xl bg-gold-accent px-4 py-2.5 text-sm font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {status === "saving" ? "Saving…" : "Save"}
+        </button>
+      </div>
+      {message ? (
+        <p
+          className={`mt-2 text-xs ${
+            status === "error" ? "text-red-300" : "text-emerald-300"
+          }`}
+        >
+          {message}
+        </p>
+      ) : null}
     </section>
   );
 }

@@ -8,14 +8,34 @@ const TOKEN_PROGRAM_ID = new PublicKey(
   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
 );
 
-const DEFAULT_RPC_ENDPOINTS = [
-  process.env.NEXT_PUBLIC_HELIUS_RPC_URL,
-  process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL,
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL,
-  clusterApiUrl("mainnet-beta"),
-].filter((value): value is string => Boolean(value));
-
 const COMMITMENT = "confirmed";
+
+/**
+ * Endpoints used for client-side balance reads, in priority order.
+ *
+ * Primary is the same-origin `/api/rpc` proxy, which forwards to Helius using
+ * the SERVER-ONLY key — so the membership gate (which reads balances for every
+ * visitor) never ships an RPC API key to the browser. The public mainnet RPC
+ * is a keyless last-resort fallback if the proxy is unreachable.
+ *
+ * We intentionally no longer read `NEXT_PUBLIC_*` Helius/Alchemy URLs here:
+ * those inline the key into the bundle, which is exactly the exposure we're
+ * closing. The wallet adapter still uses a (domain-restricted) client RPC for
+ * connect/send/confirm — that's a separate, low-volume path.
+ */
+function getReadEndpoints(): string[] {
+  const endpoints: string[] = [];
+
+  if (typeof window !== "undefined") {
+    endpoints.push(`${window.location.origin}/api/rpc`);
+  } else {
+    const base = process.env.PUBLIC_SITE_URL?.replace(/\/+$/, "");
+    if (base) endpoints.push(`${base}/api/rpc`);
+  }
+
+  endpoints.push(clusterApiUrl("mainnet-beta"));
+  return endpoints;
+}
 
 export type GateBalanceResult = {
   uiAmount: number;
@@ -27,7 +47,7 @@ export async function getPbtcBalanceWithFallback(
 ): Promise<GateBalanceResult> {
   let lastError: unknown;
 
-  for (const endpoint of DEFAULT_RPC_ENDPOINTS) {
+  for (const endpoint of getReadEndpoints()) {
     try {
       const connection = new Connection(endpoint, COMMITMENT);
       const tokenAccounts = await connection.getParsedTokenAccountsByOwner(owner, {

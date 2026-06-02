@@ -19,17 +19,25 @@ export async function GET() {
 
   // `isPromoter` is derived server-side from any UNIQUE_CODES campaign
   // assigned to this wallet (indexed lookup on InfluencerCampaign.promoterWallet).
-  const promoterCampaign = await db.influencerCampaign.findFirst({
-    where: {
-      mode: CampaignMode.UNIQUE_CODES,
-      promoterWallet: session.wallet,
-    },
-    select: { id: true },
-  });
+  // The saved `email` (if any) lets the booking form autofill the address.
+  const [promoterCampaign, user] = await Promise.all([
+    db.influencerCampaign.findFirst({
+      where: {
+        mode: CampaignMode.UNIQUE_CODES,
+        promoterWallet: session.wallet,
+      },
+      select: { id: true },
+    }),
+    db.user.findUnique({
+      where: { wallet: session.wallet },
+      select: { email: true },
+    }),
+  ]);
 
   return NextResponse.json({
     authenticated: true,
     wallet: session.wallet,
+    email: user?.email ?? null,
     pbtcBalance: session.pbtcBalance,
     pbtcEligible: session.pbtcBalance >= 1,
     isAgent: isAgentWallet(session.wallet),

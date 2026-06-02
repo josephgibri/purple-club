@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 import { useWalletSession } from "@/hooks/useWalletSession";
@@ -40,6 +40,23 @@ function activeStepIndex(status: RequestStatus) {
 }
 
 /**
+ * A hotel link is only acceptable if it parses as an http(s) URL. We stay
+ * permissive on the host (direct hotel sites and unknown OTAs are valid —
+ * those just get the amber "unrecognized site" notice), but reject outright
+ * junk like plain text or `<script>` payloads before it reaches the concierge.
+ */
+function isValidHotelUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Concierge request form (PurpleStay "Step 01"). Reached from the Hotels
  * landing after a member pastes a link and taps Start Negotiation. The hotel
  * URL is carried over via the `?url=` query param and decoded to prefill
@@ -72,7 +89,21 @@ export default function HotelRequestPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
 
+  const hotelUrlValid = isValidHotelUrl(hotelUrl);
+  const hotelUrlInvalid = hotelUrl.trim().length > 0 && !hotelUrlValid;
   const canSubmit = session.authenticated && Boolean(session.pbtcEligible);
+
+  // Prefill the email field from the member's saved account email, once,
+  // and only if they haven't already typed one. The `?url=` flow can land
+  // here before the session resolves, so this waits for session.email.
+  const emailAutofilled = useRef(false);
+  useEffect(() => {
+    if (emailAutofilled.current) return;
+    if (session.authenticated && session.email) {
+      setEmail((current) => (current ? current : session.email ?? ""));
+      emailAutofilled.current = true;
+    }
+  }, [session.authenticated, session.email]);
   const stepIndex = useMemo(() => {
     if (!created) return -1;
     return activeStepIndex(created.status);
@@ -118,6 +149,14 @@ export default function HotelRequestPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!isValidHotelUrl(hotelUrl)) {
+      setErrorMessage(
+        "Enter a valid hotel link — a full web address starting with https://",
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMessage("");
 
@@ -240,7 +279,16 @@ export default function HotelRequestPage() {
                   🛡 {verifiedHotelName}
                 </span>
               ) : null}
-              {hotelUrl.trim() && !isScanning && isKnownSource === false ? (
+              {hotelUrlInvalid ? (
+                <p className="mt-1 rounded-lg border border-red-400/40 bg-red-500/10 px-3 py-2 text-[11px] text-red-200">
+                  <span className="font-semibold text-red-100">
+                    That doesn&apos;t look like a valid link.
+                  </span>{" "}
+                  Paste the full hotel web address starting with{" "}
+                  <span className="font-mono">https://</span> — e.g. a
+                  Booking.com, Expedia, or Agoda page.
+                </p>
+              ) : hotelUrl.trim() && !isScanning && hotelUrlValid && isKnownSource === false ? (
                 <p className="mt-1 rounded-lg border border-amber-400/35 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100/85">
                   <span className="font-semibold text-amber-200">
                     We don&apos;t recognize this site.
@@ -433,7 +481,7 @@ export default function HotelRequestPage() {
             <button
               className="pt-cta-gold mt-2 w-full rounded-full px-5 py-3.5 text-sm font-bold uppercase tracking-[0.18em] disabled:cursor-not-allowed disabled:opacity-50"
               type="submit"
-              disabled={isSubmitting || !canSubmit}
+              disabled={isSubmitting || !canSubmit || hotelUrlInvalid}
             >
               {isSubmitting ? "Submitting…" : "Request Purple Price"}
             </button>

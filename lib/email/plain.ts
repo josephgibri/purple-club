@@ -1,7 +1,7 @@
 import type { EmailBlocks } from "./layout";
 import { appBaseUrl } from "./layout";
 
-const SUPPORT_EMAIL = "concierge@purplestay.co";
+const SUPPORT_EMAIL = "concierge@purpleclub.org";
 
 export function renderEmailPlain(blocks: EmailBlocks): string {
   const lines: string[] = [];
