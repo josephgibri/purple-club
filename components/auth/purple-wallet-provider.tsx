@@ -37,12 +37,29 @@ export function PurpleWalletProvider({ children }: { children: React.ReactNode }
   );
 }
 
+// Safe no-op returned during SSR / prerendering outside the provider tree
+// (e.g. Next.js /_not-found prerender). All callable members are harmless no-ops.
+const NOOP_CTX: PurpleWalletContextValue = {
+  state: "none",
+  address: null,
+  isLoading: false,
+  error: null,
+  createWallet: async () => {},
+  importWallet: async () => {},
+  unlock: async () => {},
+  lock: () => {},
+  removeWallet: async () => {},
+  signMessage: async () => new Uint8Array(),
+  signTransaction: async (tx) => tx,
+  generateNewPhrase: () => "",
+  validatePhrase: () => false,
+  clearError: () => {},
+  openModal: () => {},
+  closeModal: () => {},
+};
+
 export function usePurpleWalletContext(): PurpleWalletContextValue {
   const ctx = useContext(PurpleWalletContext);
-  if (!ctx) {
-    throw new Error(
-      "usePurpleWalletContext must be used inside <PurpleWalletProvider>",
-    );
-  }
-  return ctx;
+  // Return a safe no-op during SSR / rendering outside the provider.
+  return ctx ?? NOOP_CTX;
 }
