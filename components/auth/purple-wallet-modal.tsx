@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, X, AlertTriangle, CheckCircle2, Copy, RefreshCw } from "lucide-react";
 import type { UsePurpleWalletReturn } from "@/hooks/usePurpleWallet";
 import { pickConfirmationIndexes } from "@/lib/purple-wallet/keygen";
@@ -71,6 +72,14 @@ function PasswordInput({
 
 export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
   const { state, createWallet, importWallet, unlock, generateNewPhrase, error, clearError, isLoading } = wallet;
+  const router = useRouter();
+
+  // After a brand-new wallet is created/imported, the welcome screen sends the
+  // holder straight to their dashboard so they can see their address + details.
+  function handleGetStarted() {
+    onClose();
+    router.push("/account");
+  }
 
   // Resolve initial step
   const initialStep = (): Step => {
@@ -400,20 +409,25 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
 
           {/* UNLOCK */}
           {step === "unlock" && (
-            <div className="space-y-4">
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void handleUnlock();
+              }}
+            >
               <h2 className="pc-serif text-xl font-semibold text-white">Unlock Purple Wallet</h2>
               <p className="text-sm text-violet-100/65">Enter your password to unlock.</p>
               <PasswordInput value={password} onChange={setPassword} placeholder="Password" autoFocus />
               {localError && <p className="text-xs text-red-300">{localError}</p>}
               <button
-                type="button"
-                onClick={() => void handleUnlock()}
+                type="submit"
                 disabled={isLoading}
                 className="w-full rounded-2xl bg-gold-accent px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110 disabled:opacity-50"
               >
                 {isLoading ? "Unlocking…" : "Unlock"}
               </button>
-            </div>
+            </form>
           )}
 
           {/* DONE */}
@@ -424,7 +438,7 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
               <p className="text-sm text-violet-100/65">Your Purple Wallet is set up and unlocked. You can use it to sign in and pay across the club.</p>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleGetStarted}
                 className="mt-2 rounded-full bg-gold-accent px-6 py-2.5 text-sm font-semibold text-black hover:brightness-110"
               >
                 Get started

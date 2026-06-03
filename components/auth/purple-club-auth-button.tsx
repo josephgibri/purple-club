@@ -99,26 +99,33 @@ function AuthButtonInner() {
 
   if (connected && publicKey && !isVerified) {
     return (
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => void enter()}
-          disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-full bg-gold-accent px-4 py-2 text-xs font-semibold text-black transition hover:brightness-110 disabled:opacity-60"
-          title={error ?? undefined}
-        >
-          <KeyRound size={14} />
-          {isPending ? "Waiting for wallet…" : "Sign to Enter"}
-        </button>
-        <button
-          type="button"
-          onClick={() => void disconnect()}
-          className="rounded-full border border-white/10 bg-white/5 p-2 text-violet-100/70 hover:bg-white/10"
-          aria-label="Disconnect wallet"
-          title="Disconnect"
-        >
-          <LogOut size={14} />
-        </button>
+      <div className="flex flex-col items-end gap-1">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void enter()}
+            disabled={isPending}
+            className="inline-flex items-center gap-2 rounded-full bg-gold-accent px-4 py-2 text-xs font-semibold text-black transition hover:brightness-110 disabled:opacity-60"
+            title={error ?? undefined}
+          >
+            <KeyRound size={14} />
+            {isPending ? "Waiting for wallet…" : "Sign to Enter"}
+          </button>
+          <button
+            type="button"
+            onClick={() => void disconnect()}
+            className="rounded-full border border-white/10 bg-white/5 p-2 text-violet-100/70 hover:bg-white/10"
+            aria-label="Disconnect wallet"
+            title="Disconnect"
+          >
+            <LogOut size={14} />
+          </button>
+        </div>
+        {error ? (
+          <p className="max-w-[14rem] text-right text-[10px] leading-tight text-rose-300">
+            {error}
+          </p>
+        ) : null}
       </div>
     );
   }

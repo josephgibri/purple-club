@@ -3,15 +3,19 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import type { WalletName } from "@solana/wallet-adapter-base";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useWalletAuth } from "@/hooks/useWalletAuth";
 import { useMobileWallet } from "@/components/auth/mobile-wallet-context";
+import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
 import {
   getInjectedWalletKind,
   isMobileExternalBrowser,
   isMobileWalletWebView,
 } from "@/lib/device";
+
+const PURPLE_WALLET_NAME = "Purple Wallet";
 
 // Must stay in sync with the key written by useWalletAuth.ts.
 const PC_AUTH_PREFIX = "pc_auth:";
@@ -73,6 +77,9 @@ export function useWalletSignIn(): SignInState {
   const { setVisible } = useWalletModal();
   const { isVerified, verify, setError } = useWalletAuth();
   const { openPicker, pendingResume, setPendingResume } = useMobileWallet();
+  const purple = usePurpleWalletContext();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const [isPending, setIsPending] = useState(false);
   const [siwsPending, setSiwsPending] = useState(false);
@@ -85,6 +92,17 @@ export function useWalletSignIn(): SignInState {
   // Tracks the Purple Wallet address we've already auto-signed for, so we
   // don't re-prompt a signature on every render once connected.
   const purpleAutoSignRef = useRef<string | null>(null);
+  // When the user explicitly chose to enter the club (vs. a silent
+  // reconnect), redirect into /account once SIWS lands. Lets a freshly
+  // created Purple Wallet (0 PBTC) reach its dashboard instead of stalling
+  // on the landing page.
+  const enterIntentRef = useRef(false);
+  // Latest Purple Wallet context, read inside runSignIn without forcing it to
+  // be recreated on every unlock/lock transition.
+  const purpleRef = useRef(purple);
+  useEffect(() => {
+    purpleRef.current = purple;
+  }, [purple]);
 
   const clearWatchdog = useCallback(() => {
     if (watchdogTimerRef.current !== null) {
@@ -142,7 +160,25 @@ export function useWalletSignIn(): SignInState {
       // server cookie from the stored proof.
       const address = wallet.publicKey?.toBase58();
       if (address && hasValidStoredProof(address)) return;
-      await verify();
+
+      // Purple Wallet: sign the SIWS message with the in-memory keypair
+      // directly. The wallet-adapter signMessage round-trip (adapter →
+      // standard-wallet → bridge → signer) can silently no-op if the bridge
+      // isn't wired yet, which is what left users stuck on "Sign to Enter".
+      // Signing through the live context is deterministic.
+      const isPurple = wallet.wallet?.adapter?.name === PURPLE_WALLET_NAME;
+      const pw = purpleRef.current;
+      if (isPurple && address) {
+        if (pw.state !== "unlocked" || pw.address !== address) {
+          // Locked (e.g. auto-locked) — prompt unlock. The provider resolves
+          // the unlock and the auto-sign effect retries once it's unlocked.
+          pw.openModal("unlock");
+          return;
+        }
+        await verify({ address, signMessage: pw.signMessage });
+      } else {
+        await verify();
+      }
     } catch (value) {
       const raw =
         value instanceof Error ? value.message : "Sign-in failed.";
@@ -233,6 +269,8 @@ export function useWalletSignIn(): SignInState {
     setIsPending(true);
     setSiwsPending(true);
     /* eslint-enable react-hooks/set-state-in-effect */
+    // Resuming from a picker / deep-link is an explicit intent to enter.
+    enterIntentRef.current = true;
     armWatchdog();
     try {
       const name =
@@ -281,6 +319,18 @@ export function useWalletSignIn(): SignInState {
     clearWatchdog,
   ]);
 
+  // Post-sign-in redirect. When the user explicitly chose to enter (clicked
+  // "Enter Purple Club" / "Sign to Enter") and SIWS has now landed, route them
+  // into their dashboard. Scoped to the public landing page so gated product
+  // pages (/perks, /stay, /account) unlock in place without an extra hop.
+  useEffect(() => {
+    if (!isVerified || !enterIntentRef.current) return;
+    enterIntentRef.current = false;
+    if (pathname === "/") {
+      router.push("/account");
+    }
+  }, [isVerified, pathname, router]);
+
   /**
    * Single entry point. Branches by environment:
    *
@@ -299,6 +349,9 @@ export function useWalletSignIn(): SignInState {
    */
   const enter = useCallback(async () => {
     setLocalError(null);
+    // Explicit user intent to enter the club — remember it so we can route
+    // into /account once SIWS completes (see the redirect effect below).
+    enterIntentRef.current = true;
     if (isVerified) return;
 
     // Already fully connected — just sign.
