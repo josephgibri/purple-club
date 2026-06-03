@@ -12,6 +12,9 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH?.trim() || "";
 const nextConfig: NextConfig = {
   basePath: basePath || undefined,
   assetPrefix: basePath || undefined,
+  // Turbopack is the default in Next.js 16. The empty object silences the
+  // "webpack config but no turbopack config" error raised by @ducanh2912/next-pwa.
+  turbopack: {},
   images: {
     remotePatterns: [
       {
