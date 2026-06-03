@@ -1,6 +1,9 @@
+"use client";
+
 /**
  * Offline fallback page. Served by the service worker when the user has
  * no network connection and the requested page isn't in the cache.
+ * Must be a Client Component — it uses an onClick reload handler.
  */
 export default function OfflinePage() {
   return (
