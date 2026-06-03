@@ -13,9 +13,11 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@marsidev/react-turnstile": "^1.5.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@scure/bip39": "^2.2.0",
     "@solana/spl-token": "^0.4.14",
     "@solana/wallet-adapter-base": "^0.9.27",
     "@solana/wallet-adapter-react": "^0.15.39",
@@ -28,6 +30,8 @@
     "bcryptjs": "^3.0.3",
     "bs58": "^6.0.0",
     "clsx": "^2.1.1",
+    "ed25519-hd-key": "^2.0.0",
+    "idb": "^8.0.3",
     "jose": "^6.2.2",
     "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",

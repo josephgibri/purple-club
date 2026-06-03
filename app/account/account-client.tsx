@@ -19,6 +19,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { ProductGate } from "@/components/access/product-gate";
 import { DigitalMembershipPass } from "@/components/membership/digital-membership-pass";
+import { PurpleWalletCard } from "@/components/purple-wallet/wallet-card";
 import { useMembershipGate } from "@/hooks/useMembershipGate";
 import { useWalletSession } from "@/hooks/useWalletSession";
 import { PURPLE_COURT, SOVEREIGN, getRank, isSovereign } from "@/lib/ranks";
@@ -86,6 +87,7 @@ function AccountDashboard() {
           />
           <MemberTools />
           <AccountEmailCard />
+          <PurpleWalletCard />
         </div>
       </div>
 

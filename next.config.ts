@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import withPWAInit from "@ducanh2912/next-pwa";
 
 /**
  * Env-gated basePath. When `NEXT_PUBLIC_BASE_PATH=/club` is set this app
@@ -25,4 +26,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withPWA = withPWAInit({
+  dest: "public",
+  // Don't register the SW in dev — hot-reload and SW caching fight each other.
+  disable: process.env.NODE_ENV === "development",
+  // Pre-cache the app shell; don't cache dynamic API routes.
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  // Offline fallback page (rendered when network and cache both miss).
+  fallbacks: {
+    document: "/offline",
+  },
+});
+
+export default withPWA(nextConfig);

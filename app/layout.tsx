@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { TopNav } from "@/components/navigation/top-nav";
 import { SiteFooter } from "@/components/navigation/site-footer";
 import { SolanaProvider } from "@/components/providers/solana-provider";
+import { PurpleWalletProvider } from "@/components/auth/purple-wallet-provider";
 import { BasePathFetch } from "@/components/base-path-fetch";
 import "./globals.css";
 
@@ -64,9 +65,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <BasePathFetch />
         <SolanaProvider>
-          <TopNav />
-          {children}
-          <SiteFooter />
+          <PurpleWalletProvider>
+            <TopNav />
+            {children}
+            <SiteFooter />
+          </PurpleWalletProvider>
         </SolanaProvider>
         <Toaster theme="dark" position="top-center" richColors />
       </body>

@@ -1,6 +1,7 @@
 "use client";
 
 import { phantomDeeplink, solflareDeeplink } from "@/lib/device";
+import { usePurpleWalletContext } from "./purple-wallet-provider";
 import { Portal } from "./portal";
 
 /**
@@ -43,12 +44,19 @@ export function MobileWalletPicker({
   open: boolean;
   onClose: () => void;
 }) {
+  const purpleWallet = usePurpleWalletContext();
+
   if (!open) return null;
   const goPhantom = () => {
     window.location.href = phantomDeeplink(buildWalletAuthUrl("phantom"));
   };
   const goSolflare = () => {
     window.location.href = solflareDeeplink(buildWalletAuthUrl("solflare"));
+  };
+  const goPurpleWallet = () => {
+    onClose();
+    const mode = purpleWallet.state === "none" ? "menu" : purpleWallet.state === "locked" ? "unlock" : "unlock";
+    purpleWallet.openModal(mode);
   };
   return (
     <Portal>
@@ -68,13 +76,36 @@ export function MobileWalletPicker({
             id="mobile-wallet-picker-title"
             className="pc-serif text-lg font-semibold text-white"
           >
-            Open with your wallet
+            Connect your wallet
           </h3>
           <p className="mt-1 text-sm text-violet-100/65">
-            Sign in inside your wallet&apos;s app. We&apos;ll bring you back to
-            Purple Club automatically.
+            Use the Purple Club built-in wallet, or open your preferred wallet app.
           </p>
           <div className="mt-4 flex flex-col gap-2">
+            {/* Purple Wallet — always shown first, no deep-link needed */}
+            <button
+              type="button"
+              onClick={goPurpleWallet}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gold-accent px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110"
+            >
+              <span
+                aria-hidden
+                className="inline-block h-2 w-2 rounded-full bg-black/40"
+              />
+              Purple Wallet
+              {purpleWallet.state === "none" && (
+                <span className="ml-auto rounded-full border border-black/20 bg-black/15 px-2 py-0.5 text-[10px] tracking-wide">
+                  New
+                </span>
+              )}
+            </button>
+
+            <div className="my-1 flex items-center gap-2">
+              <div className="h-px flex-1 bg-white/10" />
+              <span className="text-[10px] uppercase tracking-widest text-white/30">or</span>
+              <div className="h-px flex-1 bg-white/10" />
+            </div>
+
             <button
               type="button"
               onClick={goPhantom}
