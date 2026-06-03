@@ -119,13 +119,28 @@ export function usePurpleWallet(): UsePurpleWalletReturn {
     setState((s) => (s === "unlocked" ? "locked" : s));
   }, []);
 
-  // Lock on tab/page hide
+  // Lock when the tab stays hidden for a while. We must NOT lock on every
+  // `visibilitychange → hidden`: clicking a password field can summon a
+  // password-manager / wallet-extension popup that briefly backgrounds the
+  // page, and an immediate lock there cancelled the unlock mid-flow (the
+  // "Purple Wallet unlock cancelled" connect error). Instead we lock only if
+  // the tab is left hidden continuously, and cancel the moment it's visible
+  // again. The in-memory key is wiped on real tab close regardless.
   useEffect(() => {
+    let hideTimer: ReturnType<typeof setTimeout> | null = null;
     function onVisibilityChange() {
-      if (document.visibilityState === "hidden") lock();
+      if (document.visibilityState === "hidden") {
+        hideTimer = setTimeout(() => lock(), 60_000);
+      } else if (hideTimer) {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+      }
     }
     document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      if (hideTimer) clearTimeout(hideTimer);
+    };
   }, [lock]);
 
   // ── Core operations ────────────────────────────────────────────────────

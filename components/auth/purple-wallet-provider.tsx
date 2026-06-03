@@ -33,9 +33,16 @@ export function PurpleWalletProvider({ children }: { children: React.ReactNode }
   }
 
   function closeModal() {
-    // If the bridge was waiting on an unlock and the user closed the modal
-    // without unlocking, reject so the adapter's connect() doesn't hang.
-    if (unlockResolverRef.current && wallet.state !== "unlocked") {
+    // Only reject a pending connect() if the user genuinely dismissed the
+    // modal before unlocking. Never reject while an unlock/create is in
+    // flight (isLoading) or already succeeded (state unlocked) — doing so was
+    // what produced the spurious "Purple Wallet unlock cancelled" error and
+    // left sign-in stuck.
+    if (
+      unlockResolverRef.current &&
+      wallet.state !== "unlocked" &&
+      !wallet.isLoading
+    ) {
       unlockResolverRef.current.reject(new Error("Purple Wallet unlock cancelled."));
       unlockResolverRef.current = null;
     }
