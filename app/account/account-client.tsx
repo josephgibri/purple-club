@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import { ProductGate } from "@/components/access/product-gate";
 import { DigitalMembershipPass } from "@/components/membership/digital-membership-pass";
 import { PurpleWalletCard } from "@/components/purple-wallet/wallet-card";
+import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
 import { useMembershipGate } from "@/hooks/useMembershipGate";
 import { useWalletSession } from "@/hooks/useWalletSession";
 import { JUPITER_SWAP_URL } from "@/lib/constants";
@@ -49,9 +50,21 @@ export function AccountClient() {
 function AccountDashboard() {
   const { publicKey } = useWallet();
   const { balance, hasPbtc, signaturePrefix, signedAtIso } = useMembershipGate();
+  const purple = usePurpleWalletContext();
   const [isPassOpen, setIsPassOpen] = useState(false);
 
   const walletAddress = publicKey?.toBase58();
+
+  // The built-in Purple Wallet card is shown when it's relevant — i.e. when the
+  // user signed in WITH the Purple Wallet, or when one already exists in this
+  // browser (never hide it then, it may hold funds). If they signed in with an
+  // external wallet (Phantom/Solflare) and have no Purple Wallet, we don't
+  // upsell a second wallet — that was the confusing "two wallets" case.
+  const loggedInWithPurple =
+    !!walletAddress && !!purple.address && purple.address === walletAddress;
+  const purpleExists = purple.state !== "none";
+  const showPurpleCard = loggedInWithPurple || purpleExists;
+
   const sovereign = isSovereign(walletAddress);
   const rank = getRank(balance, walletAddress);
   const currentTitle = rank.current?.title ?? "Member";
@@ -103,8 +116,9 @@ function AccountDashboard() {
             walletAddress={walletAddress}
             balance={balance}
             onOpenPass={() => setIsPassOpen(true)}
+            showDetails={!loggedInWithPurple}
           />
-          <PurpleWalletCard />
+          {showPurpleCard ? <PurpleWalletCard /> : null}
           <MemberTools />
           <AccountEmailCard />
         </div>
@@ -239,9 +253,15 @@ type WalletCardProps = {
   walletAddress?: string;
   balance: number;
   onOpenPass: () => void;
+  /**
+   * When false, the wallet address + PBTC rows are hidden. Used when the user
+   * signed in with the built-in Purple Wallet — its own card already shows the
+   * address and balances, so the Membership card collapses to just the Pass.
+   */
+  showDetails?: boolean;
 };
 
-function WalletCard({ walletAddress, balance, onOpenPass }: WalletCardProps) {
+function WalletCard({ walletAddress, balance, onOpenPass, showDetails = true }: WalletCardProps) {
   const short = walletAddress
     ? `${walletAddress.slice(0, 4)}…${walletAddress.slice(-4)}`
     : "—";
@@ -252,18 +272,24 @@ function WalletCard({ walletAddress, balance, onOpenPass }: WalletCardProps) {
         <ShieldCheck size={14} />
         Membership
       </div>
-      <dl className="mt-4 space-y-3 text-sm">
-        <div className="flex items-center justify-between">
-          <dt className="text-violet-100/60">Wallet</dt>
-          <dd className="font-mono text-violet-100/95">{short}</dd>
-        </div>
-        <div className="flex items-center justify-between">
-          <dt className="text-violet-100/60">PBTC held</dt>
-          <dd className="font-mono text-emerald-200">
-            {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-          </dd>
-        </div>
-      </dl>
+      {showDetails ? (
+        <dl className="mt-4 space-y-3 text-sm">
+          <div className="flex items-center justify-between">
+            <dt className="text-violet-100/60">Wallet</dt>
+            <dd className="font-mono text-violet-100/95">{short}</dd>
+          </div>
+          <div className="flex items-center justify-between">
+            <dt className="text-violet-100/60">PBTC held</dt>
+            <dd className="font-mono text-emerald-200">
+              {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            </dd>
+          </div>
+        </dl>
+      ) : (
+        <p className="mt-3 text-xs text-violet-100/60">
+          Your membership pass — wallet details are in your Purple Wallet below.
+        </p>
+      )}
       <div className="mt-5 flex flex-col gap-2">
         <button
           type="button"

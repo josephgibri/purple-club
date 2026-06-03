@@ -16,6 +16,12 @@ import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 interface PurpleWalletRecord {
   address: string;
   encryptedKey: string;
+  /**
+   * Encrypted BIP39 mnemonic, sealed under the same password as encryptedKey.
+   * Optional so wallets created before this field shipped still load — those
+   * simply can't reveal their phrase (only export wasn't available then).
+   */
+  encryptedMnemonic?: string;
   createdAt: number;
 }
 
@@ -42,9 +48,15 @@ function getDb(): Promise<IDBPDatabase<PurpleWalletDB>> {
 export async function saveWallet(
   address: string,
   encryptedKey: string,
+  encryptedMnemonic?: string,
 ): Promise<void> {
   const db = await getDb();
-  await db.put("wallets", { address, encryptedKey, createdAt: Date.now() });
+  await db.put("wallets", {
+    address,
+    encryptedKey,
+    encryptedMnemonic,
+    createdAt: Date.now(),
+  });
 }
 
 export async function loadWallet(

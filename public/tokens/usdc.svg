@@ -1,0 +1,5 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="16" cy="16" r="16" fill="#2775CA"/>
+  <path d="M16 6.2c-5.4 0-9.8 4.4-9.8 9.8S10.6 25.8 16 25.8 25.8 21.4 25.8 16 21.4 6.2 16 6.2Zm0 17.6c-4.3 0-7.8-3.5-7.8-7.8S11.7 8.2 16 8.2s7.8 3.5 7.8 7.8-3.5 7.8-7.8 7.8Z" fill="#fff" opacity="0.35"/>
+  <text x="16" y="20.6" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">$</text>
+</svg>

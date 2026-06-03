@@ -21,7 +21,12 @@ import {
 } from "react";
 import type { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { encryptPrivateKey, decryptPrivateKey } from "@/lib/purple-wallet/crypto";
+import {
+  encryptPrivateKey,
+  decryptPrivateKey,
+  encryptString,
+  decryptString,
+} from "@/lib/purple-wallet/crypto";
 import { saveWallet, listWallets, deleteWallet, loadWallet } from "@/lib/purple-wallet/keystore";
 import { keypairFromPhrase, generatePhrase, validatePhrase } from "@/lib/purple-wallet/keygen";
 import { createSigner, type PurpleWalletSigner } from "@/lib/purple-wallet/signer";
@@ -40,6 +45,12 @@ export interface UsePurpleWalletReturn {
   importWallet: (phrase: string, password: string) => Promise<void>;
   /** Unlock the stored wallet with the user's password. */
   unlock: (password: string) => Promise<void>;
+  /**
+   * Decrypt and return the 12-word recovery phrase after verifying the
+   * password. Throws if the password is wrong or the wallet predates phrase
+   * storage. The phrase is never held in state — the caller shows it transiently.
+   */
+  revealPhrase: (password: string) => Promise<string>;
   /** Lock — clears the in-memory signer. */
   lock: () => void;
   /** Delete the stored wallet from IndexedDB permanently. */
@@ -121,9 +132,12 @@ export function usePurpleWallet(): UsePurpleWalletReturn {
   const storeWallet = useCallback(
     async (phrase: string, password: string) => {
       const keypair = keypairFromPhrase(phrase);
+      const normalizedPhrase = phrase.trim().toLowerCase().replace(/\s+/g, " ");
       const encrypted = await encryptPrivateKey(keypair.secretKey, password);
+      // Seal the mnemonic under the same password so it can be revealed later.
+      const encryptedMnemonic = await encryptString(normalizedPhrase, password);
       const addr = keypair.publicKey.toBase58();
-      await saveWallet(addr, encrypted);
+      await saveWallet(addr, encrypted, encryptedMnemonic);
       // Immediately unlock after creation/import
       signerRef.current = createSigner(keypair.secretKey);
       setAddress(addr);
@@ -131,6 +145,23 @@ export function usePurpleWallet(): UsePurpleWalletReturn {
       resetAutoLock();
     },
     [resetAutoLock],
+  );
+
+  const revealPhrase = useCallback(
+    async (password: string) => {
+      if (!address) throw new Error("No wallet to reveal.");
+      const record = await loadWallet(address);
+      if (!record) throw new Error("Wallet not found in storage.");
+      if (!record.encryptedMnemonic) {
+        throw new Error(
+          "Recovery phrase isn't stored for this wallet (it was created before backups were saved). Delete and re-import it to enable phrase reveal.",
+        );
+      }
+      // decryptString throws "Incorrect password or corrupted wallet." on a
+      // bad password, which doubles as our password check.
+      return decryptString(record.encryptedMnemonic, password);
+    },
+    [address],
   );
 
   const createWallet = useCallback(
@@ -226,6 +257,7 @@ export function usePurpleWallet(): UsePurpleWalletReturn {
     createWallet,
     importWallet,
     unlock,
+    revealPhrase,
     lock,
     removeWallet,
     signMessage,

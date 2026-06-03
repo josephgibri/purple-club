@@ -14,6 +14,7 @@ import {
   type QuoteResponse,
 } from "@/lib/purple-wallet/jupiter";
 import type { WalletBalances } from "@/lib/purple-wallet/balances";
+import { TokenSelect } from "./token-select";
 
 const TOKENS: TokenSymbol[] = ["SOL", "PBTC", "USDC"];
 
@@ -171,15 +172,11 @@ export function SwapPanel({ walletAddress, balances, onDone }: Props) {
             placeholder="0.00"
             className="flex-1 bg-transparent text-lg font-semibold text-white outline-none placeholder:text-white/25"
           />
-          <select
+          <TokenSelect
             value={inputToken}
-            onChange={(e) => { setInputToken(e.target.value as TokenSymbol); setQuote(null); }}
-            className="rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-sm font-semibold text-white focus:outline-none"
-          >
-            {TOKENS.filter((t) => t !== outputToken).map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
+            options={TOKENS.filter((t) => t !== outputToken)}
+            onChange={(t) => { setInputToken(t); setQuote(null); }}
+          />
         </div>
       </div>
 
@@ -202,15 +199,11 @@ export function SwapPanel({ walletAddress, balances, onDone }: Props) {
           <span className="flex-1 text-lg font-semibold text-white/80">
             {quoteLoading ? "…" : outAmount ?? "—"}
           </span>
-          <select
+          <TokenSelect
             value={outputToken}
-            onChange={(e) => { setOutputToken(e.target.value as TokenSymbol); setQuote(null); }}
-            className="rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-sm font-semibold text-white focus:outline-none"
-          >
-            {TOKENS.filter((t) => t !== inputToken).map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
+            options={TOKENS.filter((t) => t !== inputToken)}
+            onChange={(t) => { setOutputToken(t); setQuote(null); }}
+          />
         </div>
       </div>
 

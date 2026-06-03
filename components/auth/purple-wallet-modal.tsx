@@ -96,6 +96,10 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [confirmIndexes, setConfirmIndexes] = useState<number[]>([]);
   const [confirmAnswers, setConfirmAnswers] = useState<Record<number, string>>({});
+  // Per-field "doesn't match" flags so a repeated wrong submit still gives
+  // visible feedback (re-setting the same top-level error string rendered no
+  // change, which made Confirm look frozen).
+  const [wrongFields, setWrongFields] = useState<Record<number, boolean>>({});
   const [copied, setCopied] = useState(false);
   const [localError, setLocalError] = useState("");
 
@@ -126,11 +130,22 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
 
   function handleConfirmPhrase() {
     const words = phrase.trim().split(/\s+/);
+    const wrong: Record<number, boolean> = {};
     for (const idx of confirmIndexes) {
-      if (confirmAnswers[idx]?.trim().toLowerCase() !== words[idx].toLowerCase()) {
-        setLocalError(`Word #${idx + 1} is incorrect. Check your backup and try again.`);
-        return;
+      if (confirmAnswers[idx]?.trim().toLowerCase() !== words[idx]?.toLowerCase()) {
+        wrong[idx] = true;
       }
+    }
+    setWrongFields(wrong);
+    const wrongCount = Object.keys(wrong).length;
+    if (wrongCount > 0) {
+      const positions = Object.keys(wrong)
+        .map((k) => `#${Number(k) + 1}`)
+        .join(", ");
+      setLocalError(
+        `Word ${positions} ${wrongCount > 1 ? "don't" : "doesn't"} match your phrase. Tap “Back to phrase” to check.`,
+      );
+      return;
     }
     setLocalError("");
     setStep("set-password");
@@ -243,7 +258,7 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
                 <h2 className="font-semibold">Before you continue</h2>
               </div>
               <ul className="space-y-2 text-sm text-violet-100/80">
-                <li className="flex gap-2"><span className="mt-0.5 text-gold-accent">✦</span> You will receive a 24-word seed phrase. <strong className="text-white">Write it down and store it safely.</strong></li>
+                <li className="flex gap-2"><span className="mt-0.5 text-gold-accent">✦</span> You will receive a 12-word seed phrase. <strong className="text-white">Write it down and store it safely.</strong></li>
                 <li className="flex gap-2"><span className="mt-0.5 text-gold-accent">✦</span> If you lose your seed phrase and forget your password, <strong className="text-white">your wallet cannot be recovered</strong> — by you or by Purple Club.</li>
                 <li className="flex gap-2"><span className="mt-0.5 text-gold-accent">✦</span> Purple Club is non-custodial. We never store or see your keys.</li>
                 <li className="flex gap-2"><span className="mt-0.5 text-gold-accent">✦</span> Your seed phrase works in any Solana wallet (Phantom, Solflare, etc.).</li>
@@ -271,7 +286,7 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
           {step === "show-phrase" && (
             <div className="space-y-4">
               <h2 className="pc-serif text-xl font-semibold text-white">Your seed phrase</h2>
-              <p className="text-sm text-violet-100/65">Write these 24 words down in order. You&apos;ll need to confirm 3 of them next.</p>
+              <p className="text-sm text-violet-100/65">Write these 12 words down in order. You&apos;ll need to confirm 3 of them next.</p>
               <div className="grid grid-cols-3 gap-2">
                 {words.map((word, i) => (
                   <div key={i} className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5">
@@ -289,7 +304,23 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
                 {copied ? "Copied!" : "Copy to clipboard"}
               </button>
               <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => { handleStartCreate(); }} className="flex items-center gap-1.5 text-xs text-violet-100/55 hover:text-violet-100/85"><RefreshCw size={12} /> Regenerate</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Regenerating silently invalidates a phrase the user may
+                    // have already written down — confirm before discarding.
+                    if (
+                      window.confirm(
+                        "Generate a new phrase? Your current 12 words will be discarded — only do this if you haven't written them down yet.",
+                      )
+                    ) {
+                      handleStartCreate();
+                    }
+                  }}
+                  className="flex items-center gap-1.5 text-xs text-violet-100/55 hover:text-violet-100/85"
+                >
+                  <RefreshCw size={12} /> Regenerate
+                </button>
                 <button
                   type="button"
                   onClick={() => setStep("confirm-phrase")}
@@ -307,24 +338,47 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
               <h2 className="pc-serif text-xl font-semibold text-white">Confirm your backup</h2>
               <p className="text-sm text-violet-100/65">Enter the words at the following positions to confirm you&apos;ve saved your phrase.</p>
               <div className="space-y-3">
-                {confirmIndexes.map((idx) => (
-                  <label key={idx} className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
-                    Word #{idx + 1}
-                    <input
-                      type="text"
-                      autoCapitalize="off"
-                      autoComplete="off"
-                      spellCheck={false}
-                      value={confirmAnswers[idx] ?? ""}
-                      onChange={(e) => setConfirmAnswers((prev) => ({ ...prev, [idx]: e.target.value }))}
-                      className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-gold-accent/60 focus:outline-none"
-                    />
-                  </label>
-                ))}
+                {confirmIndexes.map((idx) => {
+                  const isWrong = wrongFields[idx];
+                  return (
+                    <label key={idx} className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+                      Word #{idx + 1}
+                      <input
+                        type="text"
+                        autoCapitalize="off"
+                        autoComplete="off"
+                        spellCheck={false}
+                        value={confirmAnswers[idx] ?? ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setConfirmAnswers((prev) => ({ ...prev, [idx]: v }));
+                          // Clear this field's error as soon as the user edits it.
+                          if (wrongFields[idx]) {
+                            setWrongFields((prev) => {
+                              const next = { ...prev };
+                              delete next[idx];
+                              return next;
+                            });
+                          }
+                        }}
+                        className={`rounded-xl border bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:outline-none ${
+                          isWrong
+                            ? "border-red-400/70 focus:border-red-400"
+                            : "border-white/10 focus:border-gold-accent/60"
+                        }`}
+                      />
+                      {isWrong ? (
+                        <span className="text-[10px] normal-case tracking-normal text-red-300">
+                          Doesn&apos;t match your phrase
+                        </span>
+                      ) : null}
+                    </label>
+                  );
+                })}
               </div>
               {localError && <p className="text-xs text-red-300">{localError}</p>}
               <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => { resetError(); setStep("show-phrase"); }} className="flex-1 rounded-2xl border border-white/15 px-4 py-2.5 text-sm font-semibold text-white/70 hover:border-white/30">Back</button>
+                <button type="button" onClick={() => { resetError(); setWrongFields({}); setStep("show-phrase"); }} className="flex-1 rounded-2xl border border-white/15 px-4 py-2.5 text-sm font-semibold text-white/70 hover:border-white/30">Back to phrase</button>
                 <button type="button" onClick={handleConfirmPhrase} className="flex-1 rounded-2xl bg-gold-accent px-4 py-2.5 text-sm font-semibold text-black hover:brightness-110">Confirm</button>
               </div>
             </div>
@@ -353,13 +407,13 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
           {step === "import-phrase" && (
             <div className="space-y-4">
               <h2 className="pc-serif text-xl font-semibold text-white">Import seed phrase</h2>
-              <p className="text-sm text-violet-100/65">Enter your 24-word BIP39 mnemonic. Phantom uses the same derivation path (m/44&apos;/501&apos;/0&apos;/0&apos;) so your address will match.</p>
+              <p className="text-sm text-violet-100/65">Enter your 12- or 24-word BIP39 mnemonic. Phantom uses the same derivation path (m/44&apos;/501&apos;/0&apos;/0&apos;) so your address will match.</p>
               <textarea
                 rows={4}
                 autoCapitalize="off"
                 autoComplete="off"
                 spellCheck={false}
-                placeholder="word1 word2 word3 … word24"
+                placeholder="word1 word2 word3 … word12"
                 value={importPhraseInput}
                 onChange={(e) => setImportPhraseInput(e.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-sm text-white placeholder:text-white/40 focus:border-gold-accent/60 focus:outline-none"

@@ -19,11 +19,14 @@ import { Keypair } from "@solana/web3.js";
 export const SOLANA_DERIVATION_PATH = "m/44'/501'/0'/0'";
 
 /**
- * Generate a fresh 24-word BIP39 mnemonic (256-bit entropy).
- * The phrase is the ONLY recovery mechanism — never stored by the app.
+ * Generate a fresh 12-word BIP39 mnemonic (128-bit entropy) — the same
+ * default Phantom and most consumer wallets use. 128-bit is the industry
+ * standard security level; 12 words halves the backup friction vs. 24.
+ * The phrase is the ONLY recovery mechanism — never shown again unless the
+ * user reveals it with their password (see usePurpleWallet.revealPhrase).
  */
 export function generatePhrase(): string {
-  return generateMnemonic(englishWordlist, 256);
+  return generateMnemonic(englishWordlist, 128);
 }
 
 /**

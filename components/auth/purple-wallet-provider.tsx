@@ -110,6 +110,7 @@ const NOOP_CTX: PurpleWalletContextValue = {
   createWallet: async () => {},
   importWallet: async () => {},
   unlock: async () => {},
+  revealPhrase: async () => "",
   lock: () => {},
   removeWallet: async () => {},
   signMessage: async () => new Uint8Array(),

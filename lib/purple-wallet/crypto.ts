@@ -70,6 +70,27 @@ export async function encryptPrivateKey(
   return btoa(String.fromCharCode(...blob));
 }
 
+/**
+ * Encrypt an arbitrary UTF-8 string (e.g. the BIP39 mnemonic) under the same
+ * password-derived key + blob format as the private key. Used to store the
+ * recovery phrase so the user can reveal it later with their password.
+ */
+export async function encryptString(
+  plaintext: string,
+  password: string,
+): Promise<string> {
+  return encryptPrivateKey(new TextEncoder().encode(plaintext), password);
+}
+
+/** Decrypt a string previously sealed with {@link encryptString}. */
+export async function decryptString(
+  encryptedBase64: string,
+  password: string,
+): Promise<string> {
+  const bytes = await decryptPrivateKey(encryptedBase64, password);
+  return new TextDecoder().decode(bytes);
+}
+
 export async function decryptPrivateKey(
   encryptedBase64: string,
   password: string,

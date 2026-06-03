@@ -14,7 +14,9 @@ import {
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
+import { ScanLine } from "lucide-react";
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
+import { QrScanner } from "./qr-scanner";
 
 const PBTC_MINT = "HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p";
 const DEFAULT_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
@@ -46,6 +48,7 @@ export function SendPanel({ walletAddress, onDone }: Props) {
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [txSig, setTxSig] = useState("");
   const [error, setError] = useState("");
+  const [scanning, setScanning] = useState(false);
 
   async function handleSend() {
     setError("");
@@ -147,13 +150,35 @@ export function SendPanel({ walletAddress, onDone }: Props) {
         ))}
       </div>
 
-      <input
-        type="text"
-        placeholder="Recipient address"
-        value={recipient}
-        onChange={(e) => setRecipient(e.target.value)}
-        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 font-mono text-xs text-white placeholder:text-white/35 focus:border-gold-accent/50 focus:outline-none"
-      />
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Recipient address"
+          value={recipient}
+          onChange={(e) => setRecipient(e.target.value)}
+          className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-4 pr-11 font-mono text-xs text-white placeholder:text-white/35 focus:border-gold-accent/50 focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={() => setScanning(true)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-white/45 transition hover:bg-white/10 hover:text-gold-accent"
+          aria-label="Scan QR code"
+          title="Scan QR code"
+        >
+          <ScanLine size={16} />
+        </button>
+      </div>
+
+      {scanning ? (
+        <QrScanner
+          onResult={(text) => {
+            setRecipient(text);
+            setScanning(false);
+            setError("");
+          }}
+          onClose={() => setScanning(false)}
+        />
+      ) : null}
       <input
         type="number"
         inputMode="decimal"
