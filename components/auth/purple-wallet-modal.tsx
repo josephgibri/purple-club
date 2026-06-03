@@ -156,7 +156,10 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
     resetError();
     try {
       await unlock(password);
-      onClose();
+      // Do NOT call onClose() here. onClose runs the provider's cancel logic
+      // with a stale "locked" state value and would reject the pending
+      // connection. The provider closes this modal automatically once it
+      // observes state === "unlocked".
     } catch {
       // error shown via useEffect above
     }

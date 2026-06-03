@@ -76,8 +76,11 @@ export function PurpleWalletProvider({ children }: { children: React.ReactNode }
       if (unlockResolverRef.current) {
         unlockResolverRef.current.resolve(wallet.address);
         unlockResolverRef.current = null;
-        setModalMode(null);
       }
+      // Auto-close the unlock modal on success (covers both the bridge-driven
+      // sign-in flow and the standalone "Unlock wallet" button). The create
+      // flow uses a different mode so it can keep showing its success screen.
+      setModalMode((m) => (m === "unlock" ? null : m));
     } else {
       emitPurpleAccountChange(null);
     }

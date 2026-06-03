@@ -79,6 +79,12 @@ export function useWalletSignIn(): SignInState {
   const [localError, setLocalError] = useState<string | null>(null);
 
   const watchdogTimerRef = useRef<number | null>(null);
+  // Guards against two callers (the connect state machine and the Purple
+  // Wallet auto-sign effect) both firing runSignIn at once.
+  const signingInFlightRef = useRef(false);
+  // Tracks the Purple Wallet address we've already auto-signed for, so we
+  // don't re-prompt a signature on every render once connected.
+  const purpleAutoSignRef = useRef<string | null>(null);
 
   const clearWatchdog = useCallback(() => {
     if (watchdogTimerRef.current !== null) {
@@ -114,6 +120,8 @@ export function useWalletSignIn(): SignInState {
 
   const runSignIn = useCallback(async () => {
     if (!wallet.wallet?.adapter) return;
+    if (signingInFlightRef.current) return;
+    signingInFlightRef.current = true;
     setLocalError(null);
     setError(null);
     setIsPending(true);
@@ -149,6 +157,7 @@ export function useWalletSignIn(): SignInState {
       clearWalletSelection();
     } finally {
       setIsPending(false);
+      signingInFlightRef.current = false;
     }
     // useWallet() returns a fresh object every render so we depend on
     // the specific fields we read, not the wallet object itself.
@@ -241,6 +250,36 @@ export function useWalletSignIn(): SignInState {
     // effect must only act when pendingResume transitions to a value.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingResume]);
+
+  // Purple Wallet auto-sign. The Purple Wallet only "connects" after the user
+  // explicitly unlocks/creates it (password required), so a connection is an
+  // unambiguous intent to sign in. The normal connect→SIWS state machine can
+  // miss this when its 30s watchdog fires during the lengthy create/backup
+  // flow — so we fire SIWS directly here once Purple Wallet is connected and
+  // unverified. The signingInFlightRef + per-address guard prevent any
+  // double-signature when the state machine is also active.
+  useEffect(() => {
+    if (!wallet.connected || !wallet.publicKey) {
+      purpleAutoSignRef.current = null;
+      return;
+    }
+    if (wallet.wallet?.adapter?.name !== "Purple Wallet") return;
+    if (isVerified) return;
+    const address = wallet.publicKey.toBase58();
+    if (purpleAutoSignRef.current === address) return;
+    purpleAutoSignRef.current = address;
+    clearWatchdog();
+    setSiwsPending(false);
+    void runSignIn();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    wallet.connected,
+    wallet.publicKey,
+    wallet.wallet,
+    isVerified,
+    runSignIn,
+    clearWatchdog,
+  ]);
 
   /**
    * Single entry point. Branches by environment:
