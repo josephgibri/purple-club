@@ -386,21 +386,26 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
 
           {/* SET PASSWORD (create) */}
           {step === "set-password" && (
-            <div className="space-y-4">
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void handleCreate();
+              }}
+            >
               <h2 className="pc-serif text-xl font-semibold text-white">Set a password</h2>
               <p className="text-sm text-violet-100/65">Used to unlock your wallet on this device. Your seed phrase remains the master recovery key.</p>
               <PasswordInput value={password} onChange={setPassword} placeholder="Password (min 8 chars)" autoFocus />
               <PasswordInput value={passwordConfirm} onChange={setPasswordConfirm} placeholder="Confirm password" />
               {localError && <p className="text-xs text-red-300">{localError}</p>}
               <button
-                type="button"
-                onClick={() => void handleCreate()}
+                type="submit"
                 disabled={isLoading}
                 className="w-full rounded-2xl bg-gold-accent px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110 disabled:opacity-50"
               >
                 {isLoading ? "Creating wallet…" : "Create wallet"}
               </button>
-            </div>
+            </form>
           )}
 
           {/* IMPORT PHRASE */}
@@ -441,7 +446,13 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
 
           {/* IMPORT PASSWORD */}
           {step === "import-password" && (
-            <div className="space-y-4">
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void handleImport();
+              }}
+            >
               <h2 className="pc-serif text-xl font-semibold text-white">Set a password</h2>
               <p className="text-sm text-violet-100/65">Encrypts your imported key on this device.</p>
               <PasswordInput value={password} onChange={setPassword} placeholder="Password (min 8 chars)" autoFocus />
@@ -450,15 +461,14 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
               <div className="flex gap-3">
                 <button type="button" onClick={() => { resetError(); setStep("import-phrase"); }} className="flex-1 rounded-2xl border border-white/15 px-4 py-2.5 text-sm font-semibold text-white/70 hover:border-white/30">Back</button>
                 <button
-                  type="button"
-                  onClick={() => void handleImport()}
+                  type="submit"
                   disabled={isLoading}
                   className="flex-1 rounded-2xl bg-gold-accent px-4 py-2.5 text-sm font-semibold text-black hover:brightness-110 disabled:opacity-50"
                 >
                   {isLoading ? "Importing…" : "Import wallet"}
                 </button>
               </div>
-            </div>
+            </form>
           )}
 
           {/* UNLOCK */}
