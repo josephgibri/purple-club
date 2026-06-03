@@ -19,12 +19,13 @@ type MobileWalletContextValue = {
 
   /**
    * Set by `MobileWalletHost` once it detects + consumes a
-   * `?walletAuth=phantom|solflare` query flag on mount. The hook reads
-   * this to know it should fire its SIWS state machine without waiting
-   * for an explicit button click. Cleared after the hook acknowledges.
+   * `?walletAuth=phantom|solflare` query flag on mount, or by the mobile
+   * picker when the user taps Purple Wallet (`"purple"`, no deep-link —
+   * runs in-page). The hook reads this to know it should fire its SIWS
+   * state machine. Cleared after the hook acknowledges.
    */
-  pendingResume: "phantom" | "solflare" | null;
-  setPendingResume: (value: "phantom" | "solflare" | null) => void;
+  pendingResume: "phantom" | "solflare" | "purple" | null;
+  setPendingResume: (value: "phantom" | "solflare" | "purple" | null) => void;
 };
 
 const MobileWalletContext = createContext<MobileWalletContextValue | null>(null);
@@ -32,7 +33,7 @@ const MobileWalletContext = createContext<MobileWalletContextValue | null>(null)
 export function MobileWalletProvider({ children }: { children: React.ReactNode }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pendingResume, setPendingResume] = useState<
-    "phantom" | "solflare" | null
+    "phantom" | "solflare" | "purple" | null
   >(null);
 
   const openPicker = useCallback(() => setPickerOpen(true), []);

@@ -226,12 +226,16 @@ export function useWalletSignIn(): SignInState {
     /* eslint-enable react-hooks/set-state-in-effect */
     armWatchdog();
     try {
-      wallet.select(
-        (pendingResume === "phantom" ? "Phantom" : "Solflare") as WalletName<string>,
-      );
+      const name =
+        pendingResume === "phantom"
+          ? "Phantom"
+          : pendingResume === "solflare"
+            ? "Solflare"
+            : "Purple Wallet";
+      wallet.select(name as WalletName<string>);
     } catch {
-      // Adapter not registered — should never happen since we always
-      // register both in SolanaProvider.
+      // Adapter not registered — should never happen since Phantom/Solflare
+      // and Purple Wallet are all Wallet Standard wallets.
     }
     // wallet/setPendingResume/armWatchdog change on every render; this
     // effect must only act when pendingResume transitions to a value.

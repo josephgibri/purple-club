@@ -1,6 +1,7 @@
 "use client";
 
 import { phantomDeeplink, solflareDeeplink } from "@/lib/device";
+import { useMobileWallet } from "./mobile-wallet-context";
 import { usePurpleWalletContext } from "./purple-wallet-provider";
 import { Portal } from "./portal";
 
@@ -45,6 +46,7 @@ export function MobileWalletPicker({
   onClose: () => void;
 }) {
   const purpleWallet = usePurpleWalletContext();
+  const { setPendingResume } = useMobileWallet();
 
   if (!open) return null;
   const goPhantom = () => {
@@ -55,8 +57,10 @@ export function MobileWalletPicker({
   };
   const goPurpleWallet = () => {
     onClose();
-    const mode = purpleWallet.state === "none" ? "menu" : purpleWallet.state === "locked" ? "unlock" : "unlock";
-    purpleWallet.openModal(mode);
+    // In-page flow: signal useWalletSignIn to select the Purple Wallet
+    // Standard adapter and drive connect → unlock modal → SIWS. No deep
+    // link needed since the wallet runs entirely in the browser.
+    setPendingResume("purple");
   };
   return (
     <Portal>
