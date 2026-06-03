@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Eye, EyeOff, X, AlertTriangle, CheckCircle2, Copy, RefreshCw } from "lucide-react";
 import type { UsePurpleWalletReturn } from "@/hooks/usePurpleWallet";
 import { pickConfirmationIndexes } from "@/lib/purple-wallet/keygen";
@@ -193,7 +194,16 @@ export function PurpleWalletModal({ mode, onClose, wallet }: Props) {
           {/* MENU */}
           {step === "menu" && (
             <div className="space-y-4">
-              <h2 className="pc-serif text-2xl font-semibold text-white">Purple Wallet</h2>
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/purple-club-icon.svg"
+                  alt=""
+                  width={36}
+                  height={36}
+                  className="rounded-lg"
+                />
+                <h2 className="pc-serif text-2xl font-semibold text-white">Purple Wallet</h2>
+              </div>
               <p className="text-sm text-violet-100/65">
                 A non-custodial wallet built into Purple Club. Your keys stay in your browser — we never see them.
               </p>

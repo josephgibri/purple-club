@@ -22,6 +22,7 @@ import { DigitalMembershipPass } from "@/components/membership/digital-membershi
 import { PurpleWalletCard } from "@/components/purple-wallet/wallet-card";
 import { useMembershipGate } from "@/hooks/useMembershipGate";
 import { useWalletSession } from "@/hooks/useWalletSession";
+import { JUPITER_SWAP_URL } from "@/lib/constants";
 import { PURPLE_COURT, SOVEREIGN, getRank, isSovereign } from "@/lib/ranks";
 
 /**
@@ -37,7 +38,8 @@ export function AccountClient() {
     <ProductGate
       eyebrow="My Account"
       connectTitle="Sign in to your account"
-      connectDescription="Connect a Solana wallet that holds at least 1 PBTC to see your standing in The Purple Court, open your membership pass, and reach every club surface. Verification is read-only."
+      connectDescription="Connect a Solana wallet to see your account, wallet details and standing in The Purple Court. Verification is read-only — your tokens never leave your wallet."
+      unlockOnVerified
     >
       <AccountDashboard />
     </ProductGate>
@@ -46,7 +48,7 @@ export function AccountClient() {
 
 function AccountDashboard() {
   const { publicKey } = useWallet();
-  const { balance, signaturePrefix, signedAtIso } = useMembershipGate();
+  const { balance, hasPbtc, signaturePrefix, signedAtIso } = useMembershipGate();
   const [isPassOpen, setIsPassOpen] = useState(false);
 
   const walletAddress = publicKey?.toBase58();
@@ -68,6 +70,23 @@ function AccountDashboard() {
         </div>
       </header>
 
+      {!hasPbtc ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold-accent/30 bg-gold-accent/10 px-5 py-3.5">
+          <p className="text-sm text-gold-accent">
+            You&apos;re signed in. Hold at least 1 PBTC to unlock Hotels, Perks
+            &amp; Benefits, and Lend.
+          </p>
+          <a
+            href={JUPITER_SWAP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 rounded-full bg-gold-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-black transition hover:brightness-110"
+          >
+            Buy PBTC
+          </a>
+        </div>
+      ) : null}
+
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <PurpleCourtCard
           balance={balance}
@@ -85,9 +104,9 @@ function AccountDashboard() {
             balance={balance}
             onOpenPass={() => setIsPassOpen(true)}
           />
+          <PurpleWalletCard />
           <MemberTools />
           <AccountEmailCard />
-          <PurpleWalletCard />
         </div>
       </div>
 

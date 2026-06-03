@@ -20,6 +20,14 @@ type ProductGateProps = {
    * logged-out / non-member visitors — e.g. a Hotels or Perks explainer.
    */
   explainer?: ReactNode;
+  /**
+   * When true, the gate unlocks as soon as the wallet is verified (signed in),
+   * regardless of PBTC balance. Used by `/account` so any signed-in member can
+   * always reach their own wallet details and hub, even while they hold less
+   * than 1 PBTC. The PBTC-gated products (Hotels, Perks, Lend) keep their own
+   * full gate.
+   */
+  unlockOnVerified?: boolean;
   /** The gated product. Rendered only once the visitor is a member. */
   children: ReactNode;
 };
@@ -38,6 +46,7 @@ export function ProductGate({
   connectTitle,
   connectDescription,
   explainer,
+  unlockOnVerified = false,
   children,
 }: ProductGateProps) {
   const { connected } = useWallet();
@@ -52,7 +61,7 @@ export function ProductGate({
   } = useMembershipGate();
   const { enter, isPending, error: signInError } = useWalletSignIn();
 
-  if (isMember) {
+  if (isMember || (unlockOnVerified && isVerified)) {
     return <>{children}</>;
   }
 

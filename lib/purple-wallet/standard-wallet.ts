@@ -43,6 +43,7 @@ import {
   SolanaSignTransaction,
 } from "@solana/wallet-standard-features";
 
+import { PURPLE_BITCOIN_ICON_DATA_URI } from "@/lib/purple-bitcoin-icon";
 import {
   getPurpleWalletBridge,
   onPurpleAccountChange,
@@ -50,9 +51,9 @@ import {
 
 const SOLANA_MAINNET_CHAIN = "solana:mainnet" as const;
 
-// Small inline purple diamond icon (data URI required by Wallet Standard).
-const ICON: WalletIcon =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzJlMTA2NSIvPjxwYXRoIGQ9Ik0xNiA2bDcgMTAtNyAxMC03LTEweiIgZmlsbD0iI2Y2YzQ1MyIvPjwvc3ZnPg==";
+// Official Purple Bitcoin (PBTC) glyph, inlined as a data URI (required by
+// the Wallet Standard spec). Same asset used across the rest of the app.
+const ICON = PURPLE_BITCOIN_ICON_DATA_URI as WalletIcon;
 
 class PurpleWalletAccount implements WalletAccount {
   readonly #address: string;

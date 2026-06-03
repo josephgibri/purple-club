@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import {
-  Wallet,
   Lock,
-  Unlock,
   Copy,
   Check,
   Send,
@@ -17,6 +16,19 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
+
+/** Purple Bitcoin glyph used as the Purple Wallet mark. */
+function PurpleMark({ size = 16 }: { size?: number }) {
+  return (
+    <Image
+      src="/purple-club-icon.svg"
+      alt=""
+      width={size}
+      height={size}
+      className="rounded-[4px]"
+    />
+  );
+}
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
 import { fetchWalletBalances, type WalletBalances } from "@/lib/purple-wallet/balances";
 import { SendPanel } from "./send-panel";
@@ -81,7 +93,7 @@ export function PurpleWalletCard() {
     return (
       <section className="rounded-3xl border border-border bg-surface p-6 shadow-2xl shadow-black/20">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
-          <Wallet size={14} />
+          <PurpleMark size={16} />
           Purple Wallet
         </div>
         <p className="mt-2 text-xs text-violet-100/60">
@@ -113,7 +125,7 @@ export function PurpleWalletCard() {
       <section className="rounded-3xl border border-border bg-surface p-6 shadow-2xl shadow-black/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
-            <Wallet size={14} />
+            <PurpleMark size={16} />
             Purple Wallet
           </div>
           <span className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] text-white/50">
@@ -141,7 +153,7 @@ export function PurpleWalletCard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
-          <Wallet size={14} />
+          <PurpleMark size={16} />
           Purple Wallet
         </div>
         <div className="flex items-center gap-2">

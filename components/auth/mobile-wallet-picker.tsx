@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { phantomDeeplink, solflareDeeplink } from "@/lib/device";
 import { useMobileWallet } from "./mobile-wallet-context";
 import { usePurpleWalletContext } from "./purple-wallet-provider";
@@ -92,9 +93,12 @@ export function MobileWalletPicker({
               onClick={goPurpleWallet}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gold-accent px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110"
             >
-              <span
-                aria-hidden
-                className="inline-block h-2 w-2 rounded-full bg-black/40"
+              <Image
+                src="/purple-club-icon.svg"
+                alt=""
+                width={18}
+                height={18}
+                className="rounded-[4px]"
               />
               Purple Wallet
               {purpleWallet.state === "none" && (
