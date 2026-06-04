@@ -143,37 +143,41 @@ export function InstallPrompt() {
         </span>
 
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-white">Install Purple Club</p>
+          <p className="text-sm font-semibold text-white">
+            Add Purple Club to your home screen
+          </p>
 
           {showIosHelp ? (
-            <p className="mt-1 text-xs leading-relaxed text-violet-100/75">
-              Tap{" "}
-              <Share size={12} className="inline -translate-y-px text-violet-100" />{" "}
-              <span className="font-medium text-white">Share</span>, then{" "}
-              <SquarePlus
-                size={12}
-                className="inline -translate-y-px text-violet-100"
-              />{" "}
-              <span className="font-medium text-white">Add to Home Screen</span>{" "}
-              for the full-screen app.
-            </p>
+            <>
+              <p className="mt-1 text-xs leading-relaxed text-violet-100/75">
+                Tap{" "}
+                <Share size={12} className="inline -translate-y-px text-violet-100" />{" "}
+                <span className="font-medium text-white">Share</span>, then{" "}
+                <SquarePlus
+                  size={12}
+                  className="inline -translate-y-px text-violet-100"
+                />{" "}
+                <span className="font-medium text-white">Add to Home Screen</span>.
+                It opens like an app — no App Store needed.
+              </p>
+            </>
           ) : (
-            <p className="mt-1 text-xs leading-relaxed text-violet-100/75">
-              Add it to your home screen for one-tap access to your membership,
-              wallet and perks.
-            </p>
+            <>
+              <p className="mt-1 text-xs leading-relaxed text-violet-100/75">
+                One-tap access to your membership, wallet and perks — straight
+                from your home screen.{" "}
+                <span className="text-violet-100/50">No App Store required.</span>
+              </p>
+              <button
+                type="button"
+                onClick={install}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-purple-accent px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-purple-accent/85"
+              >
+                <Download size={13} />
+                Add to home screen
+              </button>
+            </>
           )}
-
-          {!showIosHelp ? (
-            <button
-              type="button"
-              onClick={install}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-purple-accent px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-purple-accent/85"
-            >
-              <Download size={13} />
-              Install app
-            </button>
-          ) : null}
         </div>
       </div>
     </div>
