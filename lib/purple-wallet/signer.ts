@@ -27,13 +27,20 @@ export interface PurpleWalletSigner {
  * stored in React state; clearing that state is equivalent to "locking."
  */
 export function createSigner(privateKeyBytes: Uint8Array): PurpleWalletSigner {
+  // IMPORTANT: copy the input before handing it to Keypair. Keypair retains a
+  // *reference* to the byte array it's given (it does not deep-copy), so a
+  // caller that wipes its buffer afterwards (unlock() does `privateKey.fill(0)`
+  // for hygiene) would otherwise zero out the keypair's secret — producing
+  // valid-looking addresses but signatures that fail verification.
+  const ownedKey = privateKeyBytes.slice();
+
   // Keypair.fromSecretKey expects 64 bytes (seed + public). If we stored
   // only the 32-byte seed, expand it.
   let keypair: Keypair;
-  if (privateKeyBytes.length === 64) {
-    keypair = Keypair.fromSecretKey(privateKeyBytes);
-  } else if (privateKeyBytes.length === 32) {
-    keypair = Keypair.fromSeed(privateKeyBytes);
+  if (ownedKey.length === 64) {
+    keypair = Keypair.fromSecretKey(ownedKey);
+  } else if (ownedKey.length === 32) {
+    keypair = Keypair.fromSeed(ownedKey);
   } else {
     throw new Error("Invalid private key length.");
   }

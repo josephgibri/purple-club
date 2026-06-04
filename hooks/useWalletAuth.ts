@@ -183,13 +183,6 @@ export function useWalletAuth(): WalletAuthState {
         pubkeyBytes,
       );
 
-      console.warn("[PurpleAuth] verify", {
-        usedOverride: Boolean(override),
-        pubkeyStr,
-        sigLen: signature?.length,
-        valid,
-      });
-
       if (!valid) {
         throw new Error("Signature verification failed.");
       }
@@ -205,7 +198,6 @@ export function useWalletAuth(): WalletAuthState {
       writeStoredProof(verified);
       setProof(verified);
       syncServerSession(verified);
-      console.warn("[PurpleAuth] proof written + setProof for", pubkeyStr);
     } catch (value) {
       const msg =
         value instanceof Error
@@ -213,7 +205,6 @@ export function useWalletAuth(): WalletAuthState {
             ? "Signature declined."
             : value.message
           : "Signature failed.";
-      console.warn("[PurpleAuth] verify failed:", msg);
       setError(msg);
     } finally {
       setIsSigning(false);
@@ -235,16 +226,6 @@ export function useWalletAuth(): WalletAuthState {
       proof.publicKey === publicKey.toBase58() &&
       proof.expiresAt > now,
   );
-
-  useEffect(() => {
-    console.warn("[PurpleAuth] state", {
-      adapterPubkey: publicKey?.toBase58() ?? null,
-      connected,
-      proofPubkey: proof?.publicKey ?? null,
-      proofMatches: proof && publicKey ? proof.publicKey === publicKey.toBase58() : null,
-      isVerified,
-    });
-  }, [publicKey, connected, proof, isVerified]);
 
   return {
     isVerified,
