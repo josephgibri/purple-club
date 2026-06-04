@@ -179,14 +179,22 @@ export function useWalletSignIn(): SignInState {
       // the user to sign again. useWalletAuth's own effect will re-sync the
       // server cookie from the stored proof.
       const address = wallet.publicKey?.toBase58();
-      if (address && hasValidStoredProof(address)) return;
-
       // Purple Wallet: sign the SIWS message with the in-memory keypair
       // directly. The wallet-adapter signMessage round-trip (adapter →
       // standard-wallet → bridge → signer) can silently no-op if the bridge
       // isn't wired yet, which is what left users stuck on "Sign to Enter".
       // Signing through the live context is deterministic.
       const isPurple = wallet.wallet?.adapter?.name === PURPLE_WALLET_NAME;
+
+      // External wallets: if a valid SIWS proof is already stored, skip the
+      // signature so we don't trigger a redundant extension popup. Purple
+      // Wallet signs SILENTLY with the in-memory key, so we always (re)sign —
+      // re-running verify also re-emits the proof event, resyncing any
+      // useWalletAuth instance that missed the first write. That stale-sync was
+      // what left the header stuck on "Sign to Enter" with clicks doing
+      // nothing (runSignIn kept early-returning here while isVerified was false).
+      if (!isPurple && address && hasValidStoredProof(address)) return;
+
       const pw = purpleRef.current;
       if (isPurple && address) {
         if (pw.state !== "unlocked" || pw.address !== address) {
@@ -323,7 +331,15 @@ export function useWalletSignIn(): SignInState {
     }
     if (wallet.wallet?.adapter?.name !== "Purple Wallet") return;
     if (isVerified) return;
+    // Only fire once the Purple Wallet is actually unlocked for the connected
+    // account. Gating on the reactive purple.state (rather than a ref read
+    // inside runSignIn) means this effect re-fires the moment the user finishes
+    // unlocking — instead of racing the adapter's connect, bailing early on a
+    // still-locked read, and then being permanently blocked by the per-address
+    // guard below. That race was why SIWS sometimes never fired after unlock.
+    if (purple.state !== "unlocked") return;
     const address = wallet.publicKey.toBase58();
+    if (purple.address !== address) return;
     if (purpleAutoSignRef.current === address) return;
     purpleAutoSignRef.current = address;
     clearWatchdog();
@@ -335,6 +351,8 @@ export function useWalletSignIn(): SignInState {
     wallet.publicKey,
     wallet.wallet,
     isVerified,
+    purple.state,
+    purple.address,
     runSignIn,
     clearWatchdog,
   ]);
