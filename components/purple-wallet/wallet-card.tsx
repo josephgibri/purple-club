@@ -429,7 +429,7 @@ export function PurpleWalletCard() {
           )}
 
           {panel === "send" && (
-            <SendPanel walletAddress={address} onDone={() => { void loadBalances(); setPanel("none"); }} />
+            <SendPanel walletAddress={address} balances={balances} onDone={() => { void loadBalances(); setPanel("none"); }} />
           )}
 
           {panel === "swap" && (

@@ -17,6 +17,7 @@ import {
 import { ScanLine } from "lucide-react";
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
 import { confirmSignature } from "@/lib/purple-wallet/confirm";
+import type { WalletBalances } from "@/lib/purple-wallet/balances";
 import { QrScanner } from "./qr-scanner";
 
 const PBTC_MINT = "HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p";
@@ -24,6 +25,9 @@ const DEFAULT_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
 type Token = "SOL" | "PBTC" | "USDC";
 const TOKEN_DECIMALS: Record<Token, number> = { SOL: 9, PBTC: 9, USDC: 6 };
+
+// Leave a little SOL behind on a "Max" SOL send to cover the network fee.
+const SOL_FEE_RESERVE = 0.001;
 
 function getConnection() {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -38,10 +42,11 @@ function getMint(token: Token): string {
 
 interface Props {
   walletAddress: string;
+  balances: WalletBalances | null;
   onDone: () => void;
 }
 
-export function SendPanel({ walletAddress, onDone }: Props) {
+export function SendPanel({ walletAddress, balances, onDone }: Props) {
   const { signTransaction, state, openModal } = usePurpleWalletContext();
   const [token, setToken] = useState<Token>("USDC");
   const [recipient, setRecipient] = useState("");
@@ -50,6 +55,13 @@ export function SendPanel({ walletAddress, onDone }: Props) {
   const [txSig, setTxSig] = useState("");
   const [error, setError] = useState("");
   const [scanning, setScanning] = useState(false);
+
+  const available = balances ? balances[token.toLowerCase() as keyof WalletBalances] : null;
+  // Sending all your SOL would leave nothing for the network fee, so reserve a bit.
+  const maxSendable =
+    available === null ? 0 : token === "SOL" ? Math.max(0, available - SOL_FEE_RESERVE) : available;
+  const fmtAmount = (n: number) =>
+    n.toLocaleString("en-US", { maximumFractionDigits: token === "USDC" ? 2 : 6 });
 
   async function handleSend() {
     setError("");
@@ -180,17 +192,43 @@ export function SendPanel({ walletAddress, onDone }: Props) {
           onClose={() => setScanning(false)}
         />
       ) : null}
-      <input
-        type="number"
-        inputMode="decimal"
-        placeholder={`Amount (${token})`}
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/35 focus:border-gold-accent/50 focus:outline-none"
-      />
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-[10px] uppercase tracking-widest text-white/40">
+            Amount
+          </span>
+          <span className="text-[11px] text-white/45">
+            Available:{" "}
+            <span className="font-medium text-white/75">
+              {available !== null ? fmtAmount(available) : "—"}
+            </span>{" "}
+            {token}
+          </span>
+        </div>
+        <div className="relative">
+          <input
+            type="number"
+            inputMode="decimal"
+            placeholder="0.00"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-4 pr-16 text-sm text-white placeholder:text-white/35 focus:border-gold-accent/50 focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => setAmount(String(maxSendable))}
+            disabled={available === null || maxSendable <= 0}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg border border-gold-accent/40 bg-gold-accent/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-gold-accent transition hover:bg-gold-accent/20 disabled:opacity-40"
+          >
+            Max
+          </button>
+        </div>
+      </div>
 
       <p className="text-[10px] text-white/30">
-        Small SOL fee (~0.000005 SOL) required for every transaction.
+        {token === "SOL"
+          ? "Max leaves ~0.001 SOL for network fees."
+          : "Small SOL fee (~0.000005 SOL) required for every transaction."}
       </p>
 
       {error && <p className="text-xs text-red-300">{error}</p>}
