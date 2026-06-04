@@ -127,7 +127,7 @@ function AccountDashboard() {
         </div>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="flex flex-col gap-5">
           <PurpleCourtCard
             balance={balance}
@@ -139,6 +139,15 @@ function AccountDashboard() {
             sovereign={sovereign}
             foundingSeq={hasPbtc ? foundingSeq : null}
           />
+          {/* When the tall Purple Wallet card lives on the right, move the
+              shorter activity + email cards here so the left column fills the
+              vertical space under The Purple Court instead of leaving a gap. */}
+          {showPurpleCard ? (
+            <>
+              <MemberTools />
+              <AccountEmailCard />
+            </>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-5">
@@ -148,9 +157,14 @@ function AccountDashboard() {
             onOpenPass={() => setIsPassOpen(true)}
             showDetails={!loggedInWithPurple}
           />
-          {showPurpleCard ? <PurpleWalletCard /> : null}
-          <MemberTools />
-          <AccountEmailCard />
+          {showPurpleCard ? (
+            <PurpleWalletCard />
+          ) : (
+            <>
+              <MemberTools />
+              <AccountEmailCard />
+            </>
+          )}
         </div>
       </div>
 

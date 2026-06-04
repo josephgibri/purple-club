@@ -130,9 +130,7 @@ export function SendPanel({ walletAddress, onDone }: Props) {
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-3">
-      <p className="text-xs font-semibold uppercase tracking-widest text-gold-accent">Send</p>
-
+    <div className="space-y-3">
       <div className="flex gap-2">
         {(["SOL", "PBTC", "USDC"] as Token[]).map((t) => (
           <button

@@ -151,9 +151,8 @@ export function SwapPanel({ walletAddress, balances, onDone }: Props) {
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-3">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gold-accent">Swap</p>
+    <div className="space-y-3">
+      <div className="flex items-center justify-end">
         <span className="text-[10px] text-white/35">0.25% Purple Club fee</span>
       </div>
 

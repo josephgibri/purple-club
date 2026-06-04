@@ -16,8 +16,10 @@ import {
   AlertCircle,
   KeyRound,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
+import { Portal } from "@/components/auth/portal";
 
 /** Purple Bitcoin glyph used as the Purple Wallet mark. */
 function PurpleMark({ size = 16 }: { size?: number }) {
@@ -33,10 +35,71 @@ function PurpleMark({ size = 16 }: { size?: number }) {
 }
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
 import { fetchWalletBalances, type WalletBalances } from "@/lib/purple-wallet/balances";
+import { fetchTokenPricesUsd, formatUsd, type TokenPricesUsd } from "@/lib/purple-wallet/prices";
 import { SendPanel } from "./send-panel";
 import { SwapPanel } from "./swap-panel";
 
 type Panel = "none" | "receive" | "send" | "swap";
+
+const PANEL_TITLES: Record<Exclude<Panel, "none">, string> = {
+  receive: "Receive",
+  send: "Send",
+  swap: "Swap",
+};
+
+/** Centered modal shell for the wallet's Send / Receive / Swap actions. */
+function WalletActionModal({
+  title,
+  icon,
+  onClose,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <Portal>
+      <div
+        className="fixed inset-0 z-[60] flex items-end justify-center bg-black/80 p-4 backdrop-blur-sm sm:items-center"
+        onClick={onClose}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          onClick={(e) => e.stopPropagation()}
+          className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl border border-gold-accent/25 bg-[#0d0720] p-5 shadow-2xl shadow-black/60 sm:p-6"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
+              {icon}
+              {title}
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/60 transition hover:text-white"
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <div className="mt-5">{children}</div>
+        </div>
+      </div>
+    </Portal>
+  );
+}
 
 export function PurpleWalletCard() {
   const wallet = usePurpleWalletContext();
@@ -44,6 +107,7 @@ export function PurpleWalletCard() {
 
   const [panel, setPanel] = useState<Panel>("none");
   const [balances, setBalances] = useState<WalletBalances | null>(null);
+  const [prices, setPrices] = useState<TokenPricesUsd | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [balanceError, setBalanceError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -84,8 +148,12 @@ export function PurpleWalletCard() {
     setBalanceLoading(true);
     setBalanceError("");
     try {
-      const b = await fetchWalletBalances(address);
+      const [b, p] = await Promise.all([
+        fetchWalletBalances(address),
+        fetchTokenPricesUsd().catch(() => null),
+      ]);
       setBalances(b);
+      if (p) setPrices(p);
     } catch {
       setBalanceError("Could not load balances.");
     } finally {
@@ -111,6 +179,19 @@ export function PurpleWalletCard() {
   function fmt(n: number, decimals = 4) {
     return hideBalances ? "••••" : n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: decimals });
   }
+
+  function fmtUsd(n: number) {
+    return hideBalances ? "••••" : formatUsd(n);
+  }
+
+  const assetUsd = balances && prices
+    ? {
+        sol: balances.sol * prices.sol,
+        pbtc: balances.pbtc * prices.pbtc,
+        usdc: balances.usdc * prices.usdc,
+      }
+    : null;
+  const totalUsd = assetUsd ? assetUsd.sol + assetUsd.pbtc + assetUsd.usdc : null;
 
   async function handleDelete() {
     await removeWallet();
@@ -232,18 +313,42 @@ export function PurpleWalletCard() {
           <AlertCircle size={12} /> {balanceError}
         </div>
       ) : (
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          {[
-            { label: "SOL", value: balances ? fmt(balances.sol, 4) : "—" },
-            { label: "PBTC", value: balances ? fmt(balances.pbtc, 4) : "—" },
-            { label: "USDC", value: balances ? fmt(balances.usdc, 2) : "—" },
-          ].map(({ label, value }) => (
-            <div key={label} className="rounded-xl border border-white/8 bg-white/5 px-3 py-2.5 text-center">
-              <p className="text-[10px] uppercase tracking-widest text-white/40">{label}</p>
-              <p className="mt-1 text-sm font-semibold text-white">{balanceLoading ? "…" : value}</p>
-            </div>
-          ))}
-        </div>
+        <>
+          {/* Total portfolio value */}
+          <div className="mt-5 text-center">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-white/40">
+              Total value
+            </p>
+            <p className="mt-1 text-3xl font-semibold tracking-tight text-white">
+              {balanceLoading && totalUsd === null
+                ? "…"
+                : totalUsd !== null
+                  ? fmtUsd(totalUsd)
+                  : "—"}
+            </p>
+          </div>
+
+          {/* Per-asset balances */}
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            {(
+              [
+                { label: "SOL", amount: balances?.sol, usd: assetUsd?.sol, dec: 4 },
+                { label: "PBTC", amount: balances?.pbtc, usd: assetUsd?.pbtc, dec: 4 },
+                { label: "USDC", amount: balances?.usdc, usd: assetUsd?.usdc, dec: 2 },
+              ] as const
+            ).map(({ label, amount, usd, dec }) => (
+              <div key={label} className="rounded-xl border border-white/8 bg-white/5 px-3 py-2.5 text-center">
+                <p className="text-[10px] uppercase tracking-widest text-white/40">{label}</p>
+                <p className="mt-1 text-sm font-semibold text-white">
+                  {balanceLoading && amount === undefined ? "…" : amount !== undefined ? fmt(amount, dec) : "—"}
+                </p>
+                <p className="mt-0.5 text-[10px] text-white/35">
+                  {usd !== undefined ? fmtUsd(usd) : "—"}
+                </p>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Action buttons */}
@@ -258,12 +363,8 @@ export function PurpleWalletCard() {
           <button
             key={id}
             type="button"
-            onClick={() => setPanel((p) => (p === id ? "none" : id))}
-            className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition ${
-              panel === id
-                ? "border-gold-accent/50 bg-gold-accent/10 text-gold-accent"
-                : "border-white/10 bg-white/5 text-white/70 hover:border-white/20"
-            }`}
+            onClick={() => setPanel(id)}
+            className="flex flex-col items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-white/70 transition hover:border-white/20"
           >
             <Icon size={15} />
             {label}
@@ -279,39 +380,48 @@ export function PurpleWalletCard() {
         </button>
       </div>
 
-      {/* Inline panels */}
-      {panel === "receive" && address && (
-        <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-gold-accent">
-            Your address
-          </p>
-          <div className="flex justify-center">
-            <div className="rounded-2xl bg-white p-3">
-              <QRCodeSVG value={address} size={160} />
+      {/* Send / Receive / Swap modal */}
+      {panel !== "none" && address && (
+        <WalletActionModal
+          title={PANEL_TITLES[panel]}
+          icon={
+            panel === "send" ? (
+              <Send size={14} />
+            ) : panel === "receive" ? (
+              <Download size={14} />
+            ) : (
+              <ArrowLeftRight size={14} />
+            )
+          }
+          onClose={() => setPanel("none")}
+        >
+          {panel === "receive" && (
+            <div>
+              <div className="flex justify-center">
+                <div className="rounded-2xl bg-white p-3">
+                  <QRCodeSVG value={address} size={180} />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                <span className="break-all font-mono text-[11px] text-violet-100/70">{address}</span>
+                <button type="button" onClick={copyAddress} className="shrink-0 text-white/40 hover:text-white/80">
+                  {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                </button>
+              </div>
+              <p className="mt-3 text-center text-[10px] text-white/35">
+                Send only Solana (SOL) and SPL tokens to this address.
+              </p>
             </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-            <span className="break-all font-mono text-[11px] text-violet-100/70">{address}</span>
-            <button type="button" onClick={copyAddress} className="shrink-0 text-white/40 hover:text-white/80">
-              {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-            </button>
-          </div>
-          <p className="mt-3 text-center text-[10px] text-white/35">
-            Send only Solana (SOL) and SPL tokens to this address.
-          </p>
-        </div>
-      )}
+          )}
 
-      {panel === "send" && address && (
-        <div className="mt-5">
-          <SendPanel walletAddress={address} onDone={() => { void loadBalances(); setPanel("none"); }} />
-        </div>
-      )}
+          {panel === "send" && (
+            <SendPanel walletAddress={address} onDone={() => { void loadBalances(); setPanel("none"); }} />
+          )}
 
-      {panel === "swap" && address && (
-        <div className="mt-5">
-          <SwapPanel walletAddress={address} balances={balances} onDone={() => { void loadBalances(); setPanel("none"); }} />
-        </div>
+          {panel === "swap" && (
+            <SwapPanel walletAddress={address} balances={balances} onDone={() => { void loadBalances(); setPanel("none"); }} />
+          )}
+        </WalletActionModal>
       )}
 
       {/* Reveal recovery phrase */}
