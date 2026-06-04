@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { PassQrCode } from "@/components/membership/pass-qr-code";
@@ -47,9 +47,31 @@ export function MembershipPassCard({
   const [clock, setClock] = useState(() => formatClock(new Date()));
   const [showVerification, setShowVerification] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const [foundingSeq, setFoundingSeq] = useState<number | null>(null);
   const { url, expiresAt, isMinting, error, refresh } = usePassToken({
     enabled,
   });
+
+  // Founding-member status for the seal. Self-contained so every surface that
+  // renders the pass (account modal + /pass) shows it without prop threading.
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    fetch("/api/membership/founding", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d: { ok?: boolean; founding?: boolean; seq?: number | null }) => {
+        if (!cancelled) setFoundingSeq(d.ok && d.founding ? d.seq ?? null : null);
+      })
+      .catch(() => {
+        if (!cancelled) setFoundingSeq(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled]);
+
+  // Seal only shows while the holder still qualifies (>= 1 PBTC).
+  const showFounding = foundingSeq != null && pbtcBalance >= 1;
 
   useEffect(() => {
     if (!enabled) return;
@@ -101,6 +123,12 @@ export function MembershipPassCard({
               Active Membership
             </h2>
             <p className="mt-1 text-xs text-emerald-200/90">Verified Active</p>
+            {showFounding ? (
+              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-gold-accent/50 bg-gradient-to-r from-gold-accent/25 to-gold-accent/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-accent">
+                <Sparkles size={12} />
+                Founding Member · No. {foundingSeq}
+              </span>
+            ) : null}
           </div>
           {isStandalone ? (
             <button
