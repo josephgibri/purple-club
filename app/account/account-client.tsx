@@ -156,11 +156,16 @@ function AccountDashboard() {
         if (showPurpleCard) {
           return (
             <>
-              <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">
+              {/* Top row stretches both columns to equal height; the Purple
+                  Wallet card grows (flex-1) to line its bottom up with the
+                  taller Purple Court card beside it. */}
+              <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
                 {courtCard}
-                <div className="flex flex-col gap-5">
+                <div className="flex h-full flex-col gap-5">
                   {membershipCard}
-                  <PurpleWalletCard />
+                  <div className="flex-1">
+                    <PurpleWalletCard />
+                  </div>
                 </div>
               </div>
               <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">

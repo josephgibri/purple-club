@@ -264,7 +264,7 @@ export function PurpleWalletCard() {
 
   // ── State: unlocked ─────────────────────────────────────────────────────
   return (
-    <section className="rounded-3xl border border-gold-accent/20 bg-surface p-6 shadow-2xl shadow-black/20">
+    <section className="flex h-full flex-col rounded-3xl border border-gold-accent/20 bg-surface p-6 shadow-2xl shadow-black/20">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
@@ -353,48 +353,44 @@ export function PurpleWalletCard() {
         </button>
       </div>
 
-      {/* Assets — Phantom-style rows: icon + name on the left, amount + USD on the right */}
+      {/* Assets — square tiles with the token icon */}
       {balanceError ? (
         <div className="mt-5 flex items-center gap-2 text-xs text-red-300">
           <AlertCircle size={12} /> {balanceError}
         </div>
       ) : (
-        <div className="mt-6 space-y-1">
+        <div className="mt-6">
           <p className="px-1 text-[10px] uppercase tracking-[0.22em] text-white/35">
             Assets
           </p>
-          {(
-            [
-              { sym: "SOL", amount: balances?.sol, usd: assetUsd?.sol, dec: 4 },
-              { sym: "PBTC", amount: balances?.pbtc, usd: assetUsd?.pbtc, dec: 4 },
-              { sym: "USDC", amount: balances?.usdc, usd: assetUsd?.usdc, dec: 2 },
-            ] as const
-          ).map(({ sym, amount, usd, dec }) => (
-            <div
-              key={sym}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/5 px-3 py-2.5"
-            >
-              <div className="flex min-w-0 items-center gap-3">
+          <div className="mt-2 grid grid-cols-3 gap-3">
+            {(
+              [
+                { sym: "SOL", amount: balances?.sol, usd: assetUsd?.sol, dec: 4 },
+                { sym: "PBTC", amount: balances?.pbtc, usd: assetUsd?.pbtc, dec: 4 },
+                { sym: "USDC", amount: balances?.usdc, usd: assetUsd?.usdc, dec: 2 },
+              ] as const
+            ).map(({ sym, amount, usd, dec }) => (
+              <div
+                key={sym}
+                className="flex flex-col items-center gap-2 rounded-2xl border border-white/8 bg-white/5 px-2 py-4 text-center"
+                title={ASSET_NAMES[sym]}
+              >
                 <Image
                   src={TOKEN_ICONS[sym]}
                   alt=""
-                  width={32}
-                  height={32}
-                  className="h-8 w-8 shrink-0 rounded-full"
+                  width={38}
+                  height={38}
+                  className="h-[38px] w-[38px] rounded-full"
                 />
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-white">{sym}</p>
-                  <p className="truncate text-[11px] text-white/40">{ASSET_NAMES[sym]}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold text-white">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-white/50">{sym}</p>
+                <p className="text-sm font-semibold leading-tight text-white">
                   {balanceLoading && amount === undefined ? "…" : amount !== undefined ? fmt(amount, dec) : "—"}
                 </p>
-                <p className="text-[11px] text-white/40">{usd !== undefined ? fmtUsd(usd) : "—"}</p>
+                <p className="text-[10px] text-white/40">{usd !== undefined ? fmtUsd(usd) : "—"}</p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
@@ -447,13 +443,13 @@ export function PurpleWalletCard() {
         <button
           type="button"
           onClick={() => setRevealOpen(true)}
-          className="mt-4 flex w-full items-center justify-center gap-1.5 text-[11px] font-semibold text-white/40 transition hover:text-white/70"
+          className="mt-auto flex w-full items-center justify-center gap-1.5 pt-5 text-[11px] font-semibold text-white/40 transition hover:text-white/70"
         >
           <KeyRound size={12} />
           Reveal recovery phrase
         </button>
       ) : (
-        <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-500/5 p-4">
+        <div className="mt-auto pt-5 rounded-2xl border border-amber-400/30 bg-amber-500/5 p-4">
           {revealedPhrase ? (
             <>
               <div className="flex items-center gap-2 text-amber-300">
