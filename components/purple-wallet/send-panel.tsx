@@ -14,11 +14,13 @@ import {
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { ScanLine } from "lucide-react";
+import Image from "next/image";
+import { ScanLine, CheckCircle2, ExternalLink } from "lucide-react";
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
 import { confirmSignature } from "@/lib/purple-wallet/confirm";
 import type { WalletBalances } from "@/lib/purple-wallet/balances";
 import { QrScanner } from "./qr-scanner";
+import { TOKEN_ICONS } from "./token-select";
 
 const PBTC_MINT = "HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p";
 const DEFAULT_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
@@ -53,6 +55,7 @@ export function SendPanel({ walletAddress, balances, onDone }: Props) {
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [txSig, setTxSig] = useState("");
+  const [summary, setSummary] = useState<{ amount: string; token: Token; recipient: string } | null>(null);
   const [error, setError] = useState("");
   const [scanning, setScanning] = useState(false);
 
@@ -117,6 +120,7 @@ export function SendPanel({ walletAddress, balances, onDone }: Props) {
       // so connection.confirmTransaction() would hang forever.
       await confirmSignature(connection, sig);
 
+      setSummary({ amount, token, recipient: recipient.trim() });
       setTxSig(sig);
       setStatus("done");
     } catch (err) {
@@ -126,18 +130,52 @@ export function SendPanel({ walletAddress, balances, onDone }: Props) {
   }
 
   if (status === "done") {
+    const shortRecipient = summary
+      ? `${summary.recipient.slice(0, 4)}…${summary.recipient.slice(-4)}`
+      : "";
     return (
-      <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
-        <p className="font-semibold">Sent successfully.</p>
+      <div className="space-y-4">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300">
+            <CheckCircle2 size={26} />
+          </span>
+          <p className="text-base font-semibold text-white">Sent successfully</p>
+          <p className="text-xs text-white/45">Your balance will update shortly.</p>
+        </div>
+
+        {summary && (
+          <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2">
+                <Image src={TOKEN_ICONS[summary.token]} alt="" width={24} height={24} className="h-6 w-6 rounded-full" />
+                <span className="text-[10px] uppercase tracking-widest text-white/40">Sent</span>
+              </span>
+              <span className="text-sm font-semibold text-white">
+                {summary.amount} {summary.token}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-white/8 pt-2">
+              <span className="text-[10px] uppercase tracking-widest text-white/40">To</span>
+              <span className="font-mono text-xs text-white/75">{shortRecipient}</span>
+            </div>
+          </div>
+        )}
+
         <a
           href={`https://solscan.io/tx/${txSig}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-1 block break-all font-mono text-[11px] text-emerald-300/70 underline"
+          className="flex items-center justify-center gap-1.5 text-xs font-medium text-violet-200/70 transition hover:text-violet-100"
         >
-          {txSig.slice(0, 20)}…
+          View on Solscan
+          <ExternalLink size={12} />
         </a>
-        <button type="button" onClick={onDone} className="mt-3 text-xs text-emerald-300/60 hover:text-emerald-200">
+
+        <button
+          type="button"
+          onClick={onDone}
+          className="w-full rounded-xl bg-gold-accent px-4 py-2.5 text-sm font-semibold text-black transition hover:brightness-110"
+        >
           Done
         </button>
       </div>
