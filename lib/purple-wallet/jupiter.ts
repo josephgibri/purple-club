@@ -1,5 +1,5 @@
 /**
- * Jupiter v6 Quote API + swap transaction builder.
+ * Jupiter Swap API + swap transaction builder.
  *
  * Purple Club earns 0.25% (25 bps) on every swap. The fee is collected
  * on-chain by Jupiter and deposited directly into NEXT_PUBLIC_JUPITER_FEE_ACCOUNT.
@@ -10,9 +10,12 @@
  *   NEXT_PUBLIC_JUPITER_FEE_ACCOUNT = <your fee wallet base58 address>
  *
  * Docs: https://station.jup.ag/docs/apis/swap-api
+ *
+ * Note: quote-api.jup.ag/v6 has been retired. All requests go through
+ * lite-api.jup.ag/swap/v1 (no API key required for public rate limits).
  */
 
-const QUOTE_API = "https://quote-api.jup.ag/v6";
+const QUOTE_API = "https://lite-api.jup.ag/swap/v1";
 
 export const PURPLE_FEE_BPS = 25; // 0.25%
 

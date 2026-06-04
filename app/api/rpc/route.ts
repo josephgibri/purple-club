@@ -10,16 +10,20 @@ export const dynamic = "force-dynamic";
  *
  * The browser used to read PBTC balances directly from Helius using a
  * NEXT_PUBLIC_* RPC URL, which inlines the API key into the client bundle.
- * This route forwards JSON-RPC reads to Helius using the SERVER-ONLY
+ * This route forwards JSON-RPC calls to Helius using the SERVER-ONLY
  * `HELIUS_API_KEY` (via `getRpcUrl()`), so the key never ships to the
  * browser for the high-volume, anonymous membership-gate reads.
  *
  * Because a naive proxy is just an open relay (anyone could drain our quota),
  * it is locked down:
- *   - read-only method allowlist (no sendTransaction / writes here),
+ *   - explicit method allowlist (reads + sendTransaction for Purple Wallet swap/send),
  *   - per-IP rate limit,
  *   - request body size cap,
  *   - bounded batch size.
+ *
+ * sendTransaction is included so Purple Wallet can broadcast signed swap and
+ * send transactions without exposing the Helius API key to the client bundle.
+ * The per-IP rate limit (80 req / 10 s) is the abuse guard.
  */
 const ALLOWED_METHODS = new Set<string>([
   "getTokenAccountsByOwner",
@@ -31,6 +35,7 @@ const ALLOWED_METHODS = new Set<string>([
   "getSignatureStatuses",
   "getSlot",
   "getHealth",
+  "sendTransaction",
 ]);
 
 const MAX_BODY_BYTES = 16 * 1024; // 16 KB is plenty for read RPC payloads
