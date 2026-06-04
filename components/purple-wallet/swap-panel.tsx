@@ -94,15 +94,26 @@ export function SwapPanel({ walletAddress, balances, onDone }: Props) {
       const txBytes = Uint8Array.from(atob(swapTransactionBase64), (c) => c.charCodeAt(0));
       const tx = VersionedTransaction.deserialize(txBytes);
 
+      // Jupiter bakes in a recent blockhash from its OWN RPC. Our proxy
+      // (/api/rpc) forwards to a different node (Helius); if that node hasn't
+      // observed Jupiter's blockhash yet at preflight it rejects the tx with
+      // the misleading "Transaction did not pass signature verification" (empty
+      // logs). Re-stamp the message with a blockhash from OUR RPC BEFORE
+      // signing so the signature covers a blockhash the sending/simulating node
+      // is guaranteed to know. Jupiter never pre-signs (the user is the only
+      // required signer), so re-stamping is safe.
+      const { blockhash, lastValidBlockHeight } =
+        await connection.getLatestBlockhash("confirmed");
+      tx.message.recentBlockhash = blockhash;
+
       const signed = await signTransaction(tx);
       const sig = await connection.sendRawTransaction(signed.serialize(), {
         skipPreflight: false,
         maxRetries: 3,
       });
 
-      const latestBlockhash = await connection.getLatestBlockhash();
       await connection.confirmTransaction(
-        { signature: sig, ...latestBlockhash },
+        { signature: sig, blockhash, lastValidBlockHeight },
         "confirmed",
       );
 
