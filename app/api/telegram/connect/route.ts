@@ -84,7 +84,10 @@ async function reconcileGroupMembership(
       await prisma.telegramMember.update({ where: { telegramId }, data: { inGroup } });
     }
     return inGroup;
-  } catch {
+  } catch (err) {
+    // getChatMember fails the same way createInviteLink does (bot not admin /
+    // wrong group id), so log it — it's the canary for the 502 below.
+    console.error("[telegram/connect] getChatMember failed:", err);
     return currentInGroup;
   }
 }
@@ -239,7 +242,12 @@ export async function POST(request: Request): Promise<Response> {
   let inviteLink: string;
   try {
     inviteLink = await createInviteLink(getMainGroupId());
-  } catch {
+  } catch (err) {
+    // Surface the real Telegram error in the function logs. Almost always one
+    // of: bot is not an admin of the group, bot lacks "invite via link"
+    // permission, or TELEGRAM_MAIN_GROUP_ID is wrong (supergroups need the
+    // -100… form, e.g. -1002842625461, not the short id).
+    console.error("[telegram/connect] createInviteLink failed:", err);
     return NextResponse.json(
       { ok: false, error: "Could not create your invite. Please try again shortly." },
       { status: 502 },
