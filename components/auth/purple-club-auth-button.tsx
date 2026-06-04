@@ -16,9 +16,10 @@ export function PurpleClubAuthButton() {
 }
 
 function AuthButtonInner() {
-  const { publicKey, connected, disconnect } = useWallet();
+  const { publicKey, connected, disconnect, wallet } = useWallet();
   const { isVerified, clear } = useWalletAuth();
   const { enter, isPending, error } = useWalletSignIn();
+  const isPurpleWallet = wallet?.adapter?.name === "Purple Wallet";
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -98,6 +99,44 @@ function AuthButtonInner() {
   }
 
   if (connected && publicKey && !isVerified) {
+    // Built-in Purple Wallet authenticates with the password (unlock/create) —
+    // sign-in fires automatically, so we never show a manual "Sign to Enter"
+    // action. This is just the brief transition while SIWS lands. We keep it
+    // clickable as a silent fallback in case the auto-sign needs a nudge.
+    if (isPurpleWallet) {
+      return (
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void enter()}
+              className="inline-flex items-center gap-2 rounded-full border border-gold-accent/40 bg-gold-accent/10 px-4 py-2 text-xs font-semibold text-gold-accent"
+              title={error ?? undefined}
+            >
+              <ShieldCheck size={14} className="animate-pulse" />
+              Signing you in…
+            </button>
+            <button
+              type="button"
+              onClick={() => void disconnect()}
+              className="rounded-full border border-white/10 bg-white/5 p-2 text-violet-100/70 hover:bg-white/10"
+              aria-label="Disconnect wallet"
+              title="Disconnect"
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
+          {error ? (
+            <p className="max-w-[14rem] text-right text-[10px] leading-tight text-rose-300">
+              {error}
+            </p>
+          ) : null}
+        </div>
+      );
+    }
+
+    // External wallet (Phantom/Solflare): a separate SIWS signature is
+    // genuinely required, so keep the explicit one-tap action.
     return (
       <div className="flex flex-col items-end gap-1">
         <div className="flex items-center gap-2">

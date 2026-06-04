@@ -344,18 +344,6 @@ export function useWalletSignIn(): SignInState {
     }
     if (isVerified) return;
     const address = wallet.publicKey.toBase58();
-    // Temporary diagnostic: surfaces exactly why auto-login may not fire for a
-    // connected, unverified Purple Wallet. Remove once the flow is confirmed.
-    console.warn("[PurpleSignIn] auto-login gate", {
-      connected: wallet.connected,
-      adapterPubkey: address,
-      purpleState: purple.state,
-      purpleAddress: purple.address,
-      addressMatch: purple.address === address,
-      guard: purpleAutoSignRef.current,
-      inFlight: purpleSignInFlightRef.current,
-      isVerified,
-    });
     // Reset the one-shot guard whenever the wallet isn't unlocked, so a fresh
     // unlock always re-attempts (and a failed verify can be retried by
     // re-unlocking) without ever looping while unlocked + verified.
@@ -379,15 +367,15 @@ export function useWalletSignIn(): SignInState {
     setError(null);
     setVisible(false);
 
+    // Unlocking/creating the built-in wallet is an explicit intent to enter,
+    // so route into /account once SIWS lands (handled by the redirect effect).
+    enterIntentRef.current = true;
     const signMessage = purple.signMessage;
-    console.warn("[PurpleSignIn] firing verify for", address);
     void (async () => {
       try {
         await verify({ address, signMessage });
-        console.warn("[PurpleSignIn] verify resolved for", address);
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Sign-in failed.";
-        console.warn("[PurpleSignIn] verify threw", msg);
         setLocalError(msg);
         setError(msg);
         // Allow a retry on the next unlock/click.
