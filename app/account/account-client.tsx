@@ -82,15 +82,15 @@ function AccountDashboard() {
     };
   }, [walletAddress]);
 
-  // The built-in Purple Wallet card is shown when it's relevant — i.e. when the
-  // user signed in WITH the Purple Wallet, or when one already exists in this
-  // browser (never hide it then, it may hold funds). If they signed in with an
-  // external wallet (Phantom/Solflare) and have no Purple Wallet, we don't
-  // upsell a second wallet — that was the confusing "two wallets" case.
+  // The built-in Purple Wallet card is shown ONLY when the user is actually
+  // signed in with the Purple Wallet (its address matches the session). A
+  // Purple Wallet may exist in this browser from a previous session, but if the
+  // user logged in with a different wallet (Phantom/Solflare) it belongs to a
+  // different identity and must not surface in their profile — it only appears
+  // when they log in with it.
   const loggedInWithPurple =
     !!walletAddress && !!purple.address && purple.address === walletAddress;
-  const purpleExists = purple.state !== "none";
-  const showPurpleCard = loggedInWithPurple || purpleExists;
+  const showPurpleCard = loggedInWithPurple;
 
   const sovereign = isSovereign(walletAddress);
   const rank = getRank(balance, walletAddress);

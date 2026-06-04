@@ -112,6 +112,9 @@ export function useWalletSignIn(): SignInState {
   // Tracks the Purple Wallet address we've already auto-signed for, so we
   // don't re-prompt a signature on every render once connected.
   const purpleAutoSignRef = useRef<string | null>(null);
+  // Dedupes the Purple Wallet direct-verify so a burst of renders during the
+  // unlock → connect transition can't fire multiple signatures at once.
+  const purpleSignInFlightRef = useRef(false);
   // When the user explicitly chose to enter the club (vs. a silent
   // reconnect), redirect into /account once SIWS lands. Lets a freshly
   // created Purple Wallet (0 PBTC) reach its dashboard instead of stalling
@@ -262,7 +265,15 @@ export function useWalletSignIn(): SignInState {
     clearWatchdog();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSiwsPending(false);
-    void runSignIn();
+    // Purple Wallet sign-in is owned by the dedicated auto-login effect below
+    // (it signs silently with the in-memory key the moment the wallet is
+    // unlocked). Driving it through runSignIn here too created a race: one pass
+    // could read a still-"locked" ref, bail, reopen the unlock modal, and
+    // consume the auto-sign guard so SIWS never fired. External wallets still
+    // go through runSignIn (they need the adapter signMessage round-trip).
+    if (wallet.wallet?.adapter?.name !== PURPLE_WALLET_NAME) {
+      void runSignIn();
+    }
     // useWallet() returns a fresh object every render so we list the
     // specific fields we read; disable exhaustive-deps for that reason.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -317,34 +328,60 @@ export function useWalletSignIn(): SignInState {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingResume]);
 
-  // Purple Wallet auto-sign. The Purple Wallet only "connects" after the user
-  // explicitly unlocks/creates it (password required), so a connection is an
-  // unambiguous intent to sign in. The normal connect→SIWS state machine can
-  // miss this when its 30s watchdog fires during the lengthy create/backup
-  // flow — so we fire SIWS directly here once Purple Wallet is connected and
-  // unverified. The signingInFlightRef + per-address guard prevent any
-  // double-signature when the state machine is also active.
+  // Purple Wallet auto-login — the single source of truth for Purple Wallet
+  // SIWS. The wallet only "connects" after the user explicitly unlocks/creates
+  // it (password required), so a connected + unlocked Purple Wallet is an
+  // unambiguous intent to sign in. We call verify() DIRECTLY with the live
+  // context's silent signMessage instead of routing through runSignIn — that
+  // path read a ref that could lag the unlock, bail, reopen the modal, and
+  // leave the user stuck on "Sign to Enter". Gating on the reactive
+  // purple.state means this re-fires the instant the unlock lands.
   useEffect(() => {
+    if (wallet.wallet?.adapter?.name !== PURPLE_WALLET_NAME) return;
     if (!wallet.connected || !wallet.publicKey) {
       purpleAutoSignRef.current = null;
       return;
     }
-    if (wallet.wallet?.adapter?.name !== "Purple Wallet") return;
     if (isVerified) return;
-    // Only fire once the Purple Wallet is actually unlocked for the connected
-    // account. Gating on the reactive purple.state (rather than a ref read
-    // inside runSignIn) means this effect re-fires the moment the user finishes
-    // unlocking — instead of racing the adapter's connect, bailing early on a
-    // still-locked read, and then being permanently blocked by the per-address
-    // guard below. That race was why SIWS sometimes never fired after unlock.
-    if (purple.state !== "unlocked") return;
+    // Reset the one-shot guard whenever the wallet isn't unlocked, so a fresh
+    // unlock always re-attempts (and a failed verify can be retried by
+    // re-unlocking) without ever looping while unlocked + verified.
+    if (purple.state !== "unlocked") {
+      purpleAutoSignRef.current = null;
+      return;
+    }
     const address = wallet.publicKey.toBase58();
     if (purple.address !== address) return;
     if (purpleAutoSignRef.current === address) return;
+    if (purpleSignInFlightRef.current) return;
+
     purpleAutoSignRef.current = address;
+    purpleSignInFlightRef.current = true;
     clearWatchdog();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSiwsPending(false);
-    void runSignIn();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsPending(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocalError(null);
+    setError(null);
+    setVisible(false);
+
+    const signMessage = purple.signMessage;
+    void (async () => {
+      try {
+        await verify({ address, signMessage });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Sign-in failed.";
+        setLocalError(msg);
+        setError(msg);
+        // Allow a retry on the next unlock/click.
+        purpleAutoSignRef.current = null;
+      } finally {
+        purpleSignInFlightRef.current = false;
+        setIsPending(false);
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     wallet.connected,
@@ -353,7 +390,10 @@ export function useWalletSignIn(): SignInState {
     isVerified,
     purple.state,
     purple.address,
-    runSignIn,
+    purple.signMessage,
+    verify,
+    setError,
+    setVisible,
     clearWatchdog,
   ]);
 
