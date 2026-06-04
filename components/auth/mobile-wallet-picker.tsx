@@ -4,6 +4,7 @@ import Image from "next/image";
 import { phantomDeeplink, solflareDeeplink } from "@/lib/device";
 import { useMobileWallet } from "./mobile-wallet-context";
 import { usePurpleWalletContext } from "./purple-wallet-provider";
+import { PURPLE_WALLET_ENABLED } from "@/lib/purple-wallet/feature-flag";
 import { Portal } from "./portal";
 
 /**
@@ -84,35 +85,39 @@ export function MobileWalletPicker({
             Connect your wallet
           </h3>
           <p className="mt-1 text-sm text-violet-100/65">
-            Use the Purple Club built-in wallet, or open your preferred wallet app.
+            Open your preferred wallet app.
           </p>
           <div className="mt-4 flex flex-col gap-2">
-            {/* Purple Wallet — always shown first, no deep-link needed */}
-            <button
-              type="button"
-              onClick={goPurpleWallet}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gold-accent px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110"
-            >
-              <Image
-                src="/purple-club-icon.svg"
-                alt=""
-                width={18}
-                height={18}
-                className="rounded-[4px]"
-              />
-              Purple Wallet
-              {purpleWallet.state === "none" && (
-                <span className="ml-auto rounded-full border border-black/20 bg-black/15 px-2 py-0.5 text-[10px] tracking-wide">
-                  New
-                </span>
-              )}
-            </button>
+            {PURPLE_WALLET_ENABLED && (
+              <>
+                {/* Purple Wallet — always shown first, no deep-link needed */}
+                <button
+                  type="button"
+                  onClick={goPurpleWallet}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gold-accent px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110"
+                >
+                  <Image
+                    src="/purple-club-icon.svg"
+                    alt=""
+                    width={18}
+                    height={18}
+                    className="rounded-[4px]"
+                  />
+                  Purple Wallet
+                  {purpleWallet.state === "none" && (
+                    <span className="ml-auto rounded-full border border-black/20 bg-black/15 px-2 py-0.5 text-[10px] tracking-wide">
+                      New
+                    </span>
+                  )}
+                </button>
 
-            <div className="my-1 flex items-center gap-2">
-              <div className="h-px flex-1 bg-white/10" />
-              <span className="text-[10px] uppercase tracking-widest text-white/30">or</span>
-              <div className="h-px flex-1 bg-white/10" />
-            </div>
+                <div className="my-1 flex items-center gap-2">
+                  <div className="h-px flex-1 bg-white/10" />
+                  <span className="text-[10px] uppercase tracking-widest text-white/30">or</span>
+                  <div className="h-px flex-1 bg-white/10" />
+                </div>
+              </>
+            )}
 
             <button
               type="button"

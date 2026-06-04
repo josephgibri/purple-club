@@ -22,6 +22,7 @@ import { CommunityCard } from "@/components/telegram/community-card";
 import { DigitalMembershipPass } from "@/components/membership/digital-membership-pass";
 import { PurpleWalletCard } from "@/components/purple-wallet/wallet-card";
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
+import { PURPLE_WALLET_ENABLED } from "@/lib/purple-wallet/feature-flag";
 import { useMembershipGate } from "@/hooks/useMembershipGate";
 import { useWalletSession } from "@/hooks/useWalletSession";
 import { JUPITER_SWAP_URL } from "@/lib/constants";
@@ -90,7 +91,7 @@ function AccountDashboard() {
   // when they log in with it.
   const loggedInWithPurple =
     !!walletAddress && !!purple.address && purple.address === walletAddress;
-  const showPurpleCard = loggedInWithPurple;
+  const showPurpleCard = PURPLE_WALLET_ENABLED && loggedInWithPurple;
 
   const sovereign = isSovereign(walletAddress);
   const rank = getRank(balance, walletAddress);

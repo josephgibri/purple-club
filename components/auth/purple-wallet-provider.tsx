@@ -7,6 +7,7 @@ import {
   emitPurpleAccountChange,
 } from "@/lib/purple-wallet/bridge";
 import { registerPurpleStandardWallet } from "@/lib/purple-wallet/standard-wallet";
+import { PURPLE_WALLET_ENABLED } from "@/lib/purple-wallet/feature-flag";
 import { PurpleWalletModal, type PurpleWalletModalMode } from "./purple-wallet-modal";
 
 interface PurpleWalletContextValue extends UsePurpleWalletReturn {
@@ -49,8 +50,10 @@ export function PurpleWalletProvider({ children }: { children: React.ReactNode }
     setModalMode(null);
   }
 
-  // Register the Wallet Standard wallet once on the client.
+  // Register the Wallet Standard wallet once on the client. Skipped while the
+  // embedded wallet is disabled so it never appears in any connect surface.
   useEffect(() => {
+    if (!PURPLE_WALLET_ENABLED) return;
     registerPurpleStandardWallet();
   }, []);
 
