@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/navigation/site-footer";
 import { SolanaProvider } from "@/components/providers/solana-provider";
 import { PurpleWalletProvider } from "@/components/auth/purple-wallet-provider";
 import { BasePathFetch } from "@/components/base-path-fetch";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -71,6 +72,7 @@ export default function RootLayout({
             <SiteFooter />
           </PurpleWalletProvider>
         </SolanaProvider>
+        <InstallPrompt />
         <Toaster theme="dark" position="top-center" richColors />
       </body>
     </html>
