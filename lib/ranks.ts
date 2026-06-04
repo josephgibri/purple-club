@@ -6,9 +6,12 @@
  * rights are tied to a tier. They are also private: a holder sees their
  * own rank, it is not a public leaderboard.
  *
- * Phase 1 keeps this purely client-side and derived from the live
- * balance — no 7-day hold, no persistence. Sovereign is a founding tier
- * assigned by an env allowlist rather than by balance.
+ * Tier names were updated Jun 2026 to align with the Purple Club brand.
+ * Thresholds and the getRank() logic are unchanged.
+ *
+ * 7-day hold enforcement lives in the dedicated social/bot layer, not here.
+ * The web app always derives rank from the live balance — instant feedback.
+ * Sovereign is a founding tier assigned by an env allowlist rather than by balance.
  */
 
 export type RankTier = {
@@ -20,19 +23,19 @@ export type RankTier = {
 };
 
 export const PURPLE_COURT: readonly RankTier[] = [
-  { title: "Page", min: 1, blurb: "You hold the asset. You're in the court." },
-  { title: "Squire", min: 1_000, blurb: "Past the first gate. Standing earned." },
-  { title: "Knight of Purple", min: 10_000, blurb: "A serious hand in the realm." },
-  { title: "Baron", min: 25_000, blurb: "Land-holding nobility of the court." },
-  { title: "Lord / Lady of Purple", min: 50_000, blurb: "A name the court recognizes." },
-  { title: "Duke", min: 100_000, blurb: "Among the highest houses of Purple." },
-  { title: "Royal", min: 250_000, blurb: "The royal line of PBTC." },
+  { title: "Initiate",  min: 1,         blurb: "You hold the asset. You're inside the club." },
+  { title: "Patron",    min: 1_000,     blurb: "Past the first gate. Standing earned." },
+  { title: "Champion",  min: 10_000,    blurb: "A proven hand in the realm." },
+  { title: "Guardian",  min: 25_000,    blurb: "You help hold the line." },
+  { title: "Commander", min: 50_000,    blurb: "A name the club recognizes." },
+  { title: "Regent",    min: 100_000,   blurb: "Among the highest houses of Purple." },
+  { title: "Royal",     min: 250_000,   blurb: "The royal line of PBTC." },
 ] as const;
 
 export const SOVEREIGN: RankTier = {
   title: "Sovereign",
   min: Number.POSITIVE_INFINITY,
-  blurb: "Founding tier. The realm starts with you.",
+  blurb: "Founding tier. The club starts with you.",
 };
 
 /**
