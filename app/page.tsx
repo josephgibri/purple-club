@@ -8,6 +8,7 @@ import {
   Percent,
   Sparkles,
   Store,
+  Users,
   Wallet,
 } from "lucide-react";
 
@@ -142,6 +143,18 @@ export default function HomePage() {
               </div>
             );
           })}
+        </div>
+
+        {/* The inner circle — community as the human layer, not a 4th product */}
+        <div className="mt-4 flex flex-col items-center gap-3 rounded-2xl border border-purple-accent/25 bg-purple-accent/5 px-6 py-4 text-center sm:flex-row sm:justify-center sm:text-left">
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-purple-accent/40 bg-purple-accent/15 text-[#DDD6FE]">
+            <Users size={15} />
+          </span>
+          <p className="text-sm text-violet-100/75">
+            <span className="font-semibold text-white">The inner circle.</span>{" "}
+            Members meet in a private, token-gated Telegram lounge — where the
+            people behind the asset actually talk.
+          </p>
         </div>
       </section>
 
