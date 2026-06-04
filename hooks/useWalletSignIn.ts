@@ -343,6 +343,19 @@ export function useWalletSignIn(): SignInState {
       return;
     }
     if (isVerified) return;
+    const address = wallet.publicKey.toBase58();
+    // Temporary diagnostic: surfaces exactly why auto-login may not fire for a
+    // connected, unverified Purple Wallet. Remove once the flow is confirmed.
+    console.warn("[PurpleSignIn] auto-login gate", {
+      connected: wallet.connected,
+      adapterPubkey: address,
+      purpleState: purple.state,
+      purpleAddress: purple.address,
+      addressMatch: purple.address === address,
+      guard: purpleAutoSignRef.current,
+      inFlight: purpleSignInFlightRef.current,
+      isVerified,
+    });
     // Reset the one-shot guard whenever the wallet isn't unlocked, so a fresh
     // unlock always re-attempts (and a failed verify can be retried by
     // re-unlocking) without ever looping while unlocked + verified.
@@ -350,7 +363,6 @@ export function useWalletSignIn(): SignInState {
       purpleAutoSignRef.current = null;
       return;
     }
-    const address = wallet.publicKey.toBase58();
     if (purple.address !== address) return;
     if (purpleAutoSignRef.current === address) return;
     if (purpleSignInFlightRef.current) return;
@@ -368,11 +380,14 @@ export function useWalletSignIn(): SignInState {
     setVisible(false);
 
     const signMessage = purple.signMessage;
+    console.warn("[PurpleSignIn] firing verify for", address);
     void (async () => {
       try {
         await verify({ address, signMessage });
+        console.warn("[PurpleSignIn] verify resolved for", address);
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Sign-in failed.";
+        console.warn("[PurpleSignIn] verify threw", msg);
         setLocalError(msg);
         setError(msg);
         // Allow a retry on the next unlock/click.
@@ -434,6 +449,31 @@ export function useWalletSignIn(): SignInState {
 
     // Already fully connected — just sign.
     if (wallet.wallet?.adapter && wallet.publicKey) {
+      const isPurple = wallet.wallet.adapter.name === PURPLE_WALLET_NAME;
+      if (isPurple) {
+        // Built-in wallet: verify DIRECTLY with the live context. No
+        // runSignIn (which reads a possibly-stale ref and is gated by an
+        // in-flight flag that can wedge the button into a no-op).
+        const address = wallet.publicKey.toBase58();
+        if (purple.state !== "unlocked" || purple.address !== address) {
+          // Locked / auto-locked — prompt unlock. The auto-login effect signs
+          // the moment the unlock lands.
+          purple.openModal("unlock");
+          return;
+        }
+        setIsPending(true);
+        setError(null);
+        try {
+          await verify({ address, signMessage: purple.signMessage });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Sign-in failed.";
+          setLocalError(msg);
+          setError(msg);
+        } finally {
+          setIsPending(false);
+        }
+        return;
+      }
       await runSignIn();
       return;
     }
@@ -500,6 +540,9 @@ export function useWalletSignIn(): SignInState {
     setVisible,
     openPicker,
     armWatchdog,
+    purple,
+    verify,
+    setError,
   ]);
 
   return {
