@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { Connection, VersionedTransaction } from "@solana/web3.js";
+import { ArrowRight, CheckCircle2, ExternalLink } from "lucide-react";
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
 import { confirmSignature } from "@/lib/purple-wallet/confirm";
 import {
@@ -15,7 +17,14 @@ import {
   type QuoteResponse,
 } from "@/lib/purple-wallet/jupiter";
 import type { WalletBalances } from "@/lib/purple-wallet/balances";
-import { TokenSelect } from "./token-select";
+import { TokenSelect, TOKEN_ICONS } from "./token-select";
+
+interface SwapSummary {
+  inAmount: string;
+  inToken: TokenSymbol;
+  outAmount: string;
+  outToken: TokenSymbol;
+}
 
 const TOKENS: TokenSymbol[] = ["SOL", "PBTC", "USDC"];
 
@@ -41,6 +50,7 @@ export function SwapPanel({ walletAddress, balances, onDone }: Props) {
   const [quoteError, setQuoteError] = useState("");
   const [status, setStatus] = useState<"idle" | "swapping" | "done" | "error">("idle");
   const [txSig, setTxSig] = useState("");
+  const [summary, setSummary] = useState<SwapSummary | null>(null);
   const [error, setError] = useState("");
 
   // Auto-fetch quote when input changes
@@ -116,6 +126,12 @@ export function SwapPanel({ walletAddress, balances, onDone }: Props) {
       // so connection.confirmTransaction() would hang forever.
       await confirmSignature(connection, sig);
 
+      setSummary({
+        inAmount: inputAmount,
+        inToken: inputToken,
+        outAmount: formatTokenAmount(quote.outAmount, TOKEN_DECIMALS[outputToken]),
+        outToken: outputToken,
+      });
       setTxSig(sig);
       setStatus("done");
     } catch (err) {
@@ -132,17 +148,54 @@ export function SwapPanel({ walletAddress, balances, onDone }: Props) {
 
   if (status === "done") {
     return (
-      <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
-        <p className="font-semibold">Swap complete.</p>
+      <div className="space-y-4">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300">
+            <CheckCircle2 size={26} />
+          </span>
+          <p className="text-base font-semibold text-white">Swap complete</p>
+          <p className="text-xs text-white/45">Your balances will update shortly.</p>
+        </div>
+
+        {summary && (
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Image src={TOKEN_ICONS[summary.inToken]} alt="" width={24} height={24} className="h-6 w-6 rounded-full" />
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-white/40">You paid</p>
+                <p className="text-sm font-semibold text-white">
+                  {summary.inAmount} {summary.inToken}
+                </p>
+              </div>
+            </div>
+            <ArrowRight size={16} className="shrink-0 text-white/35" />
+            <div className="flex items-center gap-2">
+              <Image src={TOKEN_ICONS[summary.outToken]} alt="" width={24} height={24} className="h-6 w-6 rounded-full" />
+              <div className="text-right">
+                <p className="text-[10px] uppercase tracking-widest text-white/40">You got</p>
+                <p className="text-sm font-semibold text-emerald-200">
+                  {summary.outAmount} {summary.outToken}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <a
           href={`https://solscan.io/tx/${txSig}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-1 block break-all font-mono text-[11px] text-emerald-300/70 underline"
+          className="flex items-center justify-center gap-1.5 text-xs font-medium text-violet-200/70 transition hover:text-violet-100"
         >
-          {txSig.slice(0, 20)}…
+          View on Solscan
+          <ExternalLink size={12} />
         </a>
-        <button type="button" onClick={onDone} className="mt-3 text-xs text-emerald-300/60 hover:text-emerald-200">
+
+        <button
+          type="button"
+          onClick={onDone}
+          className="w-full rounded-xl bg-gold-accent px-4 py-2.5 text-sm font-semibold text-black transition hover:brightness-110"
+        >
           Done
         </button>
       </div>
