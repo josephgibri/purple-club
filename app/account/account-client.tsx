@@ -139,7 +139,6 @@ function AccountDashboard() {
             sovereign={sovereign}
             foundingSeq={hasPbtc ? foundingSeq : null}
           />
-          <CommunityCard />
         </div>
 
         <div className="flex flex-col gap-5">
@@ -154,6 +153,8 @@ function AccountDashboard() {
           <AccountEmailCard />
         </div>
       </div>
+
+      <CommunityCard />
 
       <RoleConsole />
 

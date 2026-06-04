@@ -107,10 +107,13 @@ export async function GET(): Promise<Response> {
     ? await prisma.telegramMember.findUnique({ where: { userId: user.id } })
     : null;
 
+  const groupUrl = process.env.TELEGRAM_GROUP_URL?.trim() || null;
+
   if (!member) {
     return NextResponse.json({
       ok: true,
       botUsername,
+      groupUrl,
       connected: false,
       inGroup: false,
       username: null,
@@ -123,6 +126,7 @@ export async function GET(): Promise<Response> {
   return NextResponse.json({
     ok: true,
     botUsername,
+    groupUrl,
     connected: true,
     inGroup,
     username: member.username,

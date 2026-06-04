@@ -38,7 +38,7 @@ const BENEFITS = [
   {
     name: "Hotels",
     icon: BedDouble,
-    body: "Wholesale rates at 250K+ hotels — the kind usually reserved for travel agents. Save 20–40% on the same room.",
+    body: "Wholesale rates at 250K+ hotels — the kind usually reserved for travel agents. Save up to 20% on the same room.",
     pill: "Reserved for members",
   },
   {
