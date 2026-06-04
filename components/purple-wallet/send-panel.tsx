@@ -16,6 +16,7 @@ import {
 } from "@solana/spl-token";
 import { ScanLine } from "lucide-react";
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
+import { confirmSignature } from "@/lib/purple-wallet/confirm";
 import { QrScanner } from "./qr-scanner";
 
 const PBTC_MINT = "HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p";
@@ -94,13 +95,15 @@ export function SendPanel({ walletAddress, onDone }: Props) {
         );
       }
 
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      const { blockhash } = await connection.getLatestBlockhash();
       tx.recentBlockhash = blockhash;
       tx.feePayer = sender;
 
       const signed = await signTransaction(tx);
       const sig = await connection.sendRawTransaction(signed.serialize());
-      await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, "confirmed");
+      // Confirm by polling over HTTP — the /api/rpc proxy has no websocket,
+      // so connection.confirmTransaction() would hang forever.
+      await confirmSignature(connection, sig);
 
       setTxSig(sig);
       setStatus("done");

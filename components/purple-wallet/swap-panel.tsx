@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Connection, VersionedTransaction } from "@solana/web3.js";
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
+import { confirmSignature } from "@/lib/purple-wallet/confirm";
 import {
   getSwapQuote,
   buildSwapTransaction,
@@ -102,8 +103,7 @@ export function SwapPanel({ walletAddress, balances, onDone }: Props) {
       // signing so the signature covers a blockhash the sending/simulating node
       // is guaranteed to know. Jupiter never pre-signs (the user is the only
       // required signer), so re-stamping is safe.
-      const { blockhash, lastValidBlockHeight } =
-        await connection.getLatestBlockhash("confirmed");
+      const { blockhash } = await connection.getLatestBlockhash("confirmed");
       tx.message.recentBlockhash = blockhash;
 
       const signed = await signTransaction(tx);
@@ -112,10 +112,9 @@ export function SwapPanel({ walletAddress, balances, onDone }: Props) {
         maxRetries: 3,
       });
 
-      await connection.confirmTransaction(
-        { signature: sig, blockhash, lastValidBlockHeight },
-        "confirmed",
-      );
+      // Confirm by polling over HTTP — the /api/rpc proxy has no websocket,
+      // so connection.confirmTransaction() would hang forever.
+      await confirmSignature(connection, sig);
 
       setTxSig(sig);
       setStatus("done");
