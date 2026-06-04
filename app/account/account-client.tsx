@@ -10,7 +10,6 @@ import {
   Mail,
   Megaphone,
   Plane,
-  Send,
   ShieldCheck,
   Sparkles,
   Wrench,
@@ -19,6 +18,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { ProductGate } from "@/components/access/product-gate";
+import { CommunityCard } from "@/components/telegram/community-card";
 import { DigitalMembershipPass } from "@/components/membership/digital-membership-pass";
 import { PurpleWalletCard } from "@/components/purple-wallet/wallet-card";
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
@@ -541,33 +541,6 @@ function RoleConsole() {
           </>
         ) : null}
       </div>
-    </section>
-  );
-}
-
-function CommunityCard() {
-  return (
-    <section className="rounded-3xl border border-purple-accent/30 bg-gradient-to-br from-[#1a0c39] via-[#130922] to-[#0e0720] p-6">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-purple-300">
-        <Send size={13} />
-        Community Lounge
-      </div>
-      <h2 className="mt-3 text-lg font-semibold text-white">
-        Join the Purple Club group
-      </h2>
-      <p className="mt-1.5 text-sm leading-relaxed text-violet-100/65">
-        Connect with fellow members, share ideas, and build the tribe. Verify
-        your wallet with the bot to get your invite.
-      </p>
-      <a
-        href="https://t.me/Purple_connect_bot"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-purple-accent/80 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-purple-accent"
-      >
-        Open in Telegram
-        <ArrowRight size={12} />
-      </a>
     </section>
   );
 }
