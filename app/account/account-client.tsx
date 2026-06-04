@@ -139,15 +139,10 @@ function AccountDashboard() {
             sovereign={sovereign}
             foundingSeq={hasPbtc ? foundingSeq : null}
           />
-          {/* When the tall Purple Wallet card lives on the right, move the
-              shorter activity + email cards here so the left column fills the
-              vertical space under The Purple Court instead of leaving a gap. */}
-          {showPurpleCard ? (
-            <>
-              <MemberTools />
-              <AccountEmailCard />
-            </>
-          ) : null}
+          {/* With the tall Purple Wallet card on the right, keep the email
+              card under The Purple Court and push activity to the right column
+              (under the wallet) so neither column leaves an empty gap. */}
+          {showPurpleCard ? <AccountEmailCard /> : null}
         </div>
 
         <div className="flex flex-col gap-5">
@@ -158,7 +153,10 @@ function AccountDashboard() {
             showDetails={!loggedInWithPurple}
           />
           {showPurpleCard ? (
-            <PurpleWalletCard />
+            <>
+              <PurpleWalletCard />
+              <MemberTools />
+            </>
           ) : (
             <>
               <MemberTools />
