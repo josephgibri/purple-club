@@ -39,6 +39,26 @@ function hasValidStoredProof(address: string): boolean {
   }
 }
 
+// wallet-adapter persists the last-selected wallet name here (default key).
+// On a hard refresh the adapter for that name re-attaches only once the wallet
+// announces itself via the Wallet Standard — which can lag behind the user's
+// first click while the extension's content script is still booting.
+const WALLET_NAME_LS_KEY = "walletName";
+
+function hasRememberedWallet(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = window.localStorage.getItem(WALLET_NAME_LS_KEY);
+    if (!raw) return false;
+    // Stored JSON-encoded (e.g. "\"Phantom\""); fall back to the raw string.
+    const parsed = JSON.parse(raw) as unknown;
+    if (typeof parsed === "string") return parsed.length > 0;
+    return raw.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 type SignInState = {
   isPending: boolean;
   error: string | null;
@@ -390,6 +410,19 @@ export function useWalletSignIn(): SignInState {
     // opening the picker modal — otherwise the extension popup and the
     // modal both appear at the same time.
     if (wallet.wallet?.adapter) {
+      setIsPending(true);
+      setSiwsPending(true);
+      armWatchdog();
+      return;
+    }
+
+    // Desktop: no adapter attached yet, but a wallet was remembered from a
+    // previous session. The Wallet Standard registration just hasn't landed
+    // (common on a hard refresh while the extension is still booting). Arm the
+    // state machine and wait — the connect effect re-fires the moment the
+    // adapter re-attaches, so the FIRST click connects instead of no-opping
+    // and forcing the user to refresh again.
+    if (hasRememberedWallet()) {
       setIsPending(true);
       setSiwsPending(true);
       armWatchdog();
