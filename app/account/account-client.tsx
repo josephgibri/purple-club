@@ -10,6 +10,7 @@ import {
   Mail,
   Megaphone,
   Plane,
+  Send,
   ShieldCheck,
   Sparkles,
   Wrench,
@@ -101,15 +102,18 @@ function AccountDashboard() {
       ) : null}
 
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        <PurpleCourtCard
-          balance={balance}
-          currentTitle={currentTitle}
-          currentBlurb={currentBlurb}
-          nextTitle={rank.next?.title ?? null}
-          nextMin={rank.next?.min ?? null}
-          progress={rank.progress}
-          sovereign={sovereign}
-        />
+        <div className="flex flex-col gap-5">
+          <PurpleCourtCard
+            balance={balance}
+            currentTitle={currentTitle}
+            currentBlurb={currentBlurb}
+            nextTitle={rank.next?.title ?? null}
+            nextMin={rank.next?.min ?? null}
+            progress={rank.progress}
+            sovereign={sovereign}
+          />
+          <CommunityCard />
+        </div>
 
         <div className="flex flex-col gap-5">
           <WalletCard
@@ -537,6 +541,33 @@ function RoleConsole() {
           </>
         ) : null}
       </div>
+    </section>
+  );
+}
+
+function CommunityCard() {
+  return (
+    <section className="rounded-3xl border border-purple-accent/30 bg-gradient-to-br from-[#1a0c39] via-[#130922] to-[#0e0720] p-6">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-purple-300">
+        <Send size={13} />
+        Community Lounge
+      </div>
+      <h2 className="mt-3 text-lg font-semibold text-white">
+        Join the Purple Club group
+      </h2>
+      <p className="mt-1.5 text-sm leading-relaxed text-violet-100/65">
+        Connect with fellow members, share ideas, and build the tribe. Verify
+        your wallet with the bot to get your invite.
+      </p>
+      <a
+        href="https://t.me/Purple_connect_bot"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-purple-accent/80 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-purple-accent"
+      >
+        Open in Telegram
+        <ArrowRight size={12} />
+      </a>
     </section>
   );
 }
