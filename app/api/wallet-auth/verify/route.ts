@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PublicKey } from "@solana/web3.js";
 import { getPbtcBalanceWithFallback } from "@/lib/solana";
+import { claimFoundingSlot } from "@/lib/founding";
 import {
   clearNonceCookie,
   getPbtcBalance,
@@ -125,6 +126,9 @@ export async function POST(request: Request) {
       const message = error instanceof Error ? error.message : "Unable to establish session.";
       return NextResponse.json({ error: message }, { status: 500 });
     }
+    if (pbtcBalance >= 1) {
+      await claimFoundingSlot(proof.publicKey).catch(() => undefined);
+    }
     return NextResponse.json({ ok: true, ...roleFlags(proof.publicKey, pbtcBalance) });
   }
 
@@ -184,6 +188,10 @@ export async function POST(request: Request) {
 
     await setSessionCookie(wallet, pbtcBalance);
     await clearNonceCookie();
+
+    if (pbtcBalance >= 1) {
+      await claimFoundingSlot(wallet).catch(() => undefined);
+    }
 
     return NextResponse.json(roleFlags(wallet, pbtcBalance));
   } catch (error) {

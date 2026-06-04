@@ -27,6 +27,10 @@ import { useWalletSession } from "@/hooks/useWalletSession";
 import { JUPITER_SWAP_URL } from "@/lib/constants";
 import { PURPLE_COURT, SOVEREIGN, getRank, isSovereign } from "@/lib/ranks";
 
+// Founding cohort size — keep in sync with FOUNDING_MEMBER_LIMIT (lib/founding.ts).
+// Display-only; the authoritative cap is enforced server-side.
+const FOUNDING_DISPLAY_LIMIT = 200;
+
 /**
  * Member dashboard. The shared <ProductGate> owns the connect/sign/buy
  * flow; members land on their account home: their Purple Court rank,
@@ -53,8 +57,30 @@ function AccountDashboard() {
   const { balance, hasPbtc, signaturePrefix, signedAtIso } = useMembershipGate();
   const purple = usePurpleWalletContext();
   const [isPassOpen, setIsPassOpen] = useState(false);
+  const [foundingSeq, setFoundingSeq] = useState<number | null>(null);
 
   const walletAddress = publicKey?.toBase58();
+
+  // Founding-member status (first 200 wallets to hold >= 1 PBTC). The slot is
+  // permanent server-side; the seal below is gated on still holding PBTC.
+  useEffect(() => {
+    let cancelled = false;
+    if (!walletAddress) {
+      setFoundingSeq(null);
+      return;
+    }
+    fetch("/api/membership/founding", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d: { ok?: boolean; founding?: boolean; seq?: number | null }) => {
+        if (!cancelled) setFoundingSeq(d.ok && d.founding ? d.seq ?? null : null);
+      })
+      .catch(() => {
+        if (!cancelled) setFoundingSeq(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [walletAddress]);
 
   // The built-in Purple Wallet card is shown when it's relevant — i.e. when the
   // user signed in WITH the Purple Wallet, or when one already exists in this
@@ -111,6 +137,7 @@ function AccountDashboard() {
             nextMin={rank.next?.min ?? null}
             progress={rank.progress}
             sovereign={sovereign}
+            foundingSeq={hasPbtc ? foundingSeq : null}
           />
           <CommunityCard />
         </div>
@@ -150,6 +177,7 @@ type PurpleCourtCardProps = {
   nextMin: number | null;
   progress: number;
   sovereign: boolean;
+  foundingSeq: number | null;
 };
 
 function PurpleCourtCard({
@@ -160,14 +188,26 @@ function PurpleCourtCard({
   nextMin,
   progress,
   sovereign,
+  foundingSeq,
 }: PurpleCourtCardProps) {
   const ladder = sovereign ? [...PURPLE_COURT, SOVEREIGN] : PURPLE_COURT;
 
   return (
     <section className="rounded-3xl border border-border bg-surface p-7 shadow-2xl shadow-black/20">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
-        <Crown size={14} />
-        The Purple Court
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
+          <Crown size={14} />
+          The Purple Court
+        </div>
+        {foundingSeq != null ? (
+          <span
+            title={`Founding Member No. ${foundingSeq} — one of the first ${FOUNDING_DISPLAY_LIMIT} to hold PBTC.`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-gold-accent/45 bg-gradient-to-r from-gold-accent/20 to-gold-accent/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-accent"
+          >
+            <Sparkles size={12} />
+            Founding · No. {foundingSeq}
+          </span>
+        ) : null}
       </div>
 
       <div className="mt-4 flex items-center gap-4">

@@ -356,6 +356,20 @@ model TelegramLinkSession {
   @@index([expiresAt])
 }
 
+/// Founding members — the first N wallets observed holding >= 1 PBTC after
+/// this shipped. `seq` is assigned in arrival order and locked for life, so
+/// founding membership never reshuffles. The "Founding Member" seal is shown
+/// only while the wallet still holds >= 1 PBTC (enforced at display time), but
+/// the slot itself is permanent — drop below and re-acquire, the seal returns.
+model FoundingMember {
+  id        String   @id @default(cuid())
+  wallet    String   @unique
+  seq       Int      @unique
+  createdAt DateTime @default(now())
+
+  @@index([seq])
+}
+
 model TravelRequest {
   id                       String                  @id @default(cuid())
   requestCode              String                  @unique
