@@ -127,8 +127,8 @@ function AccountDashboard() {
         </div>
       ) : null}
 
-      <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">
-        <div className="flex flex-col gap-5">
+      {(() => {
+        const courtCard = (
           <PurpleCourtCard
             balance={balance}
             currentTitle={currentTitle}
@@ -139,32 +139,49 @@ function AccountDashboard() {
             sovereign={sovereign}
             foundingSeq={hasPbtc ? foundingSeq : null}
           />
-          {/* With the tall Purple Wallet card on the right, keep the email
-              card under The Purple Court and push activity to the right column
-              (under the wallet) so neither column leaves an empty gap. */}
-          {showPurpleCard ? <AccountEmailCard /> : null}
-        </div>
-
-        <div className="flex flex-col gap-5">
+        );
+        const membershipCard = (
           <WalletCard
             walletAddress={walletAddress}
             balance={balance}
             onOpenPass={() => setIsPassOpen(true)}
             showDetails={!loggedInWithPurple}
           />
-          {showPurpleCard ? (
+        );
+
+        // Signed in with the built-in Purple Wallet: the wallet card makes the
+        // right column tall, so we split into two aligned grid rows. The bottom
+        // row keeps Account email (left) and Your activity (right) on the same
+        // baseline regardless of the cards above them.
+        if (showPurpleCard) {
+          return (
             <>
-              <PurpleWalletCard />
-              <MemberTools />
+              <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">
+                {courtCard}
+                <div className="flex flex-col gap-5">
+                  {membershipCard}
+                  <PurpleWalletCard />
+                </div>
+              </div>
+              <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">
+                <AccountEmailCard />
+                <MemberTools />
+              </div>
             </>
-          ) : (
-            <>
+          );
+        }
+
+        return (
+          <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">
+            {courtCard}
+            <div className="flex flex-col gap-5">
+              {membershipCard}
               <MemberTools />
               <AccountEmailCard />
-            </>
-          )}
-        </div>
-      </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <CommunityCard />
 

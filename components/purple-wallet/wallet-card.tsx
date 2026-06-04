@@ -38,6 +38,9 @@ import { fetchWalletBalances, type WalletBalances } from "@/lib/purple-wallet/ba
 import { fetchTokenPricesUsd, formatUsd, type TokenPricesUsd } from "@/lib/purple-wallet/prices";
 import { SendPanel } from "./send-panel";
 import { SwapPanel } from "./swap-panel";
+import { TOKEN_ICONS } from "./token-select";
+
+const ASSET_NAMES = { SOL: "Solana", PBTC: "Purple Bitcoin", USDC: "USD Coin" } as const;
 
 type Panel = "none" | "receive" | "send" | "swap";
 
@@ -307,52 +310,22 @@ export function PurpleWalletCard() {
         </div>
       )}
 
-      {/* Balances */}
-      {balanceError ? (
-        <div className="mt-3 flex items-center gap-2 text-xs text-red-300">
-          <AlertCircle size={12} /> {balanceError}
-        </div>
-      ) : (
-        <>
-          {/* Total portfolio value */}
-          <div className="mt-5 text-center">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-white/40">
-              Total value
-            </p>
-            <p className="mt-1 text-3xl font-semibold tracking-tight text-white">
-              {balanceLoading && totalUsd === null
-                ? "…"
-                : totalUsd !== null
-                  ? fmtUsd(totalUsd)
-                  : "—"}
-            </p>
-          </div>
-
-          {/* Per-asset balances */}
-          <div className="mt-5 grid grid-cols-3 gap-3">
-            {(
-              [
-                { label: "SOL", amount: balances?.sol, usd: assetUsd?.sol, dec: 4 },
-                { label: "PBTC", amount: balances?.pbtc, usd: assetUsd?.pbtc, dec: 4 },
-                { label: "USDC", amount: balances?.usdc, usd: assetUsd?.usdc, dec: 2 },
-              ] as const
-            ).map(({ label, amount, usd, dec }) => (
-              <div key={label} className="rounded-xl border border-white/8 bg-white/5 px-3 py-2.5 text-center">
-                <p className="text-[10px] uppercase tracking-widest text-white/40">{label}</p>
-                <p className="mt-1 text-sm font-semibold text-white">
-                  {balanceLoading && amount === undefined ? "…" : amount !== undefined ? fmt(amount, dec) : "—"}
-                </p>
-                <p className="mt-0.5 text-[10px] text-white/35">
-                  {usd !== undefined ? fmtUsd(usd) : "—"}
-                </p>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+      {/* Total portfolio value */}
+      <div className="mt-6 text-center">
+        <p className="text-[10px] uppercase tracking-[0.28em] text-white/40">
+          Total value
+        </p>
+        <p className="mt-1 text-4xl font-semibold tracking-tight text-white">
+          {balanceLoading && totalUsd === null
+            ? "…"
+            : totalUsd !== null
+              ? fmtUsd(totalUsd)
+              : "—"}
+        </p>
+      </div>
 
       {/* Action buttons */}
-      <div className="mt-4 grid grid-cols-4 gap-2">
+      <div className="mt-6 grid grid-cols-4 gap-2">
         {(
           [
             { id: "send", label: "Send", Icon: Send },
@@ -379,6 +352,51 @@ export function PurpleWalletCard() {
           Delete
         </button>
       </div>
+
+      {/* Assets — Phantom-style rows: icon + name on the left, amount + USD on the right */}
+      {balanceError ? (
+        <div className="mt-5 flex items-center gap-2 text-xs text-red-300">
+          <AlertCircle size={12} /> {balanceError}
+        </div>
+      ) : (
+        <div className="mt-6 space-y-1">
+          <p className="px-1 text-[10px] uppercase tracking-[0.22em] text-white/35">
+            Assets
+          </p>
+          {(
+            [
+              { sym: "SOL", amount: balances?.sol, usd: assetUsd?.sol, dec: 4 },
+              { sym: "PBTC", amount: balances?.pbtc, usd: assetUsd?.pbtc, dec: 4 },
+              { sym: "USDC", amount: balances?.usdc, usd: assetUsd?.usdc, dec: 2 },
+            ] as const
+          ).map(({ sym, amount, usd, dec }) => (
+            <div
+              key={sym}
+              className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/5 px-3 py-2.5"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <Image
+                  src={TOKEN_ICONS[sym]}
+                  alt=""
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 shrink-0 rounded-full"
+                />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white">{sym}</p>
+                  <p className="truncate text-[11px] text-white/40">{ASSET_NAMES[sym]}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-semibold text-white">
+                  {balanceLoading && amount === undefined ? "…" : amount !== undefined ? fmt(amount, dec) : "—"}
+                </p>
+                <p className="text-[11px] text-white/40">{usd !== undefined ? fmtUsd(usd) : "—"}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Send / Receive / Swap modal */}
       {panel !== "none" && address && (
