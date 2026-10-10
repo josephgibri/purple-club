@@ -29,7 +29,8 @@ type EnterClubCtaProps = {
  */
 export function EnterClubCta({ redirectOnEnter = true }: EnterClubCtaProps) {
   const { connected } = useWallet();
-  const { hasPbtc, isVerified, isMember, isLoading } = useMembershipGate();
+  const { hasPbtc, isVerified, isMember, isLoading, error: balanceError, refresh } =
+    useMembershipGate();
   const { enter, isPending, error } = useWalletSignIn();
   const router = useRouter();
   const navigatedRef = useRef(false);
@@ -65,6 +66,23 @@ export function EnterClubCta({ redirectOnEnter = true }: EnterClubCtaProps) {
         <ShieldCheck size={16} />
         Enter the Club
       </button>
+    );
+  }
+
+  if (connected && isVerified && !hasPbtc && balanceError) {
+    return (
+      <div className="flex w-full max-w-sm flex-col gap-2">
+        <button
+          type="button"
+          onClick={() => void refresh()}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold-accent px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-black transition hover:brightness-110"
+        >
+          Retry balance check
+        </button>
+        <p className="text-center text-[11px] text-rose-200">
+          Couldn&apos;t read this wallet on-chain. {balanceError}
+        </p>
+      </div>
     );
   }
 

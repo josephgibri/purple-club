@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
+import { Geist, Geist_Mono, Oswald, Playfair_Display } from "next/font/google";
 import { Toaster } from "sonner";
 import { TopNav } from "@/components/navigation/top-nav";
 import { SiteFooter } from "@/components/navigation/site-footer";
+import { Atmosphere } from "@/components/shell/atmosphere";
 import { SolanaProvider } from "@/components/providers/solana-provider";
 import { PurpleWalletProvider } from "@/components/auth/purple-wallet-provider";
 import { BasePathFetch } from "@/components/base-path-fetch";
@@ -28,9 +29,15 @@ const playfair = Playfair_Display({
   weight: ["500", "600", "700", "800"],
 });
 
+const oswald = Oswald({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["500", "600"],
+});
+
 export const metadata: Metadata = {
   title: "Purple Club",
-  description: "Token-gated merchant discount network powered by PBTC.",
+  description: "Hold 1 PBTC. That is the key.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -50,7 +57,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#080512",
+  themeColor: "#0D0B14",
 };
 
 export default function RootLayout({
@@ -61,14 +68,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${oswald.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="flex min-h-full flex-col bg-[var(--wall)] pt-14 text-[var(--bone)]">
+        <Atmosphere />
         <BasePathFetch />
         <SolanaProvider>
           <PurpleWalletProvider>
             <TopNav />
-            {children}
+            <div className="relative z-10 flex flex-1 flex-col">{children}</div>
             <SiteFooter />
           </PurpleWalletProvider>
         </SolanaProvider>

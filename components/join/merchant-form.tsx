@@ -609,7 +609,7 @@ export function MerchantForm(props: MerchantFormProps) {
               value={form.discountDetails}
               onChange={(e) => setField("discountDetails", e.target.value)}
               className="min-h-24 w-full rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm outline-none focus:border-purple-accent"
-              placeholder="20% off for PBTC holders with an active pass."
+              placeholder="10% off for members, at the counter."
             />
           </Field>
         </div>

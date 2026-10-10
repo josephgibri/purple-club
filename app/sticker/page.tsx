@@ -12,9 +12,17 @@ type StickerPageProps = {
   searchParams: Promise<{ merchant?: string }>;
 };
 
+function siteOrigin(): string {
+  const raw =
+    process.env.PUBLIC_SITE_URL?.trim() ||
+    process.env.APP_URL?.trim() ||
+    "https://purpleclub.org";
+  return raw.replace(/\/+$/, "");
+}
+
 export default async function StickerPage({ searchParams }: StickerPageProps) {
   const { merchant } = await searchParams;
   const merchantId =
     typeof merchant === "string" && merchant.length > 0 ? merchant : null;
-  return <StickerClient merchantId={merchantId} />;
+  return <StickerClient merchantId={merchantId} siteOrigin={siteOrigin()} />;
 }

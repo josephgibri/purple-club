@@ -15,6 +15,8 @@ const DEFAULT_INITIAL_SUPPLY_PBTC = 21_000_000n;
  *      - if it's a bare API key, build the canonical Helius mainnet URL.
  *   3. Public Solana mainnet RPC (rate-limited, last-resort fallback).
  */
+const KNOWN_PBTC_MINT = "HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p";
+
 export function getRpcUrl(): string {
   const explicit = process.env.SOLANA_RPC_URL?.trim();
   if (explicit && explicit.includes("://")) return explicit;
@@ -23,12 +25,21 @@ export function getRpcUrl(): string {
     if (helius.includes("://")) return helius;
     return `https://mainnet.helius-rpc.com/?api-key=${helius}`;
   }
+  // Local dev often only has the public RPC URL. The browser cannot call it
+  // (CSP), but the server-side proxy can.
+  for (const name of [
+    "NEXT_PUBLIC_HELIUS_RPC_URL",
+    "NEXT_PUBLIC_SOLANA_RPC_URL",
+    "NEXT_PUBLIC_ALCHEMY_RPC_URL",
+  ] as const) {
+    const url = process.env[name]?.trim();
+    if (url && url.includes("://")) return url;
+  }
   return "https://api.mainnet-beta.solana.com";
 }
 
 export function getPbtcMintAddress(): PublicKey {
-  const mint = process.env.PBTC_MINT;
-  if (!mint) throw new Error("PBTC_MINT is not configured.");
+  const mint = process.env.PBTC_MINT?.trim() || KNOWN_PBTC_MINT;
   return new PublicKey(mint);
 }
 

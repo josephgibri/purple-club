@@ -162,10 +162,10 @@ function buildMemberTemplate(
       return {
         subject: `Refresh your offer - ${ctx.requestCode}`,
         preheader:
-          "Wholesale rates shift fast. Tap Re-negotiate to ask the concierge for a fresh round.",
+          "Rates move. Tap Re-negotiate to ask the travel partner for a fresh 5% off the public rate.",
         headline: "Your offer has expired",
         paragraphs: [
-          `The wholesale offer on <strong>${code}</strong> has expired. Wholesale rates are highly volatile and inventory may have shifted since the original quote.`,
+          `The offer on <strong>${code}</strong> has expired. The 5% off the public rate is held by the travel partner, and the room may have moved.`,
           "Open your Travel Vault and tap <strong>RE-NEGOTIATE RATE</strong> to ask the concierge for a fresh round of pricing. We typically come back within 24 hours.",
         ],
         ctaLabel: "Re-negotiate Rate",
@@ -347,7 +347,7 @@ function buildMemberTemplate(
             : "Unfortunately, your offer window ended while we were verifying payment, so we can't keep the original quote live.",
         );
         paras.push(
-          "Tap below and open the booking in your Travel Vault — you'll see a <strong>Re-negotiate rate</strong> button that asks your concierge to source a fresh wholesale quote for the same dates. If you already sent payment, reply to this email with the proof and we'll work the refund / re-apply alongside the new quote.",
+          "Tap below and open the booking. <strong>Re-negotiate rate</strong> asks the travel partner for a fresh 5% off the public rate on the same dates. You pay the agency, not the club. If you already sent payment, reply to this email with the proof.",
         );
         return {
           subject: `Offer lapsed during verification - ${ctx.requestCode}`,

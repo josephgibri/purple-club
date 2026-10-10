@@ -117,7 +117,7 @@ export default function InvitePage({ params }: { params: Promise<{ slug: string 
           Claim your 1 PBTC
         </h1>
         <p className="mt-3 max-w-xl text-sm text-white/65">
-          PBTC unlocks Purple Club — a private rate engine that negotiates wholesale hotel pricing
+          PBTC is the key. Stays are 5% off the public rate through the club's travel partner.
           for our community. Connect a Solana wallet, claim, and 1 PBTC is sent to you on-chain
           automatically.
         </p>
@@ -172,7 +172,7 @@ export default function InvitePage({ params }: { params: Promise<{ slug: string 
                     <p className="mt-1 text-emerald-100/85">
                       You&apos;re officially in the club. The next step is to
                       paste a hotel link on the homepage and let the concierge
-                      negotiate a wholesale rate for you.
+                      book it with the travel partner: 5% off the public rate. You pay the agency, not the club.
                     </p>
                   </div>
                   {/* Big primary CTA. The previous design buried "head to

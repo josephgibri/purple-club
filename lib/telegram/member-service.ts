@@ -5,7 +5,6 @@
 import { PublicKey } from "@solana/web3.js";
 import { prisma } from "@/lib/prisma";
 import { getPbtcBalanceWithFallback } from "@/lib/solana";
-import { getRank } from "@/lib/ranks";
 import { computeTierUpdate } from "./tier-machine";
 import {
   sendMessage,
@@ -62,35 +61,14 @@ export async function buildStatusText(telegramId: bigint): Promise<string> {
   const balance = member.lastBalance ? Number(member.lastBalance) : null;
   const balanceStr = balance !== null ? `${balance.toLocaleString()} PBTC` : "Not yet checked";
 
-  const rank = balance !== null ? getRank(balance) : null;
-  const effective = member.effectiveTier ?? "—";
-  const pending = member.pendingTier;
-  const tierSince = member.tierSince
-    ? member.tierSince.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-    : null;
-
-  let holdLine = "";
-  if (pending && member.pendingSince) {
-    const daysLeft = Math.max(
-      0,
-      7 - Math.floor((Date.now() - member.pendingSince.getTime()) / 86_400_000),
-    );
-    holdLine = `\n⏳ *${pending}* unlocks in ~${daysLeft} day${daysLeft === 1 ? "" : "s"}`;
-  }
-
-  const nextRank = rank?.next;
-  const nextLine = nextRank
-    ? `\n📈 Next: *${nextRank.title}* at ${nextRank.min.toLocaleString()} PBTC`
-    : "";
+  const keyHeld = balance !== null && balance >= 1;
 
   return (
-    `💜 *Purple Club — Member Status*\n\n` +
+    `💜 *Purple Club*\n\n` +
     `👛 Wallet: \`${user.wallet.slice(0, 6)}…${user.wallet.slice(-4)}\`\n` +
     `💰 Balance: *${balanceStr}*\n` +
-    `🏅 Tier: *${effective}*${tierSince ? ` _(since ${tierSince})_` : ""}` +
-    holdLine +
-    nextLine +
-    `\n\n_Balance updated every hour._`
+    `🔑 Club key: *${keyHeld ? "Held" : "Not held"}* — 1 PBTC\n\n` +
+    `_No ranks. The key is the membership._`
   );
 }
 
@@ -131,17 +109,7 @@ export async function syncMember(telegramId: bigint): Promise<void> {
     },
   });
 
-  // Notify member on tier change
-  if (update.tierChanged && update.effectiveTier && !update.shouldKick) {
-    await sendMessage({
-      chatId: telegramId,
-      text:
-        `🎉 *Tier update!*\n\nYou are now a *${update.effectiveTier}* in The Purple Court.\n\n` +
-        `Use /status to see your full standing.`,
-    }).catch(() => undefined); // non-critical
-  }
-
-  // Kick if past grace window
+  // Kick if the club key is gone past the grace window.
   if (update.shouldKick && member.inGroup) {
     const userId = Number(telegramId);
     const groupId = getMainGroupId();

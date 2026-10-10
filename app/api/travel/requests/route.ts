@@ -517,6 +517,23 @@ export async function POST(request: Request) {
       }
     }
 
+    const member = await prisma.user.findUnique({
+      where: { wallet: session.wallet },
+      select: { id: true, email: true, emailVerifiedAt: true },
+    });
+    if (!isAdmin && (!member?.email || !member.emailVerifiedAt)) {
+      return Response.json(
+        { error: "Verify your email on your profile before a stay booking." },
+        { status: 403 },
+      );
+    }
+    if (member?.email && payload.email.trim().toLowerCase() !== member.email) {
+      return Response.json(
+        { error: "Use the verified email on your profile." },
+        { status: 400 },
+      );
+    }
+
     const decoded = decodeHotelUrl(payload.hotelUrl);
     const seedBookingGuests: SeedGuestRecord[] = (decoded.childrenAges ?? [])
       .slice(0, payload.childrenCount)
@@ -527,14 +544,16 @@ export async function POST(request: Request) {
         ageYears: age,
       }));
 
-    const user = await prisma.user.upsert({
-      where: { wallet: session.wallet },
-      update: { email: payload.email },
-      create: {
-        wallet: session.wallet,
-        email: payload.email,
-      },
-    });
+    const user =
+      member ??
+      (await prisma.user.upsert({
+        where: { wallet: session.wallet },
+        update: {},
+        create: {
+          wallet: session.wallet,
+          email: payload.email,
+        },
+      }));
 
     const created = await prisma.travelRequest.create({
       data: {

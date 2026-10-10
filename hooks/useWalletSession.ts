@@ -19,8 +19,10 @@ import { useWalletAuth } from "@/hooks/useWalletAuth";
 export type WalletSession = {
   authenticated: boolean;
   wallet?: string;
-  /** Saved contact email (used to autofill the booking form), if set. */
+  /** Saved contact email, if set. */
   email?: string | null;
+  /** True once the member confirmed that address from the link we sent. */
+  emailVerified?: boolean;
   pbtcBalance?: number;
   pbtcEligible?: boolean;
   isAgent?: boolean;
@@ -67,6 +69,7 @@ export function useWalletSession(): WalletSession {
             authenticated: true,
             wallet: data.wallet,
             email: data.email ?? null,
+            emailVerified: Boolean(data.emailVerified),
             pbtcBalance: data.pbtcBalance,
             pbtcEligible: data.pbtcEligible,
             isAgent: data.isAgent,

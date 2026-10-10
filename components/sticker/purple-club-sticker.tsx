@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 
-import { PURPLE_BITCOIN_ICON_DATA_URI } from "@/lib/purple-bitcoin-icon";
+import { publicAsset } from "@/lib/public-asset";
+
 
 type PurpleClubStickerProps = {
   /** Absolute URL the QR code resolves to. */
@@ -17,9 +18,8 @@ type PurpleClubStickerProps = {
 /**
  * Self-contained Purple Club window sticker as inline SVG so it
  * downloads sharp, prints crisp, and survives copy-paste into a
- * customer's design tool. The PurpleBitcoin (PBTC) glyph is embedded
- * as a base64 data URI (see `lib/purple-bitcoin-icon.ts`) so the
- * downloaded SVG is fully portable — a merchant can drop it straight
+ * customer's design tool. The dog mark is inlined as a data URI at
+ * render time so the downloaded SVG stays portable — a merchant can drop it straight
  * into Canva or their print shop's preflight tool without missing
  * assets, and the canvas-based PNG export below stays untainted (no
  * cross-origin image loads).
@@ -31,11 +31,36 @@ type QrPayload = { viewBox: string; inner: string };
 
 export function PurpleClubSticker({
   qrUrl,
-  tagline = "Enjoy exclusive discounts for holding 1 PBTC",
+  tagline = "Members get the discount at the counter",
   width = 360,
 }: PurpleClubStickerProps) {
   const [qr, setQr] = useState<QrPayload | null>(null);
   const [qrError, setQrError] = useState<string | null>(null);
+  const [dogHref, setDogHref] = useState(publicAsset("/brand/dog.png"));
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(publicAsset("/brand/dog.png"))
+      .then((res) => res.blob())
+      .then(
+        (blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result));
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(blob);
+          }),
+      )
+      .then((href) => {
+        if (!cancelled) setDogHref(href);
+      })
+      .catch(() => {
+        // Keep the public path. On-screen render still works.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,114 +108,73 @@ export function PurpleClubSticker({
       data-purple-club-sticker
     >
       <defs>
-        <linearGradient id="pc-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#1a0b3d" />
-          <stop offset="100%" stopColor="#4b1da0" />
-        </linearGradient>
-        <linearGradient id="pc-gold" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#F5D78E" />
-          <stop offset="45%" stopColor="#D4AF37" />
-          <stop offset="100%" stopColor="#A8812A" />
-        </linearGradient>
-        <linearGradient id="pc-gold-soft" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFE9B0" />
-          <stop offset="50%" stopColor="#E8C45A" />
-          <stop offset="100%" stopColor="#B8892E" />
-        </linearGradient>
-        <radialGradient id="pc-spot" cx="50%" cy="0%" r="80%">
-          <stop offset="0%" stopColor="#7b2ff7" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#1a0b3d" stopOpacity="0" />
-        </radialGradient>
-        {/* Circular crop for the PBTC PNG — the source asset has a dark
-            navy square baked behind the magenta circle, so we clip it out
-            and let the purple sticker gradient show through the corners.
-            objectBoundingBox units so the clip scales with whatever size
-            we render the image at. r=0.47 matches the magenta disc edge
-            (the source PNG's circle is ~480/512 across). */}
-        <clipPath id="pc-coin-clip" clipPathUnits="objectBoundingBox">
-          <circle cx="0.5" cy="0.5" r="0.47" />
+        <clipPath id="pc-dog-clip">
+          <rect x="0" y="0" width="220" height="220" rx="12" />
         </clipPath>
       </defs>
 
-      <rect width="600" height="750" rx="48" fill="url(#pc-bg)" />
-      <rect width="600" height="400" rx="48" fill="url(#pc-spot)" />
+      <rect width="600" height="750" rx="16" fill="#0D0B14" />
       <rect
         x="12"
         y="12"
         width="576"
         height="726"
-        rx="40"
+        rx="12"
         fill="none"
-        stroke="url(#pc-gold)"
-        strokeWidth="2"
-        opacity="0.55"
+        stroke="#8B5CF6"
+        strokeWidth="1"
+        opacity="0.7"
       />
 
       {/* Top eyebrow */}
       <g>
-        <rect
-          x="160"
-          y="58"
-          width="280"
-          height="34"
-          rx="17"
-          fill="none"
-          stroke="url(#pc-gold)"
-          strokeWidth="1.5"
-        />
         <text
           x="300"
-          y="80"
+          y="72"
           textAnchor="middle"
-          fontFamily="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+          fontFamily="ui-sans-serif, system-ui, sans-serif"
           fontSize="13"
           letterSpacing="6"
           fontWeight="700"
-          fill="#F5D78E"
+          fill="#8A8794"
         >
-          MEMBER MERCHANT
+          MEMBER PLACE
         </text>
       </g>
 
-      {/* PurpleBitcoin coin — base64 from lib/purple-bitcoin-icon.ts,
-          clipped to a circle via #pc-coin-clip so the source PNG's dark
-          navy backdrop disappears and the brand mark sits cleanly on the
-          gradient. 160×160 keeps ~30px of breathing room above the
-          wordmark at y=340 and 16px below the eyebrow at y=92. */}
-      <g transform="translate(220 108)">
+      <g transform="translate(190 96)">
         <image
-          href={PURPLE_BITCOIN_ICON_DATA_URI}
+          href={dogHref}
           x="0"
           y="0"
-          width="160"
-          height="160"
-          preserveAspectRatio="xMidYMid meet"
-          clipPath="url(#pc-coin-clip)"
+          width="220"
+          height="220"
+          preserveAspectRatio="xMidYMid slice"
         />
       </g>
 
       {/* Wordmark */}
       <text
         x="300"
-        y="340"
+        y="360"
         textAnchor="middle"
         fontFamily="ui-serif, Georgia, 'Times New Roman', serif"
         fontSize="52"
         fontWeight="700"
-        fill="#FFFFFF"
+        fill="#E7E4DE"
         letterSpacing="2"
       >
         Purple Club
       </text>
       <text
         x="300"
-        y="372"
+        y="392"
         textAnchor="middle"
         fontFamily="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
         fontSize="13"
         letterSpacing="3"
         fontWeight="600"
-        fill="#DDD6FE"
+        fill="#8A8794"
       >
         {tagline.toUpperCase()}
       </text>
@@ -199,8 +183,8 @@ export function PurpleClubSticker({
           qrcode package — module-count squared) is auto-scaled into the
           200×200 inner area via preserveAspectRatio. That sidesteps the
           fragile "guess the module count and pre-scale" approach. */}
-      <g transform="translate(180 400)">
-        <rect width="240" height="240" rx="20" fill="#F5D78E" />
+      <g transform="translate(180 420)">
+        <rect width="240" height="240" rx="12" fill="#E7E4DE" />
         <rect
           x="6"
           y="6"
@@ -256,7 +240,7 @@ export function PurpleClubSticker({
         fontSize="14"
         letterSpacing="2.5"
         fontWeight="600"
-        fill="#DDD6FE"
+        fill="#8A8794"
       >
         SCAN TO JOIN
       </text>
@@ -266,9 +250,9 @@ export function PurpleClubSticker({
         textAnchor="middle"
         fontFamily="ui-sans-serif, system-ui, sans-serif"
         fontSize="11"
-        fill="#A89BD1"
+        fill="#55525F"
       >
-        Hold 1 PBTC on Solana to unlock the discount
+        Hold 1 PBTC. The discount is at the counter.
       </text>
       <text
         x="300"
@@ -277,7 +261,7 @@ export function PurpleClubSticker({
         fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
         fontSize="11"
         letterSpacing="2"
-        fill="#F5D78E"
+        fill="#8B5CF6"
       >
         purpleclub.org
       </text>

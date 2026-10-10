@@ -5,17 +5,16 @@ import {
   ArrowRight,
   BedDouble,
   ClipboardCheck,
-  Crown,
   Gift,
-  Mail,
   Megaphone,
   Plane,
   ShieldCheck,
   Sparkles,
+  Store,
   Wrench,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import { ProductGate } from "@/components/access/product-gate";
 import { CommunityCard } from "@/components/telegram/community-card";
@@ -26,16 +25,11 @@ import { PURPLE_WALLET_ENABLED } from "@/lib/purple-wallet/feature-flag";
 import { useMembershipGate } from "@/hooks/useMembershipGate";
 import { useWalletSession } from "@/hooks/useWalletSession";
 import { JUPITER_SWAP_URL } from "@/lib/constants";
-import { PURPLE_COURT, SOVEREIGN, getRank, isSovereign } from "@/lib/ranks";
-
-// Founding cohort size — keep in sync with FOUNDING_MEMBER_LIMIT (lib/founding.ts).
-// Display-only; the authoritative cap is enforced server-side.
-const FOUNDING_DISPLAY_LIMIT = 200;
+import { DOG_TITLE, QUESTS } from "@/lib/quests";
 
 /**
  * Member dashboard. The shared <ProductGate> owns the connect/sign/buy
- * flow; members land on their account home: their Purple Court rank,
- * wallet + pass, and quick links into the rest of the club.
+ * flow; members land on You: the club key, four quests, and the wallet.
  *
  * Travel "bookings" and burn activity arrive here in Phase 2 once the
  * Travel app is ported into `/stay`.
@@ -45,7 +39,7 @@ export function AccountClient() {
     <ProductGate
       eyebrow="My Account"
       connectTitle="Sign in to your account"
-      connectDescription="Connect a Solana wallet to see your account, wallet details and standing in The Purple Court. Verification is read-only — your tokens never leave your wallet."
+      connectDescription="Connect a Solana wallet. Verification is read-only — your tokens never leave your wallet."
       unlockOnVerified
     >
       <AccountDashboard />
@@ -58,30 +52,8 @@ function AccountDashboard() {
   const { balance, hasPbtc, signaturePrefix, signedAtIso } = useMembershipGate();
   const purple = usePurpleWalletContext();
   const [isPassOpen, setIsPassOpen] = useState(false);
-  const [foundingSeq, setFoundingSeq] = useState<number | null>(null);
 
   const walletAddress = publicKey?.toBase58();
-
-  // Founding-member status (first 200 wallets to hold >= 1 PBTC). The slot is
-  // permanent server-side; the seal below is gated on still holding PBTC.
-  useEffect(() => {
-    let cancelled = false;
-    if (!walletAddress) {
-      setFoundingSeq(null);
-      return;
-    }
-    fetch("/api/membership/founding", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d: { ok?: boolean; founding?: boolean; seq?: number | null }) => {
-        if (!cancelled) setFoundingSeq(d.ok && d.founding ? d.seq ?? null : null);
-      })
-      .catch(() => {
-        if (!cancelled) setFoundingSeq(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [walletAddress]);
 
   // The built-in Purple Wallet card is shown ONLY when the user is actually
   // signed in with the Purple Wallet (its address matches the session). A
@@ -93,29 +65,25 @@ function AccountDashboard() {
     !!walletAddress && !!purple.address && purple.address === walletAddress;
   const showPurpleCard = PURPLE_WALLET_ENABLED && loggedInWithPurple;
 
-  const sovereign = isSovereign(walletAddress);
-  const rank = getRank(balance, walletAddress);
-  const currentTitle = rank.current?.title ?? "Member";
-  const currentBlurb = rank.current?.blurb ?? "Welcome to the club.";
-
   return (
     <main className="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-5xl flex-col gap-6 px-6 py-8 sm:py-10">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
-            My Account
+          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--bone-faint)]">
+            You
           </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Welcome back.
+          <h1 className="club-display mt-2 text-3xl text-[var(--bone)] sm:text-4xl">
+            Your key
           </h1>
         </div>
       </header>
 
+      <CommunityCard />
+
       {!hasPbtc ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold-accent/30 bg-gold-accent/10 px-5 py-3.5">
           <p className="text-sm text-gold-accent">
-            You&apos;re signed in. Hold at least 1 PBTC to unlock Hotels, Perks
-            &amp; Benefits, and Lend.
+            You&apos;re signed in. Hold at least 1 PBTC. That is the club key.
           </p>
           <a
             href={JUPITER_SWAP_URL}
@@ -128,68 +96,21 @@ function AccountDashboard() {
         </div>
       ) : null}
 
-      {(() => {
-        const courtCard = (
-          <PurpleCourtCard
-            balance={balance}
-            currentTitle={currentTitle}
-            currentBlurb={currentBlurb}
-            nextTitle={rank.next?.title ?? null}
-            nextMin={rank.next?.min ?? null}
-            progress={rank.progress}
-            sovereign={sovereign}
-            foundingSeq={hasPbtc ? foundingSeq : null}
-          />
-        );
-        const membershipCard = (
+      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+        <KeyAndQuests held={hasPbtc} />
+        <div className="flex h-full flex-col gap-5">
           <WalletCard
             walletAddress={walletAddress}
             balance={balance}
             onOpenPass={() => setIsPassOpen(true)}
             showDetails={!loggedInWithPurple}
           />
-        );
-
-        // Signed in with the built-in Purple Wallet: the wallet card makes the
-        // right column tall, so we split into two aligned grid rows. The bottom
-        // row keeps Account email (left) and Your activity (right) on the same
-        // baseline regardless of the cards above them.
-        if (showPurpleCard) {
-          return (
-            <>
-              {/* Top row stretches both columns to equal height; the Purple
-                  Wallet card grows (flex-1) to line its bottom up with the
-                  taller Purple Court card beside it. */}
-              <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-                {courtCard}
-                <div className="flex h-full flex-col gap-5">
-                  {membershipCard}
-                  <div className="flex-1">
-                    <PurpleWalletCard />
-                  </div>
-                </div>
-              </div>
-              <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">
-                <AccountEmailCard />
-                <MemberTools />
-              </div>
-            </>
-          );
-        }
-
-        return (
-          <div className="grid items-start gap-5 lg:grid-cols-[1.4fr_1fr]">
-            {courtCard}
-            <div className="flex flex-col gap-5">
-              {membershipCard}
-              <MemberTools />
-              <AccountEmailCard />
-            </div>
+          {showPurpleCard ? <PurpleWalletCard /> : null}
+          <div className="flex min-h-0 flex-1 flex-col">
+            <MemberTools />
           </div>
-        );
-      })()}
-
-      <CommunityCard />
+        </div>
+      </div>
 
       <RoleConsole />
 
@@ -205,125 +126,35 @@ function AccountDashboard() {
   );
 }
 
-type PurpleCourtCardProps = {
-  balance: number;
-  currentTitle: string;
-  currentBlurb: string;
-  nextTitle: string | null;
-  nextMin: number | null;
-  progress: number;
-  sovereign: boolean;
-  foundingSeq: number | null;
-};
-
-function PurpleCourtCard({
-  balance,
-  currentTitle,
-  currentBlurb,
-  nextTitle,
-  nextMin,
-  progress,
-  sovereign,
-  foundingSeq,
-}: PurpleCourtCardProps) {
-  const ladder = sovereign ? [...PURPLE_COURT, SOVEREIGN] : PURPLE_COURT;
-
+function KeyAndQuests({ held }: { held: boolean }) {
   return (
-    <section className="rounded-3xl border border-border bg-surface p-7 shadow-2xl shadow-black/20">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
-          <Crown size={14} />
-          The Purple Court
-        </div>
-        {foundingSeq != null ? (
-          <span
-            title={`Founding Member No. ${foundingSeq} — one of the first ${FOUNDING_DISPLAY_LIMIT} to hold PBTC.`}
-            className="inline-flex items-center gap-1.5 rounded-full border border-gold-accent/45 bg-gradient-to-r from-gold-accent/20 to-gold-accent/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-accent"
-          >
-            <Sparkles size={12} />
-            Founding · No. {foundingSeq}
-          </span>
-        ) : null}
-      </div>
+    <section className="flex h-full flex-col rounded-lg border border-[var(--line)] bg-[var(--wall-2)] p-6">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
+        Club key
+      </p>
+      <p className="mt-2 text-sm text-[var(--bone)]">
+        {held ? "Held. 1 PBTC." : "Not held. 1 PBTC opens the club."}
+      </p>
 
-      <div className="mt-4 flex items-center gap-4">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-gold-accent/40 bg-gradient-to-br from-[#1a0d33] to-[#120925] text-gold-accent">
-          <Crown size={28} />
-        </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.28em] text-violet-100/55">
-            Your rank
-          </p>
-          <p className="pc-serif text-2xl font-semibold text-white sm:text-3xl">
-            {currentTitle}
-          </p>
-          <p className="mt-0.5 text-sm text-violet-100/70">{currentBlurb}</p>
-        </div>
-      </div>
-
-      {!sovereign && nextTitle && nextMin != null ? (
-        <div className="mt-5">
-          <div className="flex items-center justify-between text-xs text-violet-100/70">
+      <p className="mt-6 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
+        Quests
+      </p>
+      <ul className="mt-2 divide-y divide-[var(--line)]">
+        {QUESTS.map((quest) => (
+          <li key={quest.id} className="flex items-baseline justify-between gap-4 py-3">
             <span>
-              {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })} PBTC
+              <span className="text-sm text-[var(--bone)]">{quest.title}</span>
+              <span className="mt-0.5 block text-xs text-[var(--bone-dim)]">{quest.detail}</span>
             </span>
-            <span>
-              Next: <span className="text-gold-accent">{nextTitle}</span> at{" "}
-              {nextMin.toLocaleString()}+
+            <span className="shrink-0 text-[11px] uppercase tracking-[0.14em] text-[var(--bone-faint)]">
+              Not done
             </span>
-          </div>
-          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/10">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-purple-accent to-gold-accent transition-all"
-              style={{ width: `${Math.round(progress * 100)}%` }}
-            />
-          </div>
-        </div>
-      ) : (
-        <p className="mt-5 rounded-xl border border-gold-accent/30 bg-gold-accent/10 px-4 py-3 text-xs text-gold-accent">
-          You sit at the top of the ladder. Long may you reign.
-        </p>
-      )}
-
-      <ul className="mt-6 divide-y divide-white/5 rounded-2xl border border-white/10 bg-black/20">
-        {ladder.map((tier) => {
-          const isCurrent = tier.title === currentTitle;
-          const reached = sovereign || balance >= tier.min;
-          return (
-            <li
-              key={tier.title}
-              className={`flex items-center justify-between gap-3 px-4 py-2.5 text-sm ${
-                isCurrent ? "bg-gold-accent/10" : ""
-              }`}
-            >
-              <span
-                className={`flex items-center gap-2 ${
-                  reached ? "text-white" : "text-violet-100/45"
-                }`}
-              >
-                {isCurrent ? (
-                  <Crown size={13} className="text-gold-accent" />
-                ) : (
-                  <span
-                    className={`inline-block h-1.5 w-1.5 rounded-full ${
-                      reached ? "bg-gold-accent" : "bg-white/20"
-                    }`}
-                  />
-                )}
-                {tier.title}
-              </span>
-              <span className={reached ? "text-violet-100/70" : "text-violet-100/40"}>
-                {tier === SOVEREIGN ? "Founding tier" : `${tier.min.toLocaleString()}+`}
-              </span>
-            </li>
-          );
-        })}
+          </li>
+        ))}
       </ul>
-
-      <p className="mt-4 text-[11px] leading-relaxed text-violet-100/45">
-        Titles are status only — identity, access, and recognition. They are
-        never financial promises: no airdrops, yield, rate boosts, or voting
-        rights are tied to a tier. Your rank is private to you.
+      <p className="mt-auto pt-4 text-xs text-[var(--bone-dim)]">
+        All four unlock <span className="text-[var(--ink)]">{DOG_TITLE}</span>. A title
+        unlocks nothing but the title.
       </p>
     </section>
   );
@@ -353,22 +184,26 @@ function WalletCard({ walletAddress, balance, onOpenPass, showDetails = true }: 
         Membership
       </div>
       {showDetails ? (
-        <dl className="mt-4 space-y-3 text-sm">
+        <div className="mt-4 space-y-3 text-sm">
           <div className="flex items-center justify-between">
-            <dt className="text-violet-100/60">Wallet</dt>
-            <dd className="font-mono text-violet-100/95">{short}</dd>
+            <span className="text-violet-100/60">Wallet</span>
+            <span className="font-mono text-violet-100/95">{short}</span>
           </div>
+          <AccountEmail />
           <div className="flex items-center justify-between">
-            <dt className="text-violet-100/60">PBTC held</dt>
-            <dd className="font-mono text-emerald-200">
+            <span className="text-violet-100/60">PBTC held</span>
+            <span className="font-mono text-emerald-200">
               {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-            </dd>
+            </span>
           </div>
-        </dl>
+        </div>
       ) : (
-        <p className="mt-3 text-xs text-violet-100/60">
-          Your membership pass — wallet details are in your Purple Wallet below.
-        </p>
+        <>
+          <p className="mt-3 text-xs text-violet-100/60">
+            Your membership pass — wallet details are in your Purple Wallet below.
+          </p>
+          <AccountEmail />
+        </>
       )}
       <div className="mt-5 flex flex-col gap-2">
         <button
@@ -423,11 +258,17 @@ function ConsoleTile({ href, label, description, icon, accent }: TileProps) {
 /** Always-available member surfaces: bookings + the gift vault live in /stay. */
 function MemberTools() {
   return (
-    <section className="rounded-3xl border border-border bg-surface p-6 shadow-2xl shadow-black/20">
+    <section className="flex h-full flex-col rounded-3xl border border-border bg-surface p-6 shadow-2xl shadow-black/20">
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
         Your activity
       </p>
       <div className="mt-4 grid gap-3">
+        <ConsoleTile
+          href="/account/business"
+          label="Business"
+          description="List a place, or check a member's pass."
+          icon={<Store size={16} />}
+        />
         <ConsoleTile
           href="/account/bookings"
           label="My bookings"
@@ -440,65 +281,97 @@ function MemberTools() {
 }
 
 /**
- * Lets a member store a contact email on their wallet record. It autofills
- * the email field when they request a hotel booking and gives the concierge
- * a reliable way to reach them. Empty input clears the saved address.
+ * Contact email on the wallet card. Empty until saved, then a row like the
+ * wallet line. A stay booking waits until the address is verified.
  */
-function AccountEmailCard() {
+function AccountEmail() {
   const session = useWalletSession();
   const [value, setValue] = useState("");
-  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
-    "idle",
-  );
+  const [editing, setEditing] = useState(false);
+  const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [message, setMessage] = useState("");
-  const seeded = useRef(false);
+  const [savedEmail, setSavedEmail] = useState<string | null>(null);
+  const [verified, setVerified] = useState<boolean | null>(null);
+  const [linkSent, setLinkSent] = useState(false);
 
-  useEffect(() => {
-    if (seeded.current) return;
-    if (session.authenticated && session.email !== undefined) {
-      setValue(session.email ?? "");
-      seeded.current = true;
-    }
-  }, [session.authenticated, session.email]);
+  const email = savedEmail ?? session.email ?? "";
+  const isVerified = verified ?? Boolean(session.emailVerified);
 
-  async function save() {
+  async function save(next: string) {
     setStatus("saving");
     setMessage("");
     try {
       const res = await fetch("/api/wallet-auth/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: value.trim() }),
+        body: JSON.stringify({ email: next.trim() }),
       });
-      const data = await res.json().catch(() => ({}));
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        email?: string | null;
+        verified?: boolean;
+        sent?: boolean;
+      };
       if (!res.ok) {
         setStatus("error");
-        setMessage(data?.error ?? "Could not save your email.");
+        setMessage(data.error ?? "Could not save your email.");
         return;
       }
-      setStatus("saved");
-      setMessage(
-        value.trim()
-          ? "Saved — we'll autofill this on booking requests."
-          : "Email cleared.",
-      );
+      setStatus("idle");
+      setSavedEmail(data.email ?? next.trim());
+      setVerified(Boolean(data.verified));
+      setLinkSent(Boolean(data.sent));
+      setEditing(false);
+      if (data.email && !data.verified && !data.sent) {
+        setMessage("Could not send the verification email.");
+      }
     } catch {
       setStatus("error");
-      setMessage("Network error — please try again.");
+      setMessage("Could not save your email.");
     }
   }
 
-  return (
-    <section className="rounded-3xl border border-border bg-surface p-6 shadow-2xl shadow-black/20">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
-        <Mail size={14} />
-        Account email
+  if (email && !editing) {
+    return (
+      <div>
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="text-violet-100/60">Email</span>
+          <span className="truncate font-mono text-violet-100/95" title={email}>
+            {email}
+          </span>
+        </div>
+        {!isVerified ? (
+          <p className="mt-2 text-xs text-violet-100/55">
+            {linkSent ? "Check your inbox to verify it." : "Verify it before a stay."}{" "}
+            <button
+              type="button"
+              onClick={() => void save(email)}
+              disabled={status === "saving"}
+              className="uppercase tracking-[0.12em] text-[var(--ink)] disabled:opacity-50"
+            >
+              {status === "saving" ? "Sending…" : linkSent ? "Resend" : "Send link"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setValue(email);
+                setEditing(true);
+                setMessage("");
+              }}
+              className="ml-3 uppercase tracking-[0.12em] text-violet-100/45"
+            >
+              Change
+            </button>
+          </p>
+        ) : null}
+        {message ? <p className="mt-2 text-xs text-red-300">{message}</p> : null}
       </div>
-      <p className="mt-2 text-xs text-violet-100/60">
-        Optional. Used to autofill your booking requests and let the concierge
-        reach you about offers and vouchers.
-      </p>
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex gap-2">
         <input
           type="email"
           inputMode="email"
@@ -511,27 +384,23 @@ function AccountEmailCard() {
             setValue(event.target.value);
             if (status !== "idle") setStatus("idle");
           }}
-          className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-violet-100/40 focus:border-gold-accent/60 focus:outline-none"
+          className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-violet-100/40 focus:border-gold-accent/60 focus:outline-none"
         />
         <button
           type="button"
-          onClick={() => void save()}
+          onClick={() => void save(value)}
           disabled={status === "saving"}
-          className="rounded-xl bg-gold-accent px-4 py-2.5 text-sm font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+          className="shrink-0 rounded-xl bg-gold-accent px-3 py-2 text-sm font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {status === "saving" ? "Saving…" : "Save"}
+          {status === "saving" ? "…" : "Save"}
         </button>
       </div>
       {message ? (
-        <p
-          className={`mt-2 text-xs ${
-            status === "error" ? "text-red-300" : "text-emerald-300"
-          }`}
-        >
+        <p className={`mt-2 text-xs ${status === "error" ? "text-red-300" : "text-violet-100/55"}`}>
           {message}
         </p>
       ) : null}
-    </section>
+    </div>
   );
 }
 

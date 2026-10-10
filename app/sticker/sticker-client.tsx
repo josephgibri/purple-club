@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { ArrowLeft, Check, Copy, Download, ScanLine, Printer } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { PurpleClubSticker } from "@/components/sticker/purple-club-sticker";
 
 type StickerClientProps = {
   merchantId: string | null;
+  /** Live site origin. The printed QR must not follow the browser host. */
+  siteOrigin: string;
 };
 
 /**
@@ -25,17 +27,10 @@ type StickerClientProps = {
  * Barbershop's window resolves to `/welcome?via=sticker&merchant=lucky-barbershop`,
  * which we already attribute in `welcome-client.tsx`.
  */
-export function StickerClient({ merchantId }: StickerClientProps) {
-  const [origin, setOrigin] = useState<string>("https://purpleclub.org");
+export function StickerClient({ merchantId, siteOrigin }: StickerClientProps) {
+  const origin = siteOrigin.replace(/\/+$/, "") || "https://purpleclub.org";
   const [verifierCopied, setVerifierCopied] = useState(false);
   const stickerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const basePath = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").trim();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setOrigin(`${window.location.origin}${basePath}`);
-  }, []);
 
   const qrUrl = useMemo(() => {
     const params = new URLSearchParams({ via: "sticker" });
@@ -153,7 +148,7 @@ export function StickerClient({ merchantId }: StickerClientProps) {
     <main className="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-4xl flex-col px-5 py-10 sm:py-14 print:m-0 print:max-w-none print:p-0">
       <div className="print:hidden">
         <Link
-          href="/join"
+          href="/account/business"
           className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-violet-100/60 hover:text-violet-100/90"
         >
           <ArrowLeft size={12} />
@@ -219,8 +214,7 @@ export function StickerClient({ merchantId }: StickerClientProps) {
                 <span className="text-gold-accent">→</span>
                 Resolves to{" "}
                 <span className="font-mono text-violet-100/95">
-                  {qrUrl.replace(origin, "").slice(0, 48) +
-                    (qrUrl.length > origin.length + 48 ? "…" : "")}
+                  {qrUrl.replace(/^https?:\/\//, "")}
                 </span>
               </li>
               <li className="flex gap-2">
@@ -249,7 +243,7 @@ export function StickerClient({ merchantId }: StickerClientProps) {
               attributed to your shop in analytics.
             </p>
             <div className="mt-3 rounded-lg border border-emerald-300/30 bg-black/30 px-3 py-2 font-mono text-[11px] text-emerald-100/90">
-              {verifierUrl.replace(origin, "") || "/verify"}
+              {verifierUrl.replace(/^https?:\/\//, "")}
             </div>
             <button
               type="button"
@@ -260,12 +254,8 @@ export function StickerClient({ merchantId }: StickerClientProps) {
               {verifierCopied ? "Copied" : "Copy verifier link"}
             </button>
             {!merchantId ? (
-              <p className="mt-3 text-[11px] text-amber-200/85">
-                No merchant slug in this URL — open{" "}
-                <Link href="/merchant/dashboard" className="underline">
-                  your dashboard
-                </Link>{" "}
-                first so the link gets personalised.
+              <p className="mt-3 text-[11px] text-violet-100/60">
+                List a business and a scan will name your place.
               </p>
             ) : null}
           </div>

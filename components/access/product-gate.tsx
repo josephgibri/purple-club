@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { JUPITER_SWAP_URL } from "@/lib/constants";
 import { useMembershipGate } from "@/hooks/useMembershipGate";
+import { useWalletSession } from "@/hooks/useWalletSession";
 import { useWalletSignIn } from "@/hooks/useWalletSignIn";
 
 type ProductGateProps = {
@@ -50,6 +51,7 @@ export function ProductGate({
   children,
 }: ProductGateProps) {
   const { connected } = useWallet();
+  const session = useWalletSession();
   const {
     balance,
     hasPbtc,
@@ -58,10 +60,15 @@ export function ProductGate({
     isLoading,
     error,
     authError,
+    refresh,
   } = useMembershipGate();
   const { enter, isPending, error: signInError } = useWalletSignIn();
 
-  if (isMember || (unlockOnVerified && isVerified)) {
+  if (
+    isMember ||
+    (unlockOnVerified && isVerified) ||
+    (session.authenticated && session.pbtcEligible)
+  ) {
     return <>{children}</>;
   }
 
@@ -69,9 +76,11 @@ export function ProductGate({
     ? "connect"
     : !isVerified
       ? "sign"
-      : !hasPbtc
-        ? "buy"
-        : "loading";
+      : isLoading
+        ? "loading"
+        : !hasPbtc
+          ? "buy"
+          : "loading";
 
   const issue = signInError ?? authError ?? error;
 
@@ -81,7 +90,9 @@ export function ProductGate({
       : stage === "sign"
         ? "Sign the read-only message"
         : stage === "buy"
-          ? "Add 1 PBTC to unlock"
+          ? error
+            ? "Couldn't read your balance"
+            : "Add 1 PBTC to unlock"
           : "Loading…";
 
   const description =
@@ -90,9 +101,11 @@ export function ProductGate({
       : stage === "sign"
         ? "One tap in your wallet proves ownership. No funds move; the signature is good for 24 hours."
         : stage === "buy"
-          ? `Your wallet is verified but currently holds ${balance.toLocaleString(undefined, {
-              maximumFractionDigits: 4,
-            })} PBTC. Hold at least 1 PBTC to enter.`
+          ? error
+            ? "The wallet is verified. The on-chain read failed, so this is not a zero balance."
+            : `Your wallet is verified but currently holds ${balance.toLocaleString(undefined, {
+                maximumFractionDigits: 4,
+              })} PBTC. Hold at least 1 PBTC to enter.`
           : "Reading your PBTC balance on-chain…";
 
   const icon =
@@ -119,7 +132,15 @@ export function ProductGate({
         <p className="mx-auto mt-3 max-w-md text-sm text-violet-100/75">{description}</p>
 
         <div className="mt-6 flex flex-col items-center gap-3">
-          {stage === "buy" ? (
+          {stage === "buy" && error ? (
+            <button
+              type="button"
+              onClick={() => void refresh()}
+              className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-gold-accent px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-black transition hover:brightness-110"
+            >
+              Retry balance check
+            </button>
+          ) : stage === "buy" ? (
             <a
               href={JUPITER_SWAP_URL}
               target="_blank"

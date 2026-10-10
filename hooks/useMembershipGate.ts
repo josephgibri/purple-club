@@ -4,7 +4,6 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { useWalletAuth } from "@/hooks/useWalletAuth";
-import { getPbtcBalanceWithFallback } from "@/lib/solana";
 
 type MembershipGateState = {
   balance: number;
@@ -26,7 +25,7 @@ export function useMembershipGate(): MembershipGateState {
   const { publicKey, connected } = useWallet();
   const { isVerified, isSigning, error: authError, proof, verify } = useWalletAuth();
   const [balance, setBalance] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sourceRpc, setSourceRpc] = useState<string | null>(null);
 
@@ -35,6 +34,7 @@ export function useMembershipGate(): MembershipGateState {
       setBalance(0);
       setError(null);
       setSourceRpc(null);
+      setIsLoading(false);
       return;
     }
 
@@ -42,10 +42,20 @@ export function useMembershipGate(): MembershipGateState {
     setError(null);
 
     try {
-      const result = await getPbtcBalanceWithFallback(publicKey);
-      setBalance(result.uiAmount);
-      setSourceRpc(result.endpoint);
+      const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || "").trim().replace(/\/$/, "");
+      const response = await fetch(
+        `${basePath}/api/pbtc/balance?wallet=${encodeURIComponent(publicKey.toBase58())}`,
+        { cache: "no-store" },
+      );
+      const body = (await response.json().catch(() => null)) as { balance?: unknown; error?: unknown } | null;
+      if (!response.ok || typeof body?.balance !== "number") {
+        const message = typeof body?.error === "string" ? body.error : "PBTC balance read failed.";
+        throw new Error(message);
+      }
+      setBalance(body.balance);
+      setSourceRpc("api");
     } catch (value) {
+      setBalance(0);
       setError(value instanceof Error ? value.message : "RPC balance check failed");
     } finally {
       setIsLoading(false);

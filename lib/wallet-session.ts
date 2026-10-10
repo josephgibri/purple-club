@@ -4,7 +4,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { parseSignInMessage } from "@solana/wallet-standard-util";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
-import { getRpcUrl } from "./pbtc";
+import { getPbtcMintAddress, getRpcUrl } from "./pbtc";
 
 const NONCE_COOKIE = "pc_auth_nonce";
 
@@ -25,7 +25,8 @@ export type SessionData = {
 };
 
 function getSessionSecret(): Buffer | null {
-  const raw = process.env.SESSION_SECRET?.trim();
+  const raw =
+    process.env.SESSION_SECRET?.trim() || process.env.JWT_SIGNING_SECRET?.trim();
   if (!raw || raw.length < 16) {
     return null;
   }
@@ -97,23 +98,51 @@ export function verifyClubProof(proof: ClubProof): boolean {
  * Purple Club so gift / invite routes can re-verify holdings at claim time
  * instead of trusting the cookie snapshot. Uses PBTC_MINT + the shared RPC.
  */
+const TOKEN_2022_PROGRAM_ID = new PublicKey(
+  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+);
+
+function uiAmountOf(account: {
+  account: {
+    data: {
+      parsed?: {
+        info?: {
+          mint?: string;
+          tokenAmount?: { uiAmount?: number | null; uiAmountString?: string };
+        };
+      };
+    };
+  };
+}): { mint: string; amount: number } {
+  const info = account.account.data.parsed?.info;
+  const tokenAmount = info?.tokenAmount;
+  const amount =
+    tokenAmount?.uiAmount != null
+      ? Number(tokenAmount.uiAmount)
+      : Number(tokenAmount?.uiAmountString ?? 0);
+  return { mint: info?.mint ?? "", amount: Number.isFinite(amount) ? amount : 0 };
+}
+
 export async function getPbtcBalance(wallet: string): Promise<number> {
-  const mintAddress = process.env.PBTC_MINT;
-  if (!mintAddress) {
-    throw new Error("PBTC_MINT is not configured.");
-  }
-
-  const connection = new Connection(getRpcUrl(), "confirmed");
+  const connection = new Connection(getRpcUrl(), {
+    commitment: "confirmed",
+    disableRetryOnRateLimit: true,
+  });
   const owner = new PublicKey(wallet);
-  const mint = new PublicKey(mintAddress);
+  const mint = getPbtcMintAddress();
 
-  const response = await connection.getParsedTokenAccountsByOwner(owner, { mint });
+  const byMint = await connection.getParsedTokenAccountsByOwner(owner, { mint });
+  const fromMint = byMint.value.reduce((sum, account) => sum + uiAmountOf(account).amount, 0);
+  if (fromMint > 0) return fromMint;
 
-  return response.value.reduce((sum, account) => {
-    const amount =
-      account.account.data.parsed.info.tokenAmount.uiAmount ??
-      Number(account.account.data.parsed.info.tokenAmount.amount ?? 0);
-    return sum + amount;
+  // A mint-only filter can miss Token-2022 accounts on some RPCs.
+  const byProgram = await connection.getParsedTokenAccountsByOwner(owner, {
+    programId: TOKEN_2022_PROGRAM_ID,
+  });
+  const mintAddress = mint.toBase58();
+  return byProgram.value.reduce((sum, account) => {
+    const parsed = uiAmountOf(account);
+    return parsed.mint === mintAddress ? sum + parsed.amount : sum;
   }, 0);
 }
 

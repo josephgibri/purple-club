@@ -19,7 +19,7 @@ const LEGACY_SLUGS = ["purple-travel", "purple-stay"];
 const CANONICAL = {
   merchantId: NEXT_SLUG,
   businessName: "Purple Stay",
-  businessBrief: "Up to 20% discount in over 250K hotels around the world.",
+  businessBrief: "5% off the public rate, booked with the travel partner. Hold 1 PBTC.",
   category: "travel_leisure",
   merchantType: "ONLINE",
   isOnline: true,
@@ -37,7 +37,7 @@ const CANONICAL = {
   // the column null so the directory rendering doesn't append a
   // misleading "(Code: ...)" suffix to the discount string.
   promoCode: null as string | null,
-  discountDetails: "Up to 20% off wholesale rates · auto-applied at checkout for 1 PBTC holders",
+  discountDetails: "5% off the public rate · booked with the travel partner · 1 PBTC key",
   socialPlatform: null as string | null,
   socialHandle: null as string | null,
 };

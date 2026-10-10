@@ -1,7 +1,8 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { ShieldCheck, Sparkles } from "lucide-react";
+import { ShieldCheck, Sparkles, Store } from "lucide-react";
+import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 
 import { ProductGate } from "@/components/access/product-gate";
@@ -18,9 +19,9 @@ import { useMembershipGate } from "@/hooks/useMembershipGate";
 export function PerksClient() {
   return (
     <ProductGate
-      eyebrow="Member Access"
-      connectTitle="Sign in to see Perks & Benefits"
-      connectDescription="Connect a Solana wallet that holds at least 1 PBTC. Verification is read-only — we never request transactions or transfers. Unlock live promo codes, addresses, and offers from every vetted partner."
+      eyebrow="Places"
+      connectTitle="Sign in to see Places"
+      connectDescription="Connect a Solana wallet that holds at least 1 PBTC. Verification is read-only. The directory is the club."
     >
       <PerksDirectory />
     </ProductGate>
@@ -85,15 +86,15 @@ function PerksDirectory() {
       <div className="rounded-3xl border border-border bg-surface p-7 shadow-2xl shadow-black/20">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold-accent">
-              Perks &amp; Benefits
+            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--bone-faint)]">
+              Places
             </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Your Purple Club perks.
+            <h1 className="club-display mt-2 text-3xl text-[var(--bone)] sm:text-4xl">
+              The directory
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-violet-100/75">
-              Promo codes, addresses, and live offers — all unlocked. Show your
-              pass at any Purple Hub in person.
+            <p className="mt-2 max-w-xl text-sm text-[var(--bone-dim)]">
+              A business is a place. Name, category, location, the member benefit.
+              The discount is applied at the counter. The club never touches the money.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -101,6 +102,13 @@ function PerksDirectory() {
               <ShieldCheck size={14} />
               {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })} PBTC
             </span>
+            <Link
+              href="/account/business/list"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[var(--ink)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--bone)]"
+            >
+              <Store size={14} />
+              List a place
+            </Link>
             <button
               type="button"
               onClick={() => setIsPassOpen(true)}

@@ -150,6 +150,11 @@ export default function HotelRequestPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (!session.emailVerified) {
+      setErrorMessage("Verify your email on your profile before a stay booking.");
+      return;
+    }
+
     if (!isValidHotelUrl(hotelUrl)) {
       setErrorMessage(
         "Enter a valid hotel link — a full web address starting with https://",
@@ -219,40 +224,28 @@ export default function HotelRequestPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col">
-      <div className="pointer-events-none absolute inset-0 pt-star-field opacity-40" />
-      <div className="pointer-events-none absolute -top-40 right-[-140px] h-[440px] w-[440px] rounded-full bg-[#7C3AED]/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 left-[-160px] h-[440px] w-[440px] rounded-full bg-[#4C1D95]/25 blur-3xl" />
-
-      <section className="relative z-10 mx-auto w-full max-w-3xl px-6 py-12">
+    <main className="stay-room mx-auto flex w-full max-w-[720px] flex-col px-4 py-12">
+      <section>
         <div className="mb-6 flex items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/55">
-            Step 01 · Concierge Request
-          </span>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--bone-faint)]">Stays</p>
           <Link
             href="/stay"
-            className="text-[11px] uppercase tracking-[0.18em] text-white/55 transition hover:text-white"
+            className="text-[11px] uppercase tracking-[0.18em] text-[var(--bone-dim)]"
           >
-            ← Back
+            Back
           </Link>
         </div>
 
-        {verifiedHotelName ? (
-          <div className="mb-4 flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-[#FDE68A]">
-            <span>🛡</span> Decoded from URL
-          </div>
-        ) : null}
-
-        <h1 className="pt-serif text-4xl font-semibold leading-tight text-white sm:text-5xl">
-          {verifiedHotelName || "Request your private rate"}
+        <h1 className="club-display text-4xl text-[var(--bone)] sm:text-5xl">
+          {verifiedHotelName || "Request a stay"}
         </h1>
-        <p className="mt-3 max-w-xl text-sm text-white/65">
-          Confirm your stay details and our concierge will negotiate wholesale pricing.
+        <p className="mt-3 max-w-xl text-sm text-[var(--bone-dim)]">
+          Confirm the stay. The travel partner books it. Same room, same dates — 5% off the public rate. You pay the agency, not the club.
         </p>
 
-        <div className="pt-glass mt-10 rounded-3xl p-6 sm:p-8">
+        <div className="mt-8 rounded-lg border border-[var(--line)] bg-[var(--wall-2)] p-5 sm:p-6">
           <form className="grid gap-5" onSubmit={handleSubmit}>
-            <div className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+            <div className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
               Hotel URL
               <div className="relative">
                 <input
@@ -268,14 +261,14 @@ export default function HotelRequestPage() {
                   required
                 />
                 {isScanning ? (
-                  <span className="absolute right-3 top-1/2 inline-flex -translate-y-1/2 items-center gap-1.5 rounded-full border border-[#EAB308]/40 bg-[#EAB308]/10 px-2 py-0.5 text-[10px] text-[#FDE68A]">
+                  <span className="absolute right-3 top-1/2 inline-flex -translate-y-1/2 items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--wall)] px-2 py-0.5 text-[10px] text-[var(--bone-dim)]">
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#FDE047]" />
                     Scanning
                   </span>
                 ) : null}
               </div>
               {verifiedHotelName ? (
-                <span className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-full border border-[#EAB308]/40 bg-[#EAB308]/10 px-2 py-0.5 text-[10px] font-semibold text-[#FDE68A]">
+                <span className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--wall)] px-2 py-0.5 text-[10px] font-semibold text-[var(--bone)]">
                   🛡 {verifiedHotelName}
                 </span>
               ) : null}
@@ -303,7 +296,7 @@ export default function HotelRequestPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
                 Check-in
                 <input
                   className="pt-input rounded-xl px-4 py-3 text-sm"
@@ -313,7 +306,7 @@ export default function HotelRequestPage() {
                   required
                 />
               </label>
-              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
                 Check-out
                 <input
                   className="pt-input rounded-xl px-4 py-3 text-sm"
@@ -326,7 +319,7 @@ export default function HotelRequestPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
-              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
                 Adults
                 <input
                   className="pt-input rounded-xl px-4 py-3 text-sm"
@@ -338,12 +331,12 @@ export default function HotelRequestPage() {
                   required
                 />
               </label>
-              <label className="grid min-w-0 gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+              <label className="grid min-w-0 gap-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
                 <span className="flex w-full min-w-0 items-center gap-2 overflow-hidden">
                   <span className="shrink-0">Children</span>
                   {decodedChildrenAges.length > 0 ? (
                     <span
-                      className="truncate text-[10px] normal-case tracking-normal text-white/45"
+                      className="truncate text-[10px] normal-case tracking-normal text-[var(--bone-faint)]"
                       title={`Ages: ${decodedChildrenAges.join(", ")}`}
                     >
                       Ages {decodedChildrenAges.join(", ")}
@@ -359,7 +352,7 @@ export default function HotelRequestPage() {
                   onChange={(event) => setChildrenCount(Number(event.target.value))}
                 />
               </label>
-              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
                 Infants
                 <input
                   className="pt-input rounded-xl px-4 py-3 text-sm"
@@ -373,7 +366,7 @@ export default function HotelRequestPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
-              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
                 Room type
                 <input
                   className="pt-input rounded-xl px-4 py-3 text-sm"
@@ -383,7 +376,7 @@ export default function HotelRequestPage() {
                   required
                 />
               </label>
-              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
                 Cancellation policy
                 <select
                   className="pt-input rounded-xl px-4 py-3 text-sm"
@@ -399,7 +392,7 @@ export default function HotelRequestPage() {
                   <option value="NON_REFUNDABLE">Non-refundable</option>
                 </select>
               </label>
-              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
                 Meal preference
                 <select
                   className="pt-input rounded-xl px-4 py-3 text-sm"
@@ -416,11 +409,11 @@ export default function HotelRequestPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="grid min-w-0 gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+              <label className="grid min-w-0 gap-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
                 <span className="flex w-full min-w-0 items-center gap-2 overflow-hidden">
                   <span className="shrink-0">Nationality</span>
                   <span
-                    className="truncate text-[10px] normal-case tracking-normal text-white/45"
+                    className="truncate text-[10px] normal-case tracking-normal text-[var(--bone-faint)]"
                     title="Helps us unlock market-specific deals."
                   >
                     (helps unlock market-specific deals)
@@ -442,7 +435,7 @@ export default function HotelRequestPage() {
                   ))}
                 </select>
               </label>
-              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55">
+              <label className="grid gap-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
                 Email address
                 <input
                   className="pt-input rounded-xl px-4 py-3 text-sm"
@@ -456,11 +449,19 @@ export default function HotelRequestPage() {
                   onChange={(event) => setEmail(event.target.value)}
                   required
                 />
+                {session.authenticated && !session.emailVerified ? (
+                  <span className="text-[11px] normal-case tracking-normal text-[var(--bone-dim)]">
+                    Verify your email on your profile before this stay.{" "}
+                    <Link href="/account" className="text-[var(--ink)]">
+                      Your profile
+                    </Link>
+                  </span>
+                ) : null}
               </label>
             </div>
 
             {!canSubmit ? (
-              <div className="rounded-xl border border-[#EAB308]/30 bg-[#EAB308]/5 p-3 text-xs text-[#FDE68A]">
+              <div className="rounded-lg border border-[var(--line)] bg-[var(--wall)] p-3 text-xs text-[var(--bone-dim)]">
                 <p>
                   {session.authenticated
                     ? "You need to hold at least 1 PBTC to submit a request."
@@ -470,7 +471,7 @@ export default function HotelRequestPage() {
                   <button
                     type="button"
                     onClick={() => void enter()}
-                    className="mt-2 inline-flex items-center rounded-full border border-[#EAB308]/50 bg-[#EAB308]/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FDE68A] hover:bg-[#EAB308]/20"
+                    className="mt-2 inline-flex items-center rounded-full border border-[var(--line)] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--bone)]"
                   >
                     Verify your wallet
                   </button>
@@ -483,7 +484,7 @@ export default function HotelRequestPage() {
               type="submit"
               disabled={isSubmitting || !canSubmit || hotelUrlInvalid}
             >
-              {isSubmitting ? "Submitting…" : "Request Purple Price"}
+              {isSubmitting ? "Submitting…" : "Request a stay"}
             </button>
           </form>
 
@@ -495,18 +496,18 @@ export default function HotelRequestPage() {
         </div>
 
         {created ? (
-          <div className="pt-glass mt-8 rounded-3xl p-6 sm:p-8">
+          <div className="mt-8 rounded-lg border border-[var(--line)] bg-[var(--wall-2)] p-5 sm:p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/45">
-                  Concierge Timeline
+                <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
+                  Request
                 </p>
-                <h2 className="pt-serif mt-1 text-2xl font-semibold text-white">
-                  Request {created.requestCode}
+                <h2 className="club-display mt-1 text-2xl text-[var(--bone)]">
+                  {created.requestCode}
                 </h2>
               </div>
               <button
-                className="rounded-full border border-[#EAB308]/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#FDE68A] hover:bg-[#EAB308]/10 disabled:opacity-60"
+                className="rounded-full border border-[var(--line)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--bone)] disabled:opacity-60"
                 onClick={refreshStatus}
                 disabled={isRefreshing}
                 type="button"
@@ -515,41 +516,32 @@ export default function HotelRequestPage() {
               </button>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-emerald-300/35 bg-emerald-500/10 p-4 text-sm text-emerald-100">
-              Request submitted successfully. We have started negotiating now, and you should
-              receive an offer within 24 hours.
-            </div>
+            <p className="mt-5 text-sm text-[var(--bone-dim)]">
+              Request received. You pay the agency, not the club. An offer is expected within 24 hours.
+            </p>
 
-            <div className="mt-5 space-y-2">
+            <ol className="mt-5 divide-y divide-[var(--line)] border-y border-[var(--line)]">
               {statusLabels.map((step, index) => {
                 const active = index <= stepIndex;
                 return (
-                  <div
+                  <li
                     key={step.key}
-                    className={`flex items-start gap-3 rounded-xl border p-3 text-sm transition ${
-                      active
-                        ? "border-[#EAB308]/50 bg-[#EAB308]/10 text-[#F8E9B0]"
-                        : "border-white/10 bg-black/20 text-white/50"
+                    className={`flex items-start gap-3 py-3 text-sm ${
+                      active ? "text-[var(--bone)]" : "text-[var(--bone-faint)]"
                     }`}
                   >
-                    <span
-                      className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-                        active ? "bg-[#EAB308] text-black" : "bg-white/10 text-white/60"
-                      }`}
-                    >
-                      {index + 1}
-                    </span>
+                    <span>0{index + 1}</span>
                     <span>{step.text}</span>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
+            </ol>
 
             <Link
               href="/account/bookings"
-              className="mt-6 inline-flex rounded-full border border-[#EAB308]/60 bg-[#EAB308]/10 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#FDE68A] hover:bg-[#EAB308]/20"
+              className="mt-6 inline-flex text-[11px] uppercase tracking-[0.18em] text-[var(--ink)]"
             >
-              Go to Bookings
+              Your bookings
             </Link>
           </div>
         ) : null}
@@ -561,32 +553,25 @@ export default function HotelRequestPage() {
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setShowSubmitConfirm(false)}
           />
-          <div className="pt-glass-strong pt-safe-bottom-modal relative my-auto w-full max-w-md rounded-3xl p-8 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#EAB308]/15 text-2xl text-[#FDE047]">
-              ✦
-            </div>
-            <p className="mt-4 text-[10px] uppercase tracking-[0.22em] text-white/45">
+          <div className="relative my-auto w-full max-w-md rounded-lg border border-[var(--line)] bg-[var(--wall-2)] p-8 text-center">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
               {created.requestCode}
             </p>
-            <h3 className="pt-serif mt-2 text-2xl font-semibold text-white">
-              Negotiation started
-            </h3>
-            <p className="mt-3 text-sm text-white/70">
-              Your request is now in our concierge channels. We will deliver your private rate
-              within <span className="text-[#FDE68A]">24 hours</span> — track every step in your{" "}
-              <span className="text-[#FDE68A]">Travel Vault</span>.
+            <h3 className="club-display mt-2 text-2xl text-[var(--bone)]">Request received</h3>
+            <p className="mt-3 text-sm text-[var(--bone-dim)]">
+              You pay the agency, not the club. The offer shows up on your bookings.
             </p>
-            <div className="mt-6 flex flex-col items-center gap-2">
+            <div className="mt-6 flex flex-col items-center gap-3">
               <Link
                 href="/account/bookings"
-                className="pt-cta-gold inline-flex w-full justify-center rounded-full px-6 py-2.5 text-xs font-bold uppercase tracking-[0.18em]"
+                className="inline-flex w-full justify-center rounded-full bg-[var(--ink)] px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)]"
               >
-                Open Bookings
+                Your bookings
               </Link>
               <button
                 type="button"
                 onClick={() => setShowSubmitConfirm(false)}
-                className="text-[10px] uppercase tracking-widest text-white/55 hover:text-white"
+                className="text-[11px] uppercase tracking-[0.16em] text-[var(--bone-dim)]"
               >
                 Stay on this page
               </button>

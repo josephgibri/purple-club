@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Connection, VersionedTransaction } from "@solana/web3.js";
 import { ArrowRight, CheckCircle2, ExternalLink } from "lucide-react";
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
+import { rpcProxyUrl } from "@/lib/solana";
 import { confirmSignature } from "@/lib/purple-wallet/confirm";
 import {
   getSwapQuote,
@@ -29,8 +30,7 @@ interface SwapSummary {
 const TOKENS: TokenSymbol[] = ["SOL", "PBTC", "USDC"];
 
 function getConnection() {
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  return new Connection(`${origin}/api/rpc`, "confirmed");
+  return new Connection(rpcProxyUrl(), "confirmed");
 }
 
 interface Props {

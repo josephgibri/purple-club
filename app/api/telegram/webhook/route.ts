@@ -279,7 +279,7 @@ async function handleHelp(chatId: number): Promise<void> {
       `/start — Welcome message\n` +
       `/link — Connect your Solana wallet\n` +
       `/join — Request your group invite\n` +
-      `/status — Your balance, tier & hold progress\n` +
+      `/status — Your balance and club key\n` +
       `/help — This message`,
   });
 }

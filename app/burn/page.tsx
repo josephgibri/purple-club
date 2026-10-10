@@ -215,7 +215,7 @@ export default function BurnPage() {
               <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#EAB308]/45 bg-[#EAB308]/10 text-[10px] font-semibold text-[#FDE047]">
                 1
               </span>
-              You book a hotel through Purple Club at a wholesale rate.
+              You book through the club's travel partner. 0.25% of the booking value buys and burns PBTC. The club does not take a cut.
             </li>
             <li className="flex gap-3">
               <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#EAB308]/45 bg-[#EAB308]/10 text-[10px] font-semibold text-[#FDE047]">

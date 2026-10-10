@@ -27,6 +27,8 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 
+import { rpcProxyUrl } from "@/lib/solana";
+
 const QUOTE_API = "https://lite-api.jup.ag/swap/v1";
 
 export const PURPLE_FEE_BPS = 25; // 0.25%
@@ -49,9 +51,9 @@ function getFeeWalletOwner(): string | null {
 }
 
 function getRpcConnection(): Connection | null {
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  if (!origin) return null;
-  return new Connection(`${origin}/api/rpc`, "confirmed");
+  const url = rpcProxyUrl();
+  if (!url) return null;
+  return new Connection(url, "confirmed");
 }
 
 /**

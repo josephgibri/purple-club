@@ -25,7 +25,7 @@ export const MANIFESTO_BELIEFS: readonly Belief[] = [
   },
   {
     heading: "Membership is not a loyalty program.",
-    body: "It is a tribe. Ranks in The Purple Court are earned, not bought. Merchants join because members show up — and members stay because the savings are real and the standing is theirs.",
+    body: "Hold 1 PBTC and you are in. There is no ladder. Merchants join because members show up, and members spend with each other.",
   },
   {
     heading: "We are not building a token.",

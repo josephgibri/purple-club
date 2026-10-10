@@ -21,7 +21,7 @@ const WHY = [
   },
   {
     title: "Hotels anchor the network.",
-    body: "Wholesale travel keeps members active and saving. Your listing sits alongside an anchor people already use.",
+    body: "Members book stays through a travel partner. Your listing sits in Places, next to businesses they already use.",
     icon: Store,
   },
   {

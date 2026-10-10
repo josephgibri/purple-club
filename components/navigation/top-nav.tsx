@@ -1,128 +1,92 @@
 "use client";
 
-import { BedDouble, CircleUser, Landmark, Menu, Store, X } from "lucide-react";
+import { BedDouble, CircleUser, Landmark, MapPin } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect } from "react";
 
 import { PurpleClubAuthButton } from "@/components/auth/purple-club-auth-button";
+import { DogMark } from "@/components/brand/dog-mark";
+import { useWalletSession } from "@/hooks/useWalletSession";
 
-/**
- * Sticky top nav for the consolidated Purple Club shell.
- *
- * Four product tabs are always visible — My Account, Hotels, Lend,
- * Perks & Benefits — and each route gates itself behind <ProductGate>,
- * so the header stays stable for logged-out and member visitors alike.
- *
- * Verify (the public merchant scanner) lives in the footer now, and the
- * membership pass is reached from inside My Account rather than a
- * dedicated header link.
- *
- * Elevated surfaces (concierge desk, Perks review queue, promoter portal,
- * founder consoles) are all reached from My Account — there's a single
- * wallet identity, so the header stays the same for everyone.
- */
-export function TopNav() {
-  const [open, setOpen] = useState(false);
-  const pathname = usePathname();
-  const isVerifyRoute = pathname === "/verify";
-
-  return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0618]/70 backdrop-blur-xl">
-      {/* Mobile: flex so logo stays left and the menu sits on the right.
-          Desktop: 3-column grid keeps the nav links centered. */}
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6 md:grid md:grid-cols-[1fr_auto_1fr]">
-        <Link href="/" className="flex shrink-0 items-center gap-2 md:justify-self-start">
-          <span
-            aria-hidden
-            className="inline-block h-2.5 w-2.5 rounded-full bg-gold-accent shadow-[0_0_18px_rgba(246,196,83,0.65)]"
-          />
-          <span className="pc-serif text-lg font-semibold tracking-tight text-white">
-            Purple Club
-          </span>
-        </Link>
-
-        <nav
-          aria-label="Main"
-          className="hidden items-center justify-center gap-1 md:flex"
-        >
-          <NavLinks pathname={pathname} />
-        </nav>
-
-        <div className="flex shrink-0 items-center justify-end gap-2 md:justify-self-end">
-          {!isVerifyRoute ? (
-            <div className="hidden md:block">
-              <PurpleClubAuthButton />
-            </div>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => setOpen((value) => !value)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/5 md:hidden"
-            aria-label="Toggle mobile navigation"
-          >
-            {open ? <X size={18} /> : <Menu size={18} />}
-          </button>
-        </div>
-      </div>
-
-      {open ? (
-        <div className="border-t border-white/10 px-4 py-3 md:hidden">
-          <div className="mx-auto flex w-full max-w-5xl flex-col gap-3">
-            <NavLinks
-              pathname={pathname}
-              onNavigate={() => setOpen(false)}
-              mobile
-            />
-            {!isVerifyRoute ? <PurpleClubAuthButton /> : null}
-          </div>
-        </div>
-      ) : null}
-    </header>
-  );
-}
-
-type NavLinksProps = {
-  pathname: string;
-  onNavigate?: () => void;
-  mobile?: boolean;
-};
-
-const PRODUCT_TABS = [
-  { href: "/account", label: "My Account", icon: CircleUser },
-  { href: "/stay", label: "Hotels", icon: BedDouble },
-  { href: "/lend", label: "Lend", icon: Landmark },
-  { href: "/perks", label: "Perks & Benefits", icon: Store },
+const TABS = [
+  { href: "/account", label: "You", icon: CircleUser },
+  { href: "/places", label: "Places", icon: MapPin },
+  { href: "/council", label: "Council", icon: Landmark },
+  { href: "/stay", label: "Stays", icon: BedDouble },
 ] as const;
 
-function NavLinks({ pathname, onNavigate, mobile }: NavLinksProps) {
-  const base = mobile
-    ? "flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm"
-    : "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm";
+function isActive(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
-  function classFor(href: string) {
-    const active = pathname === href;
-    return `${base} ${
-      active ? "text-white bg-white/10" : "text-violet-100/85 hover:bg-white/10"
-    }`;
-  }
+/**
+ * Fixed top bar. The bottom tabs exist only after the key is held,
+ * and Home is not one of them.
+ */
+export function TopNav() {
+  const pathname = usePathname();
+  const session = useWalletSession();
+  const isMember = Boolean(session.authenticated && session.pbtcEligible);
+  const isVerifyRoute = pathname === "/verify";
+
+  useEffect(() => {
+    document.body.style.paddingBottom = isMember ? "4rem" : "0px";
+    return () => {
+      document.body.style.paddingBottom = "";
+    };
+  }, [isMember]);
 
   return (
     <>
-      {PRODUCT_TABS.map((tab) => {
-        const Icon = tab.icon;
-        return (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            onClick={onNavigate}
-            className={classFor(tab.href)}
-          >
-            <Icon size={14} />
-            {tab.label}
+      <header className="fixed inset-x-0 top-0 z-40 h-14 border-b border-[var(--line)] bg-[var(--wall)]">
+        <div className="mx-auto flex h-full w-full max-w-[1120px] items-center justify-between gap-3 px-4">
+          <Link href={isMember ? "/account" : "/"} className="flex min-w-0 items-center gap-2.5">
+            <DogMark size={28} />
+            <span className="club-display text-[13px] leading-none tracking-[0.14em]">
+              <span className="text-[var(--bone)]">Purple</span>{" "}
+              <span className="text-[var(--ink)]">Club</span>
+            </span>
           </Link>
-        );
-      })}
+
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
+              Live
+            </span>
+            {!isVerifyRoute ? <PurpleClubAuthButton /> : null}
+          </div>
+        </div>
+      </header>
+
+      {isMember ? (
+      <nav
+        aria-label="Club"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--line)] bg-[var(--wall)]"
+      >
+        <ul className="mx-auto grid h-16 w-full max-w-[1120px] grid-cols-4">
+          {TABS.map((tab) => {
+            const active = isActive(pathname, tab.href);
+            const Icon = tab.icon;
+            return (
+              <li key={tab.href}>
+                <Link
+                  href={tab.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`flex h-16 flex-col items-center justify-center gap-1 text-[10px] uppercase tracking-[0.14em] ${
+                    active
+                      ? "bg-[var(--wall-3)] text-[var(--bone)] shadow-[inset_0_2px_0_0_var(--ink)]"
+                      : "text-[var(--bone-dim)]"
+                  }`}
+                >
+                  <Icon size={16} aria-hidden />
+                  {tab.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      ) : null}
     </>
   );
 }

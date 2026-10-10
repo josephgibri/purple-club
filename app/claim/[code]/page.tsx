@@ -107,7 +107,7 @@ export default function ClaimGiftPage({
             : "Someone gifted you 1 PBTC"}
         </h1>
         <p className="mt-3 max-w-xl text-sm text-white/65">
-          PBTC unlocks Purple Club — a concierge service that negotiates wholesale rates on
+          PBTC is the key. Stays are 5% off the public rate, booked with the travel partner,
           luxury hotels for our community. Claim this gift and your 1 PBTC will be transferred
           to your wallet automatically the moment you claim.
         </p>
@@ -230,7 +230,7 @@ export default function ClaimGiftPage({
                     <p className="mt-1 text-emerald-100/85">
                       You&apos;re officially in the club. The next step is to
                       paste a hotel link on the homepage and let the concierge
-                      negotiate a wholesale rate for you.
+                      book it with the travel partner: 5% off the public rate. You pay the agency, not the club.
                     </p>
                   </div>
                   {/* Big primary CTA. The previous design buried "head to

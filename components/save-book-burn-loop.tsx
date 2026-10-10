@@ -76,7 +76,7 @@ function ArrowIcon({ className }: IconProps) {
 const STAGES = [
   {
     title: "Save",
-    detail: "Wholesale rates, up to 20% off retail.",
+    detail: "5% off the public rate. You pay the agency, not the club.",
     Icon: SaveIcon,
   },
   {

@@ -7,6 +7,7 @@ import {
   normaliseMerchantType,
 } from "@/lib/dbSchemas";
 import { sendListingApprovedEmail, sendListingRejectedEmail } from "@/lib/email";
+import { listingContactEmail } from "@/lib/listing-contact";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -98,30 +99,19 @@ export async function PATCH(request: Request, { params }: Params): Promise<Respo
     return updated;
   });
 
-  if (existing.status !== "APPROVED" && isApproving) {
-    const profile = await db.merchantProfile.findUnique({
-      where: { id: listing.merchantProfileId },
-      include: { user: { select: { email: true } } },
+  const to = await listingContactEmail(listing.id);
+  if (to && existing.status !== "APPROVED" && isApproving) {
+    void sendListingApprovedEmail({
+      to,
+      businessName: listing.businessName,
+      merchantId: listing.merchantId,
     });
-    if (profile?.user.email) {
-      void sendListingApprovedEmail({
-        to: profile.user.email,
-        businessName: listing.businessName,
-        merchantId: listing.merchantId,
-      });
-    }
-  } else if (existing.status !== "REJECTED" && isRejecting) {
-    const profile = await db.merchantProfile.findUnique({
-      where: { id: listing.merchantProfileId },
-      include: { user: { select: { email: true } } },
+  } else if (to && existing.status !== "REJECTED" && isRejecting) {
+    void sendListingRejectedEmail({
+      to,
+      businessName: listing.businessName,
+      reason: data.rejectionReason ?? "Please review and resubmit.",
     });
-    if (profile?.user.email) {
-      void sendListingRejectedEmail({
-        to: profile.user.email,
-        businessName: listing.businessName,
-        reason: data.rejectionReason ?? "Please review and resubmit.",
-      });
-    }
   }
 
   return Response.json({ ok: true, listing });

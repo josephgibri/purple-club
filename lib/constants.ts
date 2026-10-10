@@ -2,10 +2,8 @@
  * Single source of truth for brand strings, the PBTC asset, and the
  * surface URLs the consolidated Purple Club shell links out to.
  *
- * Most product surfaces are now INTERNAL routes inside this app
- * (`/stay`, `/perks`, `/lend`). Two stay external on purpose:
- *   - Council  → governance of the ownerless treasury
- *   - Lend app → the audited money-movement app (ships post-audit)
+ * Internal routes: Places, Stays, Council, You.
+ * Lending, OTC, and the weekly lottery are not part of the club.
  */
 
 export const BRAND_NAME = "Purple Club";
@@ -35,19 +33,16 @@ export const SOLSCAN_BURN_ACTIVITY_URL = `${SOLSCAN_TOKEN_URL}?activity_type=ACT
  */
 export const SURFACE_URLS = {
   stay: "/stay",
-  perks: "/perks",
-  lend: "/lend",
+  places: "/places",
+  perks: "/places",
   account: "/account",
-  council: process.env.NEXT_PUBLIC_COUNCIL_URL ?? "https://council.purpleclub.org",
-  lendApp: process.env.NEXT_PUBLIC_LEND_URL ?? "https://lend.purpleclub.org",
+  council: "/council",
 } as const;
 
 /**
- * The Burn — three independent, one-way sources of supply compression.
- * Used by the homepage and the investor thesis.
+ * The only burn the club talks about. Funded by the travel partner,
+ * from booking value. Not a club fee, and not a deflation claim.
  */
 export const BURN_SOURCES = [
-  { label: "Per Hotels booking", value: "0.25%" },
-  { label: "Per Lend loan", value: "0.25%" },
-  { label: "Per 100K PBTC transactions", value: "1 SOL" },
+  { label: "Of booking value, funded by the travel partner", value: "0.25%" },
 ] as const;

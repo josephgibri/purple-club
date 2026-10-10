@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { ArrowRight, CheckCircle2, Loader2, Send } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 
 import { JUPITER_SWAP_URL } from "@/lib/constants";
 import {
@@ -91,11 +91,10 @@ export function CommunityCard() {
   }, []);
 
   return (
-    <section className="rounded-3xl border border-purple-accent/30 bg-gradient-to-br from-[#1a0c39] via-[#130922] to-[#0e0720] p-6">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-purple-300">
-        <Send size={13} />
-        Community Lounge
-      </div>
+    <section className="rounded-lg border border-[var(--line)] bg-[var(--wall-2)] p-6">
+      <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--bone-faint)]">
+        Telegram
+      </p>
 
       <CardBody
         status={status}
@@ -120,18 +119,16 @@ function Banner({
   return (
     <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
       <div className="max-w-xl">
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-white">{title}</h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-violet-100/65">{description}</p>
+        <h2 className="flex items-center gap-2 text-lg text-[var(--bone)]">{title}</h2>
+        <p className="mt-1.5 text-sm leading-relaxed text-[var(--bone-dim)]">{description}</p>
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
   );
 }
 
-const PURPLE_BTN =
-  "inline-flex items-center gap-1.5 rounded-full bg-purple-accent/80 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-purple-accent";
-const GOLD_BTN =
-  "inline-flex items-center gap-1.5 rounded-full bg-gold-accent px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-black transition hover:brightness-110";
+const GROUP_BTN =
+  "inline-flex items-center gap-1.5 rounded-full bg-[var(--ink)] px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)]";
 
 function CardBody({
   status,
@@ -147,7 +144,7 @@ function CardBody({
   switch (status.kind) {
     case "loading":
       return (
-        <div className="mt-4 flex items-center gap-2 text-sm text-violet-100/65">
+        <div className="mt-4 flex items-center gap-2 text-sm text-[var(--bone-dim)]">
           <Loader2 size={16} className="animate-spin" />
           Loading…
         </div>
@@ -158,15 +155,15 @@ function CardBody({
         <Banner
           title={
             <>
-              <CheckCircle2 size={18} className="text-emerald-400" />
-              You&apos;re in the lounge
+              <CheckCircle2 size={18} className="text-[var(--ok)]" />
+              You&apos;re in the group
             </>
           }
-          description="Your Telegram is linked and you're a member of the Purple Club group. Your tier updates automatically with your holdings."
+          description="The club talks here. Bookings, places, and votes are the record. The conversation is on Telegram."
           action={
             groupUrl ? (
-              <a href={groupUrl} target="_blank" rel="noopener noreferrer" className={PURPLE_BTN}>
-                Open Telegram group
+              <a href={groupUrl} target="_blank" rel="noopener noreferrer" className={GROUP_BTN}>
+                Open the group
                 <ArrowRight size={12} />
               </a>
             ) : null
@@ -177,10 +174,10 @@ function CardBody({
     case "eligible":
       return (
         <Banner
-          title="You're verified — join the group"
-          description="Tap to open your one-time invite in Telegram. It expires in an hour."
+          title="Join the group"
+          description="This invite works once and expires in an hour. The club talks on Telegram."
           action={
-            <a href={status.inviteLink} target="_blank" rel="noopener noreferrer" className={PURPLE_BTN}>
+            <a href={status.inviteLink} target="_blank" rel="noopener noreferrer" className={GROUP_BTN}>
               Join the group
               <ArrowRight size={12} />
             </a>
@@ -194,9 +191,9 @@ function CardBody({
           title="Telegram connected"
           description={`You hold ${status.balance.toLocaleString(undefined, {
             maximumFractionDigits: 2,
-          })} PBTC. Hold at least 1 PBTC to unlock your invite to the community.`}
+          })} PBTC. Hold at least 1 PBTC to get the invite.`}
           action={
-            <a href={JUPITER_SWAP_URL} target="_blank" rel="noopener noreferrer" className={GOLD_BTN}>
+            <a href={JUPITER_SWAP_URL} target="_blank" rel="noopener noreferrer" className={GROUP_BTN}>
               Buy PBTC
               <ArrowRight size={12} />
             </a>
@@ -206,7 +203,7 @@ function CardBody({
 
     case "connecting":
       return (
-        <div className="mt-4 flex items-center gap-2 text-sm text-violet-100/65">
+        <div className="mt-4 flex items-center gap-2 text-sm text-[var(--bone-dim)]">
           <Loader2 size={16} className="animate-spin" />
           Verifying your Telegram…
         </div>
@@ -215,10 +212,10 @@ function CardBody({
     case "error":
       return (
         <>
-          <p className="mt-3 text-sm text-red-300">{status.message}</p>
+          <p className="mt-3 text-sm text-[var(--warn)]">{status.message}</p>
           <button
             onClick={onRetry}
-            className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-purple-300 hover:text-purple-200"
+            className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink)]"
           >
             Try again
           </button>
@@ -229,8 +226,8 @@ function CardBody({
     default:
       return (
         <Banner
-          title="Join the Purple Club group"
-          description="Connect with fellow members and build the tribe. Link your Telegram — one click, no bot commands — and we'll get you in."
+          title="The group"
+          description="All the talk is on Telegram. Link once, then open the group from here."
           action={<TelegramLoginButton botUsername={status.botUsername} onAuth={onAuth} />}
         />
       );

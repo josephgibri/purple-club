@@ -38,8 +38,13 @@ type Listing = {
   rejectionReason: string | null;
   approvedAt: string | null;
   updatedAt: string;
-  profile: { user: { email: string; username: string } };
+  profile: { user: { email: string; username: string } } | null;
+  owner: { email: string | null } | null;
 };
+
+function contactEmail(listing: Listing): string {
+  return listing.profile?.user.email || listing.owner?.email || "";
+}
 
 type FormState = {
   merchantId: string;
@@ -303,10 +308,10 @@ export function AdminReviewsClient() {
                 >
                   <p className="font-semibold">{listing.businessName}</p>
                   <p className="mt-1 text-xs text-violet-100/70">
-                    {listing.profile.user.email}
+                    {contactEmail(listing) || "No email"}
                   </p>
                   <p className="mt-1 flex flex-wrap gap-1 text-[10px]">
-                    {emailDomain(listing.profile.user.email) === websiteDomain(listing.website) &&
+                    {emailDomain(contactEmail(listing)) === websiteDomain(listing.website) &&
                     websiteDomain(listing.website) ? (
                       <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-emerald-200">
                         Domain ✓
@@ -336,7 +341,7 @@ export function AdminReviewsClient() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <a
-                    href={`mailto:${selected.profile.user.email}?subject=${encodeURIComponent(
+                    href={`mailto:${contactEmail(selected)}?subject=${encodeURIComponent(
                       `Purple Club listing: ${selected.businessName}`,
                     )}`}
                     className="rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-semibold text-violet-100"
@@ -440,7 +445,7 @@ export function AdminReviewsClient() {
 }
 
 function VerificationBadges({ listing }: { listing: Listing }) {
-  const userDomain = emailDomain(listing.profile.user.email);
+  const userDomain = emailDomain(contactEmail(listing));
   const siteDomain = websiteDomain(listing.website);
   const domainMatch = userDomain && siteDomain && userDomain === siteDomain;
 

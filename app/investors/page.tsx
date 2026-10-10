@@ -108,12 +108,12 @@ export default function InvestorsPage() {
           The Burn
         </div>
         <h2 className="pc-serif mt-3 text-2xl font-semibold text-white sm:text-3xl">
-          Three sources. One direction.
+          One burn. The partner pays it.
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-violet-100/75">
-          We monetize the secondary market other projects ignore: usage and
-          transaction volume both feed an on-chain SPL burn. No fee dependency,
-          three independent sources, one-way supply compression.
+          Stays are booked with a licensed travel partner. 0.25% of booking
+          value is used by that partner to buy and burn PBTC. The club takes
+          nothing. This is not a claim that the supply will move.
         </p>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           {BURN_SOURCES.map((source) => (

@@ -20,6 +20,9 @@ export async function GET(request: Request): Promise<Response> {
           },
         },
       },
+      owner: {
+        select: { email: true },
+      },
       reviews: {
         orderBy: { createdAt: "desc" },
         take: 5,

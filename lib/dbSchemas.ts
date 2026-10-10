@@ -138,6 +138,7 @@ export function normaliseMerchantType(value: {
 function validateChannelFields(
   value: { merchantType?: MerchantTypeValue; isOnline?: boolean; country?: string; city?: string; fullAddress?: string; promoCode?: string },
   ctx: z.RefinementCtx,
+  options?: { countryOptional?: boolean },
 ) {
   const resolved = normaliseMerchantType(value);
   // Promo code is mandatory whenever there's an online checkout, since
@@ -156,7 +157,7 @@ function validateChannelFields(
   }
   // Address fields are mandatory whenever there's a physical storefront.
   if (resolved.hasPhysicalLocation) {
-    if (!value.country) {
+    if (!options?.countryOptional && !value.country) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["country"], message: "Country is required." });
     }
     if (!value.city) {
@@ -175,16 +176,27 @@ export const listingDraftSchema = z
   })
   .superRefine(validateChannelFields);
 
+const reviewAsset = z
+  .string()
+  .trim()
+  .refine(
+    (value) => value === "" || value.startsWith("/") || WEBSITE_REGEX.test(value),
+    "Use a full URL or leave it blank.",
+  );
+
 export const adminListingEditSchema = z
   .object({
     ...baseListingShape,
+    website: reviewAsset,
+    logoUrl: reviewAsset,
+    heroImageUrl: reviewAsset,
     status: z
       .enum(["DRAFT", "SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED"])
       .optional(),
     adminNotes: z.string().trim().max(2000).optional(),
     rejectionReason: z.string().trim().max(500).optional(),
   })
-  .superRefine(validateChannelFields);
+  .superRefine((value, ctx) => validateChannelFields(value, ctx, { countryOptional: true }));
 
 export function deriveMerchantId(input: { merchantId?: string; businessName: string }): string {
   const clean = input.merchantId?.trim();

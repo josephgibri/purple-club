@@ -21,12 +21,13 @@ export async function GET(): Promise<Response> {
       rawType === "ONLINE" || rawType === "LOCAL" || rawType === "HYBRID"
         ? rawType
         : "LOCAL";
+    const place = [item.city, item.country].filter((part) => part.trim()).join(", ");
     const coverage =
       merchantType === "ONLINE"
         ? "Worldwide"
         : merchantType === "HYBRID"
-          ? `${item.city}, ${item.country} · Also online`
-          : `${item.city}, ${item.country}`;
+          ? `${place} · Also online`
+          : place;
     return {
       id: item.merchantId,
       name: item.businessName,
@@ -51,6 +52,7 @@ export async function GET(): Promise<Response> {
       ctaHref: item.website || undefined,
       ctaLabel: item.website ? "Visit Website" : undefined,
       verificationHint: item.approvedAt ? "Approved by Purple Club admin." : undefined,
+      lastVerified: item.approvedAt ? item.approvedAt.toISOString() : undefined,
       lat: item.lat ?? undefined,
       lng: item.lng ?? undefined,
       socialPlatform: item.socialPlatform ?? undefined,

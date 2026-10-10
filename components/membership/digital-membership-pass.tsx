@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef } from "react";
 
+import { Portal } from "@/components/auth/portal";
 import { MembershipPassCard } from "@/components/membership/membership-pass-card";
 
 type DigitalMembershipPassProps = {
@@ -72,26 +73,26 @@ export function DigitalMembershipPass({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center">
-      <div className="scanline-overlay pointer-events-none absolute inset-0" />
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Purple Club digital membership pass"
-        className="relative w-full max-w-md rounded-3xl border border-violet-300/25 bg-[#0d0720] p-5 pb-6 shadow-2xl shadow-violet-950/60 sm:p-6"
-      >
-        <button
-          ref={closeButtonRef}
-          type="button"
-          onClick={close}
-          className="absolute right-4 top-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-violet-200/20 bg-black/35 text-white"
-          aria-label="Close membership pass"
+    <Portal>
+      <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-black/80 p-3 sm:p-4">
+        <div className="scanline-overlay pointer-events-none absolute inset-0" />
+        <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Purple Club digital membership pass"
+          className="relative my-auto w-full max-w-sm rounded-3xl border border-violet-300/25 bg-[#0d0720] p-3 shadow-2xl shadow-violet-950/60 sm:p-4"
         >
-          <X size={22} />
-        </button>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={close}
+            className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full border border-violet-200/20 bg-black/35 text-white"
+            aria-label="Close membership pass"
+          >
+            <X size={18} />
+          </button>
 
-        <div className="mt-10">
           <MembershipPassCard
             enabled={isOpen}
             walletAddress={walletAddress}
@@ -100,16 +101,16 @@ export function DigitalMembershipPass({
             signedAtIso={signedAtIso}
             variant="modal"
           />
-        </div>
 
-        <Link
-          href="/pass"
-          onClick={close}
-          className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-gold-accent/40 bg-black/25 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-gold-accent hover:bg-black/35"
-        >
-          Open Full-Screen Pass
-        </Link>
+          <Link
+            href="/pass"
+            onClick={close}
+            className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-gold-accent/40 bg-black/25 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-accent hover:bg-black/35"
+          >
+            Open Full-Screen Pass
+          </Link>
+        </div>
       </div>
-    </div>
+    </Portal>
   );
 }

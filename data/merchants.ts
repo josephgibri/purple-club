@@ -111,6 +111,8 @@ export type Merchant = {
   ctaLabel?: string;
   ctaHref?: string;
   verificationHint?: string;
+  /** ISO timestamp of the last approval, when the listing came from the database. */
+  lastVerified?: string;
   lat?: number;
   lng?: number;
   socialPlatform?: SocialPlatform;

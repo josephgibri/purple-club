@@ -1,6 +1,7 @@
 import { hasPerksAdminAccess, readSession } from "@/lib/wallet-session";
 import { db } from "@/lib/db";
 import { sendListingApprovedEmail } from "@/lib/email";
+import { listingContactEmail } from "@/lib/listing-contact";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -25,16 +26,16 @@ export async function POST(_request: Request, { params }: Params): Promise<Respo
         },
       },
     },
-    include: {
-      profile: { include: { user: { select: { email: true } } } },
-    },
   });
 
-  void sendListingApprovedEmail({
-    to: listing.profile.user.email,
-    businessName: listing.businessName,
-    merchantId: listing.merchantId,
-  });
+  const to = await listingContactEmail(listing.id);
+  if (to) {
+    void sendListingApprovedEmail({
+      to,
+      businessName: listing.businessName,
+      merchantId: listing.merchantId,
+    });
+  }
 
   return Response.json({ ok: true, listing });
 }

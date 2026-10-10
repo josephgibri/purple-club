@@ -3,6 +3,7 @@ import { z } from "zod";
 import { hasPerksAdminAccess, readSession } from "@/lib/wallet-session";
 import { db } from "@/lib/db";
 import { sendListingRejectedEmail } from "@/lib/email";
+import { listingContactEmail } from "@/lib/listing-contact";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -43,16 +44,16 @@ export async function POST(request: Request, { params }: Params): Promise<Respon
         },
       },
     },
-    include: {
-      profile: { include: { user: { select: { email: true } } } },
-    },
   });
 
-  void sendListingRejectedEmail({
-    to: listing.profile.user.email,
-    businessName: listing.businessName,
-    reason: parsed.data.reason,
-  });
+  const to = await listingContactEmail(listing.id);
+  if (to) {
+    void sendListingRejectedEmail({
+      to,
+      businessName: listing.businessName,
+      reason: parsed.data.reason,
+    });
+  }
 
   return Response.json({ ok: true, listing });
 }

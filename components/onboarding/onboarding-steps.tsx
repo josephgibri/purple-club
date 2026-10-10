@@ -106,9 +106,9 @@ export function OnboardingSteps({ className = "" }: OnboardingStepsProps) {
   if (!hasMounted) {
     return (
       <div
-        className={`rounded-2xl border border-white/10 bg-black/30 p-4 text-xs text-violet-100/55 ${className}`}
+        className={`border border-[var(--line)] bg-[var(--wall-2)] p-4 text-xs text-[var(--bone-dim)] ${className}`}
       >
-        Preparing your onboarding…
+        Preparing your steps…
       </div>
     );
   }
@@ -150,8 +150,8 @@ export function OnboardingSteps({ className = "" }: OnboardingStepsProps) {
           : "Add Phantom to your browser",
     hint:
       installStatus === "done"
-        ? "Detected — moving to sign-in."
-        : "Phantom is the most popular Solana wallet — used by millions. Free, takes about a minute.",
+        ? "Phantom is here."
+        : "Phantom is a Solana wallet. Free. About a minute.",
     body: installStatus !== "done" ? <InstallPhantomCta /> : undefined,
   });
 
@@ -161,13 +161,12 @@ export function OnboardingSteps({ className = "" }: OnboardingStepsProps) {
       step: step++,
       status: "active",
       title: "Open this page inside Phantom",
-      hint:
-        "Tap below — Phantom's in-app browser is where the rest of the flow happens on mobile.",
+      hint: "The rest of this happens in Phantom's browser.",
       body: (
         <button
           type="button"
           onClick={handleOpenInPhantom}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#AB9FF2] px-5 py-3 text-sm font-bold text-black shadow-[0_8px_24px_rgba(171,159,242,0.35)] hover:bg-[#C0B6FA]"
+          className="inline-flex items-center justify-center bg-[var(--ink)] px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)]"
         >
           Open this page in Phantom
         </button>
@@ -179,21 +178,18 @@ export function OnboardingSteps({ className = "" }: OnboardingStepsProps) {
     id: "sign",
     step: step++,
     status: signStatus,
-    title:
-      signStatus === "done"
-        ? "Wallet signed in"
-        : "Sign in (read-only)",
+    title: signStatus === "done" ? "Wallet signed in" : "Sign in",
     hint:
       signStatus === "done"
-        ? "Signature is good for 24 hours."
-        : "One-tap signature in your wallet. No transaction, no fee — Purple Club only reads your PBTC balance.",
+        ? "Signed in. Good for 24 hours."
+        : "One signature. No fee. The club only reads the balance.",
     body:
       signStatus === "active" ? (
         <button
           type="button"
           onClick={() => void enter()}
           disabled={isSignInPending}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#AB9FF2] px-5 py-3 text-sm font-bold text-black shadow-[0_8px_24px_rgba(171,159,242,0.35)] hover:bg-[#C0B6FA] disabled:opacity-60"
+          className="inline-flex items-center justify-center bg-[var(--ink)] px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)] disabled:opacity-60"
         >
           {isSignInPending ? "Waiting for wallet…" : "Connect & sign in"}
         </button>
@@ -209,18 +205,18 @@ export function OnboardingSteps({ className = "" }: OnboardingStepsProps) {
         ? `1 PBTC found in your wallet (${balance.toLocaleString(undefined, {
             maximumFractionDigits: 4,
           })})`
-        : "Get 1 PBTC",
+        : "Hold 1 PBTC",
     hint:
       buyStatus === "done"
-        ? "You meet the membership minimum."
-        : "Purple Club is gated by holding ≥ 1 PBTC on Solana. Buy on Jupiter in a couple of taps — you keep custody, we never touch your tokens.",
+        ? "The key is in the wallet."
+        : "The key is 1 PBTC, held in your wallet. Buy it on Jupiter. The club never holds it.",
     body:
       buyStatus === "active" ? (
         <a
           href={JUPITER_BUY_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-gold-accent px-5 py-3 text-sm font-bold text-black shadow-[0_8px_24px_rgba(246,196,83,0.35)] hover:brightness-110"
+          className="inline-flex items-center justify-center bg-[var(--ink)] px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)]"
         >
           Buy 1 PBTC on Jupiter
         </a>
@@ -231,27 +227,25 @@ export function OnboardingSteps({ className = "" }: OnboardingStepsProps) {
     id: "enter",
     step: step++,
     status: enterStatus,
-    title: enterStatus === "active" ? "You're in — enter the directory" : "Enter Purple Club",
+    title: enterStatus === "active" ? "The club is open" : "Enter the club",
     hint:
       enterStatus === "active"
-        ? "Browse merchants, copy promo codes, show your live pass at any Purple Hub."
-        : "Finish the steps above and the directory unlocks here automatically.",
+        ? "Places is open."
+        : "Finish the steps. The club opens here.",
   });
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <p className="text-[10px] uppercase tracking-[0.22em] text-violet-100/55">
-        {phases.length} quick step{phases.length === 1 ? "" : "s"}
+      <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
+        {phases.length} step{phases.length === 1 ? "" : "s"}
       </p>
       <ol className="space-y-3">
         {phases.map((phase) => (
           <PhaseCard key={phase.id} phase={phase} />
         ))}
       </ol>
-      <p className="text-[10px] text-violet-100/45">
-        New to crypto? A wallet is just an app that holds digital items —
-        like a bank account, but you control the keys. Setting one up is
-        free and takes a minute.
+      <p className="text-[11px] text-[var(--bone-faint)]">
+        A wallet is an app that holds the key. Setup is free.
       </p>
     </div>
   );
@@ -259,14 +253,12 @@ export function OnboardingSteps({ className = "" }: OnboardingStepsProps) {
 
 function PhaseCard({ phase }: { phase: Phase }) {
   const tone =
-    phase.status === "done"
-      ? "border-emerald-300/30 bg-emerald-500/5 text-emerald-100"
-      : phase.status === "active"
-        ? "border-purple-accent/55 bg-purple-accent/12 text-white shadow-[0_0_24px_rgba(123,47,247,0.18)]"
-        : "border-white/10 bg-black/30 text-violet-100/55";
+    phase.status === "active"
+      ? "border-[var(--ink)] bg-[var(--wall-2)]"
+      : "border-[var(--line)] bg-[var(--wall-2)]";
   return (
     <li
-      className={`rounded-2xl border p-4 transition ${tone}`}
+      className={`border p-4 ${tone}`}
       aria-current={phase.status === "active" ? "step" : undefined}
     >
       <div className="flex items-start gap-3">
@@ -274,19 +266,13 @@ function PhaseCard({ phase }: { phase: Phase }) {
         <div className="min-w-0 flex-1">
           <p
             className={`text-sm font-semibold ${
-              phase.status === "pending" ? "text-violet-100/65" : "text-white"
+              phase.status === "pending" ? "text-[var(--bone-dim)]" : "text-[var(--bone)]"
             }`}
           >
             {phase.title}
           </p>
           {phase.hint ? (
-            <p
-              className={`mt-1 text-[11px] leading-snug ${
-                phase.status === "pending" ? "text-violet-100/45" : "text-violet-100/70"
-              }`}
-            >
-              {phase.hint}
-            </p>
+            <p className="mt-1 text-[11px] leading-snug text-[var(--bone-dim)]">{phase.hint}</p>
           ) : null}
           {phase.body ? <div className="mt-3">{phase.body}</div> : null}
         </div>
@@ -297,29 +283,18 @@ function PhaseCard({ phase }: { phase: Phase }) {
 
 function StepBadge({ step, status }: { step: number; status: PhaseStatus }) {
   const base =
-    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold";
+    "flex h-7 w-7 shrink-0 items-center justify-center text-[11px] font-semibold";
   if (status === "done") {
     return (
-      <span
-        className={`${base} bg-emerald-400/20 text-emerald-200`}
-        aria-label="completed"
-      >
+      <span className={`${base} text-[var(--ok)]`} aria-label="completed">
         ✓
       </span>
     );
   }
   if (status === "active") {
-    return (
-      <span
-        className={`${base} bg-purple-accent text-white shadow-[0_0_12px_rgba(123,47,247,0.5)]`}
-      >
-        {step}
-      </span>
-    );
+    return <span className={`${base} bg-[var(--ink)] text-[var(--bone)]`}>{step}</span>;
   }
   return (
-    <span className={`${base} border border-white/15 bg-transparent text-violet-100/55`}>
-      {step}
-    </span>
+    <span className={`${base} border border-[var(--line)] text-[var(--bone-faint)]`}>{step}</span>
   );
 }

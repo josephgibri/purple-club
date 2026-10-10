@@ -61,7 +61,7 @@ export function InstallPhantomCta({ className = "" }: InstallPhantomCtaProps) {
         href={primary.href}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex items-center justify-center gap-2 rounded-full bg-[#AB9FF2] px-5 py-3 text-sm font-bold text-black shadow-[0_8px_24px_rgba(171,159,242,0.35)] hover:bg-[#C0B6FA]"
+        className="inline-flex items-center justify-center bg-[var(--ink)] px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)]"
       >
         {primary.label}
       </a>
@@ -69,7 +69,7 @@ export function InstallPhantomCta({ className = "" }: InstallPhantomCtaProps) {
         href={PHANTOM_DOWNLOAD_PAGE}
         target="_blank"
         rel="noreferrer"
-        className="text-center text-[11px] text-violet-100/55 underline-offset-2 hover:text-violet-100/85 hover:underline"
+        className="text-center text-[11px] uppercase tracking-[0.14em] text-[var(--bone-faint)] underline-offset-2 hover:text-[var(--bone-dim)] hover:underline"
       >
         Other platforms · Firefox / Brave / desktop browsers
       </a>

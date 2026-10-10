@@ -1,13 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #080512;
-  --foreground: #f6f0ff;
-  --surface: #140a2d;
-  --surface-muted: #1e1040;
-  --border: #352065;
-  --purple-accent: #7b2ff7;
-  --gold-accent: #f6c453;
+  --wall: #0d0b14;
+  --wall-2: #120e1c;
+  --wall-3: #171226;
+  --ink: #8b5cf6;
+  --ink-deep: #6d28d9;
+  --ink-glow: rgba(139, 92, 246, 0.35);
+  --bone: #e7e4de;
+  --bone-dim: #8a8794;
+  --bone-faint: #55525f;
+  --line: rgba(231, 228, 222, 0.08);
+  --ok: #4ade80;
+  --warn: #fbbf24;
+
+  /* Legacy names, remapped onto the wall so existing screens inherit it. */
+  --background: var(--wall);
+  --foreground: var(--bone);
+  --surface: var(--wall-2);
+  --surface-muted: var(--wall-3);
+  --border: var(--line);
+  --purple-accent: var(--ink);
+  --gold-accent: var(--ink);
 }
 
 @theme inline {
@@ -23,9 +37,76 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--wall);
+  color: var(--bone);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.club-display {
+  font-family: var(--font-display), "Arial Narrow", Impact, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.club-atmosphere {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+
+.club-grain {
+  opacity: 0.14;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>");
+  mix-blend-mode: overlay;
+}
+
+.club-scan {
+  opacity: 0.18;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.28) 3px
+  );
+}
+
+.club-vignette {
+  background: radial-gradient(ellipse at center, transparent 42%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.dog-eye {
+  position: absolute;
+  top: 38%;
+  right: 22%;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: #c4b5fd;
+  box-shadow: 0 0 6px var(--ink-glow);
+  animation: dog-eye-pulse 7s ease-in-out infinite;
+}
+
+@keyframes dog-eye-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dog-eye {
+    animation: none;
+    opacity: 1;
+  }
+
+  .club-grain {
+    opacity: 0.08;
+  }
 }
 
 /* Wordmark serif. Same Playfair Display recipe used by Purple Lending
@@ -231,6 +312,53 @@ body {
 
 .pt-input::placeholder {
   color: rgba(245, 243, 255, 0.35);
+}
+
+.stay-room .pt-input {
+  background: var(--wall);
+  border: 1px solid var(--line);
+  color: var(--bone);
+  box-shadow: none;
+}
+
+.stay-room .pt-input:focus {
+  border-color: var(--ink);
+  box-shadow: none;
+  background: var(--wall);
+}
+
+.stay-room .pt-input::placeholder {
+  color: var(--bone-faint);
+}
+
+.stay-room .pt-cta-gold,
+.stay-room .pt-cta-gold:hover,
+.stay-room .pt-cta-gold:active {
+  background: var(--ink);
+  color: var(--bone);
+  box-shadow: none;
+  filter: none;
+  transform: none;
+}
+
+.stay-room .pt-glass,
+.stay-room .pt-glass-strong {
+  background: var(--wall-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.stay-room .pt-serif {
+  font-family: var(--font-display), Oswald, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stay-room .pt-cta-pulse::after {
+  background: none;
+  animation: none;
 }
 
 @media (max-width: 640px) {

@@ -17,6 +17,7 @@ import {
 import Image from "next/image";
 import { ScanLine, CheckCircle2, ExternalLink } from "lucide-react";
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
+import { rpcProxyUrl } from "@/lib/solana";
 import { confirmSignature } from "@/lib/purple-wallet/confirm";
 import type { WalletBalances } from "@/lib/purple-wallet/balances";
 import { QrScanner } from "./qr-scanner";
@@ -32,8 +33,7 @@ const TOKEN_DECIMALS: Record<Token, number> = { SOL: 9, PBTC: 9, USDC: 6 };
 const SOL_FEE_RESERVE = 0.001;
 
 function getConnection() {
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  return new Connection(`${origin}/api/rpc`, "confirmed");
+  return new Connection(rpcProxyUrl(), "confirmed");
 }
 
 function getMint(token: Token): string {

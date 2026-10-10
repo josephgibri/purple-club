@@ -121,7 +121,11 @@ model ListingEvent {
 
 model MerchantListing {
   id               String         @id @default(cuid())
-  merchantProfileId String
+  /// Email-account listings. Null when a wallet member listed the place.
+  merchantProfileId String?
+  /// Wallet member who listed this place. One place per member.
+  /// Null for listings that still belong to an email merchant account.
+  userId           String?        @unique
   merchantId       String         @unique
   businessName     String
   businessBrief    String
@@ -160,7 +164,8 @@ model MerchantListing {
   approvedAt       DateTime?
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  profile          MerchantProfile @relation(fields: [merchantProfileId], references: [id], onDelete: Cascade)
+  profile          MerchantProfile? @relation(fields: [merchantProfileId], references: [id], onDelete: Cascade)
+  owner            User?            @relation("MemberPlace", fields: [userId], references: [id], onDelete: Cascade)
   reviews          ListingReview[]
   events           ListingEvent[]
 }
@@ -286,12 +291,20 @@ model User {
   id                       String                    @id @default(cuid())
   wallet                   String                    @unique
   email                    String?
+  emailVerifiedAt          DateTime?
+  emailVerifyTokenHash     String?                   @unique
+  emailVerifyExpires       DateTime?
   hasUnlockedGifting       Boolean                   @default(false)
   travelRequests           TravelRequest[]
   giftClaimsCreated        GiftClaim[]               @relation("GiftClaimCreator")
   giftClaimsRedeemed       GiftClaim[]               @relation("GiftClaimRecipient")
   campaignClaimsRedeemed   InfluencerCampaignClaim[] @relation("CampaignClaimRecipient")
   telegramMember           TelegramMember?
+  ccLedger                 CcLedger[]
+  ccRequests               CcRequest[]
+  proposalsCreated         Proposal[]                @relation("ProposalCreator")
+  councilVotes             Vote[]
+  place                    MerchantListing?          @relation("MemberPlace")
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime                  @updatedAt
 }
@@ -550,4 +563,155 @@ model BurnEvent {
 
   @@index([kind])
   @@index([committedAt])
+}
+
+// ---------------------------------------------------------------------------
+// Council. Copied from Purple DAO so donations and votes live in this database.
+// Weight is active contribution credit: ledger rows that have not expired.
+// ---------------------------------------------------------------------------
+
+enum CcLedgerSource {
+  donate_direct
+  donate_stream
+  lock
+  lock_expired
+  execution
+  admin_grant
+  admin_revoke
+  legacy_migration
+}
+
+enum CcRequestStatus {
+  pending
+  approved
+  declined
+}
+
+enum CcRequestKind {
+  execution
+  legacy_claim
+}
+
+enum ProposalType {
+  standard
+  large
+}
+
+enum ProposalStatus {
+  draft
+  open
+  closed
+  cancelled
+  executed
+}
+
+enum VoteChoice {
+  yes
+  no
+  abstain
+}
+
+model CcLedger {
+  id             Int            @id @default(autoincrement())
+  wallet         String         @map("wallet_pubkey")
+  deltaCc        Int            @map("delta_cc")
+  source         CcLedgerSource @default(admin_grant)
+  reason         String
+  proof          String?
+  adminWallet    String?        @map("admin_wallet")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  expiresAt      DateTime?      @map("expires_at")
+  sourceTxSig    String?        @unique @map("source_tx_sig")
+  sourceContract String?        @unique @map("source_contract")
+  multiplier     Decimal?       @db.Decimal(4, 2)
+  basePbtc       Decimal?       @map("base_pbtc") @db.Decimal(18, 8)
+  reversesId     Int?           @unique @map("reverses_ledger_id")
+  reversesEntry  CcLedger?      @relation("LedgerReversal", fields: [reversesId], references: [id])
+  reversedBy     CcLedger?      @relation("LedgerReversal")
+
+  user User @relation(fields: [wallet], references: [wallet], onDelete: Cascade)
+
+  @@index([wallet])
+  @@index([createdAt(sort: Desc)])
+  @@index([expiresAt])
+  @@index([source])
+  @@map("cc_ledger")
+}
+
+model CcRequest {
+  id               Int             @id @default(autoincrement())
+  wallet           String          @map("wallet_pubkey")
+  amount           Int
+  proof            String
+  status           CcRequestStatus @default(pending)
+  kind             CcRequestKind   @default(execution)
+  telegramSnapshot String?         @map("telegram_snapshot")
+  adminWallet      String?         @map("admin_wallet")
+  adminNotes       String?         @map("admin_notes")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  processedAt      DateTime?       @map("processed_at")
+
+  user User @relation(fields: [wallet], references: [wallet], onDelete: Cascade)
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([wallet, createdAt(sort: Desc)])
+  @@index([kind, status, createdAt(sort: Desc)])
+  @@map("cc_requests")
+}
+
+model LegacyCcClaim {
+  telegramId         BigInt    @id @map("telegram_id")
+  username           String?
+  displayName        String?   @map("display_name")
+  amount             Int
+  originallyEarnedAt DateTime? @map("originally_earned_at")
+  redeemedAt         DateTime? @map("redeemed_at")
+  redeemedByWallet   String?   @map("redeemed_by_wallet")
+  notes              String?
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  @@index([redeemedAt])
+  @@map("legacy_cc_claims")
+}
+
+model Proposal {
+  id              Int            @id @default(autoincrement())
+  createdByWallet String         @map("created_by_wallet")
+  title           String
+  body            String
+  context         String?
+  decision        String?
+  type            ProposalType
+  status          ProposalStatus @default(draft)
+  createdAt       DateTime       @default(now()) @map("created_at")
+  closesAt        DateTime       @map("closes_at")
+  quorumCc        Int            @map("quorum_cc")
+  yesPct          Int            @map("yes_pct")
+  result          String?
+  executedAt      DateTime?      @map("executed_at")
+  executionTxSig  String?        @map("execution_tx_sig")
+
+  creator User   @relation("ProposalCreator", fields: [createdByWallet], references: [wallet], onDelete: Cascade)
+  votes   Vote[]
+
+  @@index([status, closesAt])
+  @@index([createdByWallet])
+  @@map("proposals")
+}
+
+model Vote {
+  proposalId Int        @map("proposal_id")
+  wallet     String     @map("wallet_pubkey")
+  vote       VoteChoice
+  weightCc   Int        @map("weight_cc")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [wallet], references: [wallet], onDelete: Cascade)
+
+  @@id([proposalId, wallet])
+  @@index([proposalId])
+  @@index([wallet])
+  @@map("votes")
 }

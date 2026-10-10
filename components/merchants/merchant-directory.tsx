@@ -221,7 +221,12 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
                       <h3 className="text-2xl font-semibold text-white sm:text-3xl">{merchant.name}</h3>
                       <p className="mt-2 text-sm text-violet-100/90 sm:text-base">{merchant.description}</p>
                       <div className="mt-3 flex flex-wrap items-center gap-3">
-                        <p className="text-sm font-semibold text-gold-accent">{merchant.discount}</p>
+                        <p className="text-sm font-semibold text-[var(--bone)]">{merchant.discount}</p>
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-white/70">
+                          {merchant.lastVerified
+                            ? `Last verified ${merchant.lastVerified.slice(0, 10)}`
+                            : "Last verified —"}
+                        </p>
                         {merchantChannel(merchant) === "ONLINE" ? (
                           <span className="inline-flex rounded-full border border-gold-accent/80 bg-black/30 px-2.5 py-1 text-[11px] font-medium text-gold-accent">
                             Global/Online
@@ -298,7 +303,12 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
                   <h3 className="text-lg font-semibold">{merchant.name}</h3>
                 </div>
                 <p className="mt-1 text-sm text-violet-100/75">{merchant.description}</p>
-                <p className="mt-4 text-sm text-gold-accent">{merchant.discount}</p>
+                <p className="mt-4 text-sm text-[var(--bone)]">{merchant.discount}</p>
+                <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-[var(--bone-faint)]">
+                  {merchant.lastVerified
+                    ? `Last verified ${merchant.lastVerified.slice(0, 10)}`
+                    : "Last verified —"}
+                </p>
                 <div className="mt-2 flex items-center justify-between gap-3">
                   {merchantChannel(merchant) === "ONLINE" ? (
                     <span className="text-xs text-violet-100/55">Worldwide</span>
@@ -329,7 +339,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
                 Send Invitation
               </Link>
               <Link
-                href="/partners"
+                href="/account/business/list"
                 className="inline-flex rounded-xl border border-gold-accent/50 px-4 py-2 text-sm font-semibold text-gold-accent transition hover:bg-gold-accent/10"
               >
                 Register your business

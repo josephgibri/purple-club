@@ -6,6 +6,8 @@
 
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
+import { rpcProxyUrl } from "@/lib/solana";
+
 const PBTC_MINT = "HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p";
 const DEFAULT_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
@@ -15,8 +17,7 @@ function getUsdcMint(): string {
 }
 
 function getConnection(): Connection {
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  return new Connection(`${origin}/api/rpc`, "confirmed");
+  return new Connection(rpcProxyUrl(), "confirmed");
 }
 
 export interface WalletBalances {

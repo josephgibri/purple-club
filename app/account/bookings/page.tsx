@@ -1172,22 +1172,19 @@ export default function TravelDashboardPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col">
-      <div className="pointer-events-none absolute inset-0 pt-star-field opacity-30" />
-      <div className="pointer-events-none absolute -top-40 right-[-140px] h-[440px] w-[440px] rounded-full bg-[#7C3AED]/20 blur-3xl" />
-
-      <section className="relative z-10 mx-auto w-full max-w-5xl px-6 py-12">
-        <div className="mb-8">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/55">
-            Bookings
-          </span>
-          <h1 className="pt-serif mt-3 text-4xl font-semibold text-white sm:text-5xl">
-            Your Travel Vault
-          </h1>
-          <p className="mt-2 max-w-xl text-sm text-white/65">
-            Track each negotiation, select your preferred option, and submit payment when ready.
-          </p>
-        </div>
+    <main className="stay-room relative mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-5xl flex-col px-6 py-8 sm:py-10">
+      <header className="mb-8">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--bone-faint)]">
+          Bookings
+        </p>
+        <h1 className="club-display mt-2 text-4xl text-[var(--bone)] sm:text-5xl">
+          Your bookings
+        </h1>
+        <p className="mt-2 max-w-xl text-sm text-[var(--bone-dim)]">
+          Paste a hotel link. The travel partner books the same room, same dates,
+          at 5% off the public rate. You pay the agency, not the club.
+        </p>
+      </header>
 
         {!session.authenticated ? (
           // Lost-session / fresh-arrival state. The previous copy pointed
@@ -1236,28 +1233,27 @@ export default function TravelDashboardPage() {
          * confirms they're in, then funnels them straight to the actual
          * value action (paste a hotel link on the homepage). */}
         {session.authenticated && !loading && requests.length === 0 ? (
-          <div className="pt-glass rounded-2xl p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#FDE68A]">
-              Welcome to the club
+          <div className="border border-[var(--line)] bg-[var(--wall-2)] p-6">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
+              Start
             </p>
-            <p className="pt-serif mt-2 text-2xl font-semibold text-white">
+            <p className="club-display mt-2 text-2xl text-[var(--bone)]">
               You&apos;re all set
             </p>
-            <p className="mt-2 max-w-xl text-sm text-white/70">
-              Your concierge desk is ready. To start your first stay, paste a
-              hotel link on the homepage and our team will negotiate a
-              wholesale rate within 24 hours.
+            <p className="mt-2 max-w-xl text-sm text-[var(--bone-dim)]">
+              Paste a hotel link. The travel partner books the same room, same
+              dates, at 5% off the public rate. You pay the agency, not the club.
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <Link
                 href="/stay"
-                className="pt-cta-gold inline-flex items-center justify-center rounded-full px-6 py-3 text-xs font-bold uppercase tracking-[0.18em]"
+                className="inline-flex items-center justify-center bg-[var(--ink)] px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)]"
               >
-                Paste a hotel link & start →
+                Paste a hotel link
               </Link>
               <Link
                 href="/stay"
-                className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70 hover:bg-white/10"
+                className="inline-flex items-center border border-[var(--line)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--bone-dim)]"
               >
                 How it works
               </Link>
@@ -1294,7 +1290,7 @@ export default function TravelDashboardPage() {
                     onClick={() => selectTab(tab.id)}
                     className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-widest transition ${
                       isActive
-                        ? "bg-[#EAB308] text-black"
+                        ? "bg-[var(--ink)] text-[var(--bone)]"
                         : "border border-white/15 text-white/60 hover:text-white"
                     }`}
                   >
@@ -1303,7 +1299,7 @@ export default function TravelDashboardPage() {
                       <span
                         className={`inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
                           isActive
-                            ? "bg-black/15 text-black"
+                            ? "bg-black/20 text-[var(--bone)]"
                             : "bg-white/10 text-white/70"
                         }`}
                       >
@@ -1332,14 +1328,14 @@ export default function TravelDashboardPage() {
         requests.length > 0 &&
         activeTab === "ACTIVE" &&
         hasNewUpcomingNotice ? (
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#EAB308]/35 bg-[#EAB308]/10 px-4 py-3">
-            <p className="text-sm text-[#FDE68A]">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--ink)]/35 bg-[var(--ink)]/10 px-4 py-3">
+            <p className="text-sm text-[var(--bone)]">
               You have a confirmed trip — open Upcoming.
             </p>
             <button
               type="button"
               onClick={() => selectTab("UPCOMING")}
-              className="rounded-full border border-[#EAB308]/45 bg-black/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-[#FDE68A] hover:bg-black/30"
+              className="rounded-full border border-[var(--ink)]/45 bg-black/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--bone)] hover:bg-black/30"
             >
               Open Upcoming
             </button>
@@ -1482,7 +1478,7 @@ export default function TravelDashboardPage() {
                             countdown.tone === "live"
                               ? "border border-emerald-300/45 bg-emerald-500/15 text-emerald-100"
                               : countdown.tone === "imminent"
-                                ? "border border-[#EAB308]/55 bg-[#EAB308]/15 text-[#FDE68A]"
+                                ? "border border-[var(--ink)]/55 bg-[var(--ink)]/15 text-[var(--bone)]"
                                 : "border border-[#7C3AED]/45 bg-[#7C3AED]/15 text-[#DDD6FE]"
                           }`}
                           aria-label={countdown.text}
@@ -1517,20 +1513,20 @@ export default function TravelDashboardPage() {
                           request.cancellation?.kind === "REFUND_REQUESTED" &&
                           request.cancellation.status === "OPEN";
                         const badgeClass = refundPending
-                          ? "border border-[#EAB308]/55 bg-[#EAB308]/15 text-[#FDE68A]"
+                          ? "border border-[var(--ink)]/55 bg-[var(--ink)]/15 text-[var(--bone)]"
                           : request.status === "CONFIRMED"
                             ? "pt-confirmed-badge"
                             : request.status === "PENDING"
                               ? "border border-white/15 bg-white/5 text-white/60"
                               : request.status === "PAYMENT_SUBMITTED"
-                                ? "border border-[#EAB308]/40 bg-[#EAB308]/10 text-[#FDE68A]"
+                                ? "border border-[var(--ink)]/40 bg-[var(--ink)]/10 text-[var(--bone)]"
                                 : request.status === "PAYMENT_VERIFIED"
                                   ? "border border-emerald-300/40 bg-emerald-500/10 text-emerald-200"
                                   : request.status === "OFFER_EXPIRED"
                                     ? "border border-white/20 bg-white/5 text-white/55"
                                     : request.status === "CANCELLED"
                                       ? "pt-cancelled-badge"
-                                      : "border border-[#EAB308]/50 bg-[#EAB308]/10 text-[#FDE68A]";
+                                      : "border border-[var(--ink)]/50 bg-[var(--ink)]/10 text-[var(--bone)]";
                         const badgeText = refundPending
                           ? "Refund Pending"
                           : request.status === "CONFIRMED"
@@ -1583,7 +1579,7 @@ export default function TravelDashboardPage() {
                         href={request.hotelUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-2 inline-block text-xs text-[#FDE68A] underline-offset-2 hover:underline"
+                        className="mt-2 inline-block text-xs text-[var(--bone)] underline-offset-2 hover:underline"
                       >
                         Open original listing ↗
                       </a>
@@ -1606,7 +1602,7 @@ export default function TravelDashboardPage() {
                           : isCurrent
                             ? "font-semibold text-white"
                             : isCompleted
-                              ? "text-[#FDE68A]"
+                              ? "text-[var(--bone)]"
                               : "text-white/45";
                         return (
                           <li key={step.key} className={`flex items-start gap-3 ${labelClass}`}>
@@ -1614,7 +1610,7 @@ export default function TravelDashboardPage() {
                             <span className="flex flex-col">
                               <span>{step.label}</span>
                               {isCurrent ? (
-                                <span className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#FDE68A]">
+                                <span className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--bone)]">
                                   Active now
                                 </span>
                               ) : null}
@@ -1645,7 +1641,7 @@ export default function TravelDashboardPage() {
                               return (
                                 <span
                                   className={`text-[10px] uppercase tracking-[0.22em] ${
-                                    c.warn ? "pt-countdown-warn" : "text-[#FDE68A]"
+                                    c.warn ? "pt-countdown-warn" : "text-[var(--bone)]"
                                   }`}
                                 >
                                   Offer valid · {c.text}
@@ -1727,7 +1723,7 @@ export default function TravelDashboardPage() {
                                       {offer.roomType || request.roomType}
                                     </p>
                                     {isSelected ? (
-                                      <span className="rounded-full border border-[#EAB308]/60 bg-[#EAB308]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[#FDE047]">
+                                      <span className="rounded-full border border-[var(--ink)]/60 bg-[var(--ink)]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--bone)]">
                                         Selected
                                       </span>
                                     ) : null}
@@ -1810,7 +1806,7 @@ export default function TravelDashboardPage() {
                                       </p>
                                     </div>
                                     {altSelected || anyChildSelected ? (
-                                      <span className="rounded-full border border-[#EAB308]/60 bg-[#EAB308]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[#FDE047]">
+                                      <span className="rounded-full border border-[var(--ink)]/60 bg-[var(--ink)]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--bone)]">
                                         Selected
                                       </span>
                                     ) : null}
@@ -1821,7 +1817,7 @@ export default function TravelDashboardPage() {
                                       type="button"
                                       onClick={() => void selectOffer(request.requestCode, altKey)}
                                       disabled={selectingId === request.requestCode}
-                                      className="mt-3 flex w-full flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-left text-xs text-white/75 transition hover:border-[#EAB308]/45"
+                                      className="mt-3 flex w-full flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-left text-xs text-white/75 transition hover:border-[var(--ink)]/45"
                                     >
                                       <span className="inline-flex items-center gap-1">
                                         <span className="inline-flex items-center gap-1">
@@ -1841,7 +1837,7 @@ export default function TravelDashboardPage() {
                                       </span>
                                       <span>
                                         Purple{" "}
-                                        <span className="text-[#FDE047]">
+                                        <span className="text-[var(--bone)]">
                                           {formatMoney(offer.purplePrice ?? null)}
                                         </span>
                                       </span>
@@ -1878,7 +1874,7 @@ export default function TravelDashboardPage() {
                                                 {room.roomType || "Room option"}
                                               </p>
                                               {rSelected ? (
-                                                <span className="rounded-full border border-[#EAB308]/60 bg-[#EAB308]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[#FDE047]">
+                                                <span className="rounded-full border border-[var(--ink)]/60 bg-[var(--ink)]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--bone)]">
                                                   Selected
                                                 </span>
                                               ) : null}
@@ -1906,7 +1902,7 @@ export default function TravelDashboardPage() {
                                               </span>
                                               <span>
                                                 Purple{" "}
-                                                <span className="text-[#FDE047]">
+                                                <span className="text-[var(--bone)]">
                                                   {formatMoney(room.purplePrice ?? null)}
                                                 </span>
                                               </span>
@@ -1936,7 +1932,7 @@ export default function TravelDashboardPage() {
                                       href={offer.bookingUrl}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className="mt-3 inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/40 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-[#FDE68A] hover:border-[#EAB308]/50"
+                                      className="mt-3 inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/40 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--bone)] hover:border-[var(--ink)]/50"
                                     >
                                       Browse hotel ↗
                                     </a>
@@ -1950,8 +1946,8 @@ export default function TravelDashboardPage() {
                     ) : (
                       <div className="pt-concierge-brief pt-shimmer rounded-2xl p-5">
                         <div className="flex items-center gap-2">
-                          <span className="inline-flex h-1.5 w-1.5 animate-pulse rounded-full bg-[#FDE047]" />
-                          <p className="text-[10px] uppercase tracking-[0.22em] text-[#FDE68A]">
+                          <span className="inline-flex h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--bone)]" />
+                          <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--bone)]">
                             Concierge brief — Negotiation in progress
                           </p>
                         </div>
@@ -1960,8 +1956,8 @@ export default function TravelDashboardPage() {
                           <span className="font-semibold text-white">
                             {request.requestedHotelName ?? "your selected property"}
                           </span>
-                          . Expect your wholesale offer within{" "}
-                          <span className="font-semibold text-[#FDE68A]">24 hours</span>.
+                          . Expect the partner&apos;s offer — 5% off the public rate — within{" "}
+                          <span className="font-semibold text-[var(--bone)]">24 hours</span>.
                         </p>
                         <p className="mt-2 text-[11px] text-white/45">
                           You can leave this page — we&apos;ll email you the moment your private
@@ -1991,7 +1987,7 @@ export default function TravelDashboardPage() {
                             {request.offerExpiresAt ? (
                               <p
                                 className={`mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] ${
-                                  c.warn ? "pt-countdown-warn" : "text-[#FDE68A]"
+                                  c.warn ? "pt-countdown-warn" : "text-[var(--bone)]"
                                 }`}
                               >
                                 Offer expires in · {c.text}
@@ -2045,7 +2041,7 @@ export default function TravelDashboardPage() {
                                 {request.requestedHotelName ?? "this property"}
                               </span>{" "}
                               has already passed. Plan a new trip whenever you&apos;re ready —
-                              the concierge will source a fresh wholesale rate.
+                              the travel partner can quote 5% off the public rate again.
                             </p>
                             <div className="mt-4 flex flex-wrap items-center gap-3">
                               <a
@@ -2059,12 +2055,12 @@ export default function TravelDashboardPage() {
                         ) : (
                           <>
                             <p className="mt-3 text-sm leading-relaxed text-white/75">
-                              Your wholesale offer for{" "}
+                              The offer for{" "}
                               <span className="font-semibold text-white">
                                 {request.requestedHotelName ?? "this property"}
                               </span>{" "}
-                              has expired. Wholesale inventory turns over fast — tap below to ask
-                              the concierge for a fresh round.
+                              has expired. Tap below to ask the travel partner for a fresh 5% off
+                              the public rate.
                             </p>
                             <div className="mt-4 flex flex-wrap items-center gap-3">
                               <button
@@ -2213,8 +2209,8 @@ export default function TravelDashboardPage() {
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="inline-flex h-1.5 w-1.5 animate-pulse rounded-full bg-[#FDE047]" />
-                              <p className="text-[10px] uppercase tracking-[0.22em] text-[#FDE68A]">
+                              <span className="inline-flex h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--bone)]" />
+                              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--bone)]">
                                 Awaiting concierge review
                               </p>
                             </div>
@@ -2254,7 +2250,7 @@ export default function TravelDashboardPage() {
                                 <dt className="text-[9px] uppercase tracking-[0.18em] text-white/45">
                                   Reference
                                 </dt>
-                                <dd className="mt-0.5 truncate font-mono text-[#FDE68A]">
+                                <dd className="mt-0.5 truncate font-mono text-[var(--bone)]">
                                   {request.paymentReference}
                                 </dd>
                               </div>
@@ -2343,7 +2339,7 @@ export default function TravelDashboardPage() {
                           Booking management
                         </p>
                         <p className="mt-1 text-[11px] text-white/45">
-                          Subject to the supplier&apos;s wholesale terms — non-refundable rates may
+                          Subject to the supplier&apos;s terms — non-refundable rates may
                           carry penalties or no refund at all.
                         </p>
                         {request.changeRequestStatus ? (
@@ -2355,7 +2351,7 @@ export default function TravelDashboardPage() {
                                     ? "border-emerald-300/40 bg-emerald-500/15 text-emerald-200"
                                     : request.changeRequestStatus === "REJECTED"
                                       ? "border-red-400/40 bg-red-500/10 text-red-200"
-                                      : "border-[#EAB308]/40 bg-[#EAB308]/10 text-[#FDE68A]"
+                                      : "border-[var(--ink)]/40 bg-[var(--ink)]/10 text-[var(--bone)]"
                                 }`}
                               >
                                 {changeRequestLabel(request.changeRequestStatus)}
@@ -2373,7 +2369,7 @@ export default function TravelDashboardPage() {
                               </p>
                             ) : null}
                             {request.agentChangeReply ? (
-                              <p className="rounded-lg border border-[#EAB308]/30 bg-[#EAB308]/5 p-3 text-xs text-[#FDE68A]">
+                              <p className="rounded-lg border border-[var(--ink)]/30 bg-[var(--ink)]/5 p-3 text-xs text-[var(--bone)]">
                                 <span className="text-white/45">Concierge:</span>{" "}
                                 {request.agentChangeReply}
                               </p>
@@ -2535,7 +2531,6 @@ export default function TravelDashboardPage() {
             </RowErrorBoundary>
           ))}
         </div>
-      </section>
 
       {bookingRequest ? (
         <BookSheet
@@ -2788,7 +2783,7 @@ function BookSheet({
               {offer?.board ? ` · ${mealLabel(offer.board)}` : ""}
             </p>
             {offer?.purplePrice ? (
-              <p className="mt-1 text-sm text-[#FDE047]">
+              <p className="mt-1 text-sm text-[var(--bone)]">
                 Purple price {formatMoney(offer.purplePrice)}
               </p>
             ) : null}
@@ -2913,7 +2908,7 @@ function BookSheet({
                     onClick={() => setPaymentDraft((prev) => ({ ...prev, method }))}
                     className={`rounded-full border px-3 py-1 font-semibold ${
                       paymentDraft.method === method
-                        ? "border-[#EAB308]/60 bg-[#EAB308]/15 text-[#FDE047]"
+                        ? "border-[var(--ink)]/60 bg-[var(--ink)]/15 text-[var(--bone)]"
                         : "border-white/15 bg-black/30 text-white/55 hover:text-white"
                     }`}
                   >
@@ -2936,7 +2931,7 @@ function BookSheet({
                   href={activePaymentLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-[#EAB308]/60 bg-[#EAB308]/15 px-4 py-2 text-xs font-semibold text-[#FDE68A] hover:bg-[#EAB308]/25"
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--ink)]/60 bg-[var(--ink)]/15 px-4 py-2 text-xs font-semibold text-[var(--bone)] hover:bg-[var(--ink)]/25"
                 >
                   Pay with Credit Card ↗
                 </a>
@@ -2946,7 +2941,7 @@ function BookSheet({
                 </p>
               )}
               <label className="grid gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55">
-                Stripe receipt URL or charge ID <span className="text-[#FDE68A]">*</span>
+                Stripe receipt URL or charge ID <span className="text-[var(--bone)]">*</span>
                 <input
                   className="pt-input rounded-xl px-3 py-2 text-sm normal-case tracking-normal"
                   value={paymentDraft.reference}
@@ -2966,7 +2961,7 @@ function BookSheet({
               <p className="rounded-lg border border-white/10 bg-black/30 p-3 text-[11px] leading-relaxed text-white/70">
                 <span className="font-semibold text-white">After paying,</span> come
                 back to this page and tap{" "}
-                <span className="font-semibold text-[#FDE68A]">
+                <span className="font-semibold text-[var(--bone)]">
                   Confirm &amp; submit payment
                 </span>
                 . You&apos;ll get an email the moment the concierge verifies your
@@ -3122,9 +3117,9 @@ function VerificationStepper({ state }: { state: StepperState }) {
         const dotClass = isVerifiedAll
           ? "bg-emerald-400 text-black"
           : isActive
-            ? "bg-[#FDE047] text-black"
+            ? "bg-[var(--bone)] text-black"
             : isDone
-              ? "bg-[#FDE047]/70 text-black"
+              ? "bg-[var(--bone)]/70 text-black"
               : "bg-white/15 text-white/55";
         const labelClass = isVerifiedAll
           ? "text-emerald-200"
@@ -3340,7 +3335,7 @@ function UsdcPayPanel({
         </summary>
         <div className="mt-3 space-y-3 border-t border-white/5 pt-3">
           <p className="text-[11px] leading-relaxed">
-            Send <span className="pt-ref-mono text-[#FDE047]">${expectedUsdcAmount} USDC</span>{" "}
+            Send <span className="pt-ref-mono text-[var(--bone)]">${expectedUsdcAmount} USDC</span>{" "}
             on Solana mainnet to the address below. The sub-cent suffix is a
             unique invoice tag so we can match your payment without a
             transaction ID.
@@ -3657,7 +3652,7 @@ function GiftVaultCard() {
               </p>
               <p className="mt-2 max-w-xl text-sm leading-relaxed text-violet-100/60">
                 After you complete a verified stay, you get one shareable link. They open it,
-                connect a wallet, and receive 1 PBTC for Purple Travel at wholesale. One gift per
+                connect a wallet, and receive 1 PBTC. One gift per
                 membership—nothing extra for you to pay.
               </p>
             </div>
@@ -3682,7 +3677,7 @@ function GiftVaultCard() {
         <div className="relative overflow-hidden rounded-2xl border border-dashed border-amber-400/35 bg-gradient-to-br from-amber-950/20 via-violet-950/40 to-[#0A051A] p-5 shadow-[0_0_40px_-12px_rgba(234,179,8,0.15)]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6">
             <div className="flex min-w-0 flex-1 gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#EAB308]/20 text-[#FDE68A] ring-1 ring-inset ring-amber-400/30">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--ink)]/20 text-[var(--bone)] ring-1 ring-inset ring-amber-400/30">
                 <GiftPerkIcon className="h-6 w-6" />
               </div>
               <div>
@@ -3704,7 +3699,7 @@ function GiftVaultCard() {
                 type="button"
                 onClick={() => void createGift()}
                 disabled={creating}
-                className="order-2 inline-flex min-h-[44px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#EAB308] to-[#CA8A04] px-6 text-xs font-bold uppercase tracking-[0.18em] text-[#0A051A] shadow-lg shadow-amber-500/20 sm:w-auto sm:min-w-[11.5rem] disabled:opacity-60"
+                className="order-2 inline-flex min-h-[44px] w-full items-center justify-center bg-[var(--ink)] px-6 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)] sm:w-auto sm:min-w-[11.5rem] disabled:opacity-60"
               >
                 {creating ? "Generating…" : "Create gift link"}
               </button>
@@ -3767,12 +3762,12 @@ function GiftVaultCard() {
             <p className="text-[10px] uppercase tracking-widest text-violet-300/60">
               Send to your friend
             </p>
-            <p className="pt-ref-mono mt-2 break-all text-[12px] text-[#FDE68A]">{claimUrl}</p>
+            <p className="pt-ref-mono mt-2 break-all text-[12px] text-[var(--bone)]">{claimUrl}</p>
           </div>
         ) : null}
 
         {gift.status === "CLAIMED" || gift.status === "FULFILLING" ? (
-          <div className="mt-4 rounded-xl border border-[#EAB308]/35 bg-amber-500/10 p-3 text-[11px] text-[#FDE68A]">
+          <div className="mt-4 rounded-xl border border-[var(--ink)]/35 bg-amber-500/10 p-3 text-[11px] text-[var(--bone)]">
             Claimed by{" "}
             <span className="pt-ref-mono">
               {gift.recipientWallet
