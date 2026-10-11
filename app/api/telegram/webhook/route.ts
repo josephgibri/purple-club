@@ -242,7 +242,7 @@ async function handleSiteConnect(
   }
 }
 
-async function handleLink(chatId: number, telegramId: bigint): Promise<void>
+async function handleLink(chatId: number, telegramId: bigint): Promise<void> {
   // Invalidate any existing unexpired session first
   await prisma.telegramLinkSession.updateMany({
     where: {
