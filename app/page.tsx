@@ -9,10 +9,7 @@ export default function HomePage() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
       <DogMark size={168} />
-      <p className="mt-8 text-[11px] uppercase tracking-[0.28em] text-[var(--bone-faint)]">
-        The wall
-      </p>
-      <h1 className="club-display mt-3 text-4xl text-[var(--bone)] sm:text-6xl">
+      <h1 className="club-display mt-8 text-4xl text-[var(--bone)] sm:text-6xl">
         Purple <span className="text-[var(--ink)]">Club</span>
       </h1>
       <p className="mt-4 max-w-sm text-sm tracking-wide text-[var(--bone-dim)]">

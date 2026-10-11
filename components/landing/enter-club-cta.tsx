@@ -94,13 +94,7 @@ export function EnterClubCta() {
         <Sparkles size={16} />
         {isPending ? "Connecting…" : "Enter Purple Club"}
       </button>
-      {error ? (
-        <p className="text-center text-[11px] text-rose-200">{error}</p>
-      ) : (
-        <p className="text-center text-[11px] uppercase tracking-[0.18em] text-violet-100/55">
-          Read-only · 1 PBTC minimum
-        </p>
-      )}
+      {error ? <p className="text-center text-[11px] text-rose-200">{error}</p> : null}
     </div>
   );
 }
