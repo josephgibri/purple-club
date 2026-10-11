@@ -181,15 +181,15 @@ export function PurpleClubSticker({
 
       {/* QR plate. The QR is a nested <svg> whose own viewBox (set by the
           qrcode package — module-count squared) is auto-scaled into the
-          200×200 inner area via preserveAspectRatio. That sidesteps the
+          184×184 inner area via preserveAspectRatio. That sidesteps the
           fragile "guess the module count and pre-scale" approach. */}
-      <g transform="translate(180 420)">
-        <rect width="240" height="240" rx="12" fill="#E7E4DE" />
+      <g transform="translate(190 416)">
+        <rect width="220" height="220" rx="12" fill="#E7E4DE" />
         <rect
           x="6"
           y="6"
-          width="228"
-          height="228"
+          width="208"
+          height="208"
           rx="14"
           fill="none"
           stroke="#1a0a36"
@@ -198,18 +198,18 @@ export function PurpleClubSticker({
         />
         {qr ? (
           <svg
-            x="20"
-            y="20"
-            width="200"
-            height="200"
+            x="18"
+            y="18"
+            width="184"
+            height="184"
             viewBox={qr.viewBox}
             preserveAspectRatio="xMidYMid meet"
             dangerouslySetInnerHTML={{ __html: qr.inner }}
           />
         ) : !qrError ? (
           <text
-            x="120"
-            y="125"
+            x="110"
+            y="116"
             textAnchor="middle"
             fontFamily="ui-sans-serif, system-ui, sans-serif"
             fontSize="14"
@@ -220,8 +220,8 @@ export function PurpleClubSticker({
           </text>
         ) : (
           <text
-            x="120"
-            y="125"
+            x="110"
+            y="116"
             textAnchor="middle"
             fontFamily="ui-sans-serif, system-ui, sans-serif"
             fontSize="12"
@@ -234,7 +234,7 @@ export function PurpleClubSticker({
 
       <text
         x="300"
-        y="670"
+        y="674"
         textAnchor="middle"
         fontFamily="ui-sans-serif, system-ui, sans-serif"
         fontSize="14"
@@ -246,7 +246,7 @@ export function PurpleClubSticker({
       </text>
       <text
         x="300"
-        y="694"
+        y="698"
         textAnchor="middle"
         fontFamily="ui-sans-serif, system-ui, sans-serif"
         fontSize="11"

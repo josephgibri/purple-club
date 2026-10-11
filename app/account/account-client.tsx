@@ -17,7 +17,6 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { ProductGate } from "@/components/access/product-gate";
-import { CommunityCard } from "@/components/telegram/community-card";
 import { DigitalMembershipPass } from "@/components/membership/digital-membership-pass";
 import { PurpleWalletCard } from "@/components/purple-wallet/wallet-card";
 import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
@@ -77,8 +76,6 @@ function AccountDashboard() {
           </h1>
         </div>
       </header>
-
-      <CommunityCard />
 
       {!hasPbtc ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold-accent/30 bg-gold-accent/10 px-5 py-3.5">

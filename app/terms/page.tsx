@@ -80,11 +80,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-base text-[var(--bone)]">5. Council, quests, and titles</h2>
-          <p className="mt-2">
-            Council records proposals and votes. Discussion happens on Telegram. A seat and
-            a vote carry no payout, no priority, and no financial return.
-          </p>
+          <h2 className="text-base text-[var(--bone)]">5. Quests and titles</h2>
           <p className="mt-2">
             Quests and titles are cosmetic. They unlock nothing but the title. They are not
             transferable, not a token, and not a claim on anything the club holds — the club

@@ -2,7 +2,7 @@
  * Single source of truth for brand strings, the PBTC asset, and the
  * surface URLs the consolidated Purple Club shell links out to.
  *
- * Internal routes: Places, Stays, Council, You.
+ * Internal routes: You, Community, Stays, Places.
  * Lending, OTC, and the weekly lottery are not part of the club.
  */
 
@@ -36,6 +36,7 @@ export const SURFACE_URLS = {
   places: "/places",
   perks: "/places",
   account: "/account",
+  community: "/community",
   council: "/council",
 } as const;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { BedDouble, CircleUser, Landmark, MapPin } from "lucide-react";
+import { BedDouble, CircleUser, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
@@ -11,9 +11,9 @@ import { useWalletSession } from "@/hooks/useWalletSession";
 
 const TABS = [
   { href: "/account", label: "You", icon: CircleUser },
-  { href: "/places", label: "Places", icon: MapPin },
-  { href: "/council", label: "Council", icon: Landmark },
+  { href: "/community", label: "Community", icon: Users },
   { href: "/stay", label: "Stays", icon: BedDouble },
+  { href: "/places", label: "Places", icon: MapPin },
 ] as const;
 
 function isActive(pathname: string, href: string) {
