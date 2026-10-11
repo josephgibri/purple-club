@@ -3,7 +3,6 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/navigation";
 import { Lock, ShieldCheck, Sparkles } from "lucide-react";
-import { useEffect, useRef } from "react";
 
 import { useMembershipGate } from "@/hooks/useMembershipGate";
 import { useWalletSignIn } from "@/hooks/useWalletSignIn";
@@ -11,37 +10,16 @@ import { useWalletSignIn } from "@/hooks/useWalletSignIn";
 const PBTC_MINT = "HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p";
 const JUPITER_BUY_URL = `https://jup.ag/?utm_source=phantom&utm_medium=list&buy=${PBTC_MINT}`;
 
-type EnterClubCtaProps = {
-  /**
-   * When true, a successful sign-in pushes the holder straight into
-   * their account dashboard. The landing page sets this; gated pages
-   * leave it false so the gate panel can stay in place without an
-   * extra navigation loop.
-   */
-  redirectOnEnter?: boolean;
-};
-
 /**
- * The single primary action on the landing page. Status-aware so a
- * returning member who's already verified jumps straight to /account
- * without re-signing, while a logged-out visitor gets the gold CTA
- * that opens the wallet modal.
+ * The single primary action on the landing page. The wall stays put.
+ * A holder who has signed this visit gets a button into You.
  */
-export function EnterClubCta({ redirectOnEnter = true }: EnterClubCtaProps) {
+export function EnterClubCta() {
   const { connected } = useWallet();
   const { hasPbtc, isVerified, isMember, isLoading, error: balanceError, refresh } =
     useMembershipGate();
   const { enter, isPending, error } = useWalletSignIn();
   const router = useRouter();
-  const navigatedRef = useRef(false);
-
-  useEffect(() => {
-    if (!redirectOnEnter) return;
-    if (isMember && !navigatedRef.current) {
-      navigatedRef.current = true;
-      router.push("/account");
-    }
-  }, [isMember, redirectOnEnter, router]);
 
   if (isLoading && connected) {
     return (

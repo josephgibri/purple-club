@@ -3,7 +3,7 @@ import { DogMark } from "@/components/brand/dog-mark";
 
 /**
  * Outsider wall. A locked door, not a pitch.
- * Members who already hold the key are sent to You by EnterClubCta.
+ * The wall stays here. Enter sends a holder to You after they sign.
  */
 export default function HomePage() {
   return (
@@ -19,7 +19,7 @@ export default function HomePage() {
         Hold 1 PBTC. That is the key.
       </p>
       <div className="mt-8 w-full max-w-sm">
-        <EnterClubCta redirectOnEnter />
+        <EnterClubCta />
       </div>
     </main>
   );

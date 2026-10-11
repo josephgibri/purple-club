@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 
 import { JUPITER_SWAP_URL } from "@/lib/constants";
 import { useMembershipGate } from "@/hooks/useMembershipGate";
-import { useWalletSession } from "@/hooks/useWalletSession";
 import { useWalletSignIn } from "@/hooks/useWalletSignIn";
 
 type ProductGateProps = {
@@ -51,7 +50,6 @@ export function ProductGate({
   children,
 }: ProductGateProps) {
   const { connected } = useWallet();
-  const session = useWalletSession();
   const {
     balance,
     hasPbtc,
@@ -64,11 +62,7 @@ export function ProductGate({
   } = useMembershipGate();
   const { enter, isPending, error: signInError } = useWalletSignIn();
 
-  if (
-    isMember ||
-    (unlockOnVerified && isVerified) ||
-    (session.authenticated && session.pbtcEligible)
-  ) {
+  if (isMember || (unlockOnVerified && isVerified)) {
     return <>{children}</>;
   }
 

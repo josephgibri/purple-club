@@ -15,14 +15,6 @@ export async function middleware(request: NextRequest) {
   const session = await readSession(request);
 
   if (isPublic(pathname)) {
-    if (pathname === "/" && session) {
-      const gate = await holdsKey(request, session);
-      if (gate.ok) {
-        const response = NextResponse.redirect(rewrite(request, "/account"));
-        applyHold(response, gate.hold);
-        return response;
-      }
-    }
     return NextResponse.next();
   }
 

@@ -7,7 +7,7 @@ import { useEffect } from "react";
 
 import { PurpleClubAuthButton } from "@/components/auth/purple-club-auth-button";
 import { DogMark } from "@/components/brand/dog-mark";
-import { useWalletSession } from "@/hooks/useWalletSession";
+import { useMembershipGate } from "@/hooks/useMembershipGate";
 
 const TABS = [
   { href: "/account", label: "You", icon: CircleUser },
@@ -26,8 +26,7 @@ function isActive(pathname: string, href: string) {
  */
 export function TopNav() {
   const pathname = usePathname();
-  const session = useWalletSession();
-  const isMember = Boolean(session.authenticated && session.pbtcEligible);
+  const { isMember } = useMembershipGate();
   const isVerifyRoute = pathname === "/verify";
 
   useEffect(() => {
