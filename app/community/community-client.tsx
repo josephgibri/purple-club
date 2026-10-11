@@ -53,8 +53,8 @@ function CommunityRoom() {
         <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">How to get in</p>
         <ol className="mt-3 space-y-2 text-sm text-[var(--bone)]">
           <li>1. Hold at least 1 PBTC.</li>
-          <li>2. Verify your wallet. Tap Verify.</li>
-          <li>3. Get your Telegram invite. One tap.</li>
+          <li>2. Connect Telegram. Tap the button.</li>
+          <li>3. Tap Start in the bot. The invite comes back here.</li>
         </ol>
         <div className="mt-5">
           <CommunityCard />

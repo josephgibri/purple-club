@@ -110,7 +110,7 @@ function AuthButtonInner() {
             <button
               type="button"
               onClick={() => void enter()}
-              className="inline-flex items-center gap-2 rounded-full border border-gold-accent/40 bg-gold-accent/10 px-4 py-2 text-xs font-semibold text-gold-accent"
+              className="inline-flex items-center gap-2 border border-[var(--line)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--bone)]"
               title={error ?? undefined}
             >
               <ShieldCheck size={14} className="animate-pulse" />
@@ -144,7 +144,7 @@ function AuthButtonInner() {
             type="button"
             onClick={() => void enter()}
             disabled={isPending}
-            className="inline-flex items-center gap-2 rounded-full bg-gold-accent px-4 py-2 text-xs font-semibold text-black transition hover:brightness-110 disabled:opacity-60"
+            className="inline-flex items-center gap-2 bg-[var(--ink)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--bone)] disabled:opacity-60"
             title={error ?? undefined}
           >
             <KeyRound size={14} />
@@ -174,7 +174,7 @@ function AuthButtonInner() {
       type="button"
       onClick={() => void enter()}
       disabled={isPending}
-      className="inline-flex items-center gap-2 rounded-full border border-gold-accent/60 bg-gradient-to-b from-[#1a0d33] to-[#120925] px-4 py-2 text-xs font-semibold text-gold-accent shadow-[0_0_18px_-6px_rgba(234,179,8,0.5)] transition hover:from-[#221042] hover:to-[#17102e] disabled:opacity-60"
+      className="inline-flex items-center gap-2 bg-[var(--ink)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--bone)] disabled:opacity-60"
       title={error ?? undefined}
     >
       <Sparkles size={14} />

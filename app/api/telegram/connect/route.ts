@@ -150,11 +150,15 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  let payload: TelegramAuthPayload;
+  let payload: TelegramAuthPayload & { action?: string };
   try {
-    payload = (await request.json()) as TelegramAuthPayload;
+    payload = (await request.json()) as TelegramAuthPayload & { action?: string };
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid body." }, { status: 400 });
+  }
+
+  if (isInviteRequest(payload)) {
+    return issueInviteForLinkedWallet(session.wallet);
   }
 
   if (!verifyTelegramAuth(payload, botToken)) {
@@ -204,8 +208,31 @@ export async function POST(request: Request): Promise<Response> {
     update: { username, userId: user.id },
   });
 
-  // Eligibility check against live balance.
-  const balance = await fetchBalance(session.wallet);
+  return issueInvite(session.wallet, telegramId);
+}
+
+function isInviteRequest(payload: { action?: string; hash?: string; id?: number | string }): boolean {
+  return payload.action === "invite" && payload.hash == null && payload.id == null;
+}
+
+/** Mints an invite for a wallet that is already bound to a Telegram id. */
+async function issueInviteForLinkedWallet(wallet: string): Promise<Response> {
+  const user = await prisma.user.findUnique({ where: { wallet } });
+  const member = user
+    ? await prisma.telegramMember.findUnique({ where: { userId: user.id } })
+    : null;
+  if (!member) {
+    return NextResponse.json(
+      { ok: false, error: "Connect Telegram first, then ask for the invite." },
+      { status: 400 },
+    );
+  }
+  return issueInvite(wallet, member.telegramId);
+}
+
+/** Rechecks the key and, when it is held, returns a one-time group invite. */
+async function issueInvite(wallet: string, telegramId: bigint): Promise<Response> {
+  const balance = await fetchBalance(wallet);
   if (balance < 1) {
     return NextResponse.json({
       ok: true,

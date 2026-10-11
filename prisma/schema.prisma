@@ -305,6 +305,9 @@ model User {
   proposalsCreated         Proposal[]                @relation("ProposalCreator")
   councilVotes             Vote[]
   place                    MerchantListing?          @relation("MemberPlace")
+  /// Short-lived code for the website → Telegram connect button.
+  telegramConnectToken     String?                   @unique
+  telegramConnectExpires   DateTime?
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime                  @updatedAt
 }

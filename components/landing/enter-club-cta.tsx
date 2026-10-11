@@ -48,7 +48,7 @@ export function EnterClubCta({ redirectOnEnter = true }: EnterClubCtaProps) {
       <button
         type="button"
         disabled
-        className="inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-full border border-gold-accent/40 bg-gradient-to-b from-[#1a0d33] to-[#120925] px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-gold-accent/80"
+        className="inline-flex w-full max-w-sm items-center justify-center gap-2 border border-[var(--line)] bg-[var(--wall-2)] px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone-dim)]"
       >
         <ShieldCheck size={16} className="animate-pulse" />
         Checking PBTC…
@@ -75,7 +75,7 @@ export function EnterClubCta({ redirectOnEnter = true }: EnterClubCtaProps) {
         <button
           type="button"
           onClick={() => void refresh()}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold-accent px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-black transition hover:brightness-110"
+          className="inline-flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)]"
         >
           Retry balance check
         </button>
@@ -93,7 +93,7 @@ export function EnterClubCta({ redirectOnEnter = true }: EnterClubCtaProps) {
           href={JUPITER_BUY_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold-accent px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_60px_-15px_rgba(246,196,83,0.65)] transition hover:brightness-110"
+          className="inline-flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)]"
         >
           <Lock size={16} />
           Buy 1 PBTC to Unlock
@@ -111,7 +111,7 @@ export function EnterClubCta({ redirectOnEnter = true }: EnterClubCtaProps) {
         type="button"
         onClick={() => void enter()}
         disabled={isPending}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold-accent px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_60px_-15px_rgba(246,196,83,0.65)] transition hover:brightness-110 disabled:opacity-60"
+        className="inline-flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)] disabled:opacity-60"
       >
         <Sparkles size={16} />
         {isPending ? "Connecting…" : "Enter Purple Club"}

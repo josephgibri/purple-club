@@ -15,7 +15,7 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendMessage, urlButton, getBotUsername, getMainGroupId, getChatMember } from "@/lib/telegram/client";
+import { sendMessage, urlButton, getBotUsername, getMainGroupId, getChatMember, createInviteLink } from "@/lib/telegram/client";
 import { buildStatusText, fetchBalance, issueGroupInvite } from "@/lib/telegram/member-service";
 import { computeTierUpdate } from "@/lib/telegram/tier-machine";
 
@@ -92,10 +92,15 @@ async function handleMessage(message: TgMessage): Promise<void> {
     update: { username: from.username ?? null },
   });
 
-  const command = text.split(/\s+/)[0].toLowerCase().replace(/@.+$/, "");
+  const [commandRaw, startPayload] = text.split(/\s+/);
+  const command = commandRaw.toLowerCase().replace(/@.+$/, "");
 
   switch (command) {
     case "/start":
+      if (startPayload?.startsWith("c_")) {
+        await handleSiteConnect(chatId, from, telegramId, startPayload.slice(2));
+        break;
+      }
       await handleStart(chatId, from, telegramId);
       break;
     case "/link":
@@ -151,7 +156,93 @@ async function handleStart(
   });
 }
 
-async function handleLink(chatId: number, telegramId: bigint): Promise<void> {
+/** Website button opened t.me/bot?start=c_<token>. Bind that chat to the wallet. */
+async function handleSiteConnect(
+  chatId: number,
+  from: TgUser,
+  telegramId: bigint,
+  token: string,
+): Promise<void> {
+  const user = await prisma.user.findFirst({
+    where: {
+      telegramConnectToken: token,
+      telegramConnectExpires: { gt: new Date() },
+    },
+  });
+  if (!user) {
+    await sendMessage({
+      chatId,
+      text: "This connect link expired. Go back to Purple Club and tap *Connect Telegram* again.",
+    });
+    return;
+  }
+
+  const existingForUser = await prisma.telegramMember.findUnique({ where: { userId: user.id } });
+  if (existingForUser && existingForUser.telegramId !== telegramId) {
+    await sendMessage({
+      chatId,
+      text: "This wallet is already linked to a different Telegram account.",
+    });
+    return;
+  }
+
+  const existingForTelegram = await prisma.telegramMember.findUnique({ where: { telegramId } });
+  if (existingForTelegram?.userId && existingForTelegram.userId !== user.id) {
+    await sendMessage({
+      chatId,
+      text: "This Telegram account is already linked to a different wallet.",
+    });
+    return;
+  }
+
+  await prisma.telegramMember.upsert({
+    where: { telegramId },
+    create: { telegramId, username: from.username ?? null, userId: user.id },
+    update: { username: from.username ?? null, userId: user.id },
+  });
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { telegramConnectToken: null, telegramConnectExpires: null },
+  });
+
+  const balance = await fetchBalance(user.wallet);
+  if (balance < 1) {
+    await sendMessage({
+      chatId,
+      text: "Linked. The key is not held yet. Hold 1 PBTC, then tap *Enter the group* on the site.",
+    });
+    return;
+  }
+
+  try {
+    const member = await getChatMember(getMainGroupId(), Number(telegramId));
+    if (["member", "administrator", "creator", "restricted"].includes(member.status)) {
+      await prisma.telegramMember.update({ where: { telegramId }, data: { inGroup: true } });
+      await sendMessage({ chatId, text: "Linked. You're already in the group." });
+      return;
+    }
+  } catch {
+    // Membership check failed. Still try to mint an invite.
+  }
+
+  try {
+    const inviteLink = await createInviteLink(getMainGroupId());
+    await sendMessage({
+      chatId,
+      text:
+        `Linked. Here's your one-time invite:\n${inviteLink}\n\n` +
+        `_It expires in 1 hour and works once._`,
+    });
+  } catch (err) {
+    console.error("[telegram/webhook] site connect invite failed:", err);
+    await sendMessage({
+      chatId,
+      text: "Linked. Go back to the site and tap *Enter the group* for your invite.",
+    });
+  }
+}
+
+async function handleLink(chatId: number, telegramId: bigint): Promise<void>
   // Invalidate any existing unexpired session first
   await prisma.telegramLinkSession.updateMany({
     where: {

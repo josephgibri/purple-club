@@ -121,22 +121,22 @@ export function ProductGate({
     <main className="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-3xl flex-col items-center justify-center gap-6 px-6 py-12">
       {explainer ? <div className="w-full">{explainer}</div> : null}
 
-      <div className="w-full rounded-3xl border border-gold-accent/40 bg-surface p-8 text-center shadow-2xl shadow-black/30">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold-accent/40 bg-black/40 text-gold-accent">
+      <div className="w-full max-w-md border border-[var(--line)] bg-[var(--wall-2)] p-8 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center border border-[var(--line)] text-[var(--ink)]">
           {icon}
         </div>
-        <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.28em] text-gold-accent">
+        <p className="mt-4 text-[11px] uppercase tracking-[0.22em] text-[var(--bone-faint)]">
           {eyebrow}
         </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{heading}</h1>
-        <p className="mx-auto mt-3 max-w-md text-sm text-violet-100/75">{description}</p>
+        <h1 className="club-display mt-2 text-3xl text-[var(--bone)]">{heading}</h1>
+        <p className="mx-auto mt-3 max-w-md text-sm text-[var(--bone-dim)]">{description}</p>
 
         <div className="mt-6 flex flex-col items-center gap-3">
           {stage === "buy" && error ? (
             <button
               type="button"
               onClick={() => void refresh()}
-              className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-gold-accent px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-black transition hover:brightness-110"
+              className="inline-flex w-full max-w-xs items-center justify-center bg-[var(--ink)] px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)]"
             >
               Retry balance check
             </button>
@@ -145,7 +145,7 @@ export function ProductGate({
               href={JUPITER_SWAP_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-gold-accent px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-black transition hover:brightness-110"
+              className="inline-flex w-full max-w-xs items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)]"
             >
               <Lock size={14} />
               Buy 1 PBTC on Jupiter
@@ -155,17 +155,17 @@ export function ProductGate({
               type="button"
               onClick={() => void enter()}
               disabled={isPending || isLoading}
-              className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-gold-accent px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_60px_-15px_rgba(246,196,83,0.65)] transition hover:brightness-110 disabled:opacity-60"
+              className="inline-flex w-full max-w-xs items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--bone)] disabled:opacity-60"
             >
               <Sparkles size={14} />
               {isPending
                 ? "Connecting…"
                 : stage === "sign"
-                  ? "Sign to Enter"
+                  ? "Sign to enter"
                   : "Enter Purple Club"}
             </button>
           )}
-          {issue ? <p className="max-w-xs text-xs text-rose-200">{issue}</p> : null}
+          {issue ? <p className="max-w-xs text-xs text-[var(--warn)]">{issue}</p> : null}
         </div>
       </div>
     </main>
