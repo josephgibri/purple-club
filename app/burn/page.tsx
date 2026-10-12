@@ -139,9 +139,8 @@ export default function BurnPage() {
             Every booking burns.
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-white/65">
-            We burn a minimum of 0.25% of every confirmed booking — with periodic boost burns
-            up to 1%. Each burn is posted below with its on-chain transaction hash. Verify it
-            yourself.
+            We burn 0.25% up to 2% of every confirmed booking. Each burn is posted below
+            with its on-chain transaction hash. Verify it yourself.
           </p>
         </div>
 
@@ -215,14 +214,14 @@ export default function BurnPage() {
               <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#EAB308]/45 bg-[#EAB308]/10 text-[10px] font-semibold text-[#FDE047]">
                 1
               </span>
-              You book through the club's travel partner. 0.25% of the booking value buys and burns PBTC. The club does not take a cut.
+              You book through the club&apos;s travel partner. 0.25% up to 2% of the booking value buys and burns PBTC. The club does not take a cut.
             </li>
             <li className="flex gap-3">
               <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#EAB308]/45 bg-[#EAB308]/10 text-[10px] font-semibold text-[#FDE047]">
                 2
               </span>
-              Each month, we take at least 0.25% of revenue from confirmed stays — sometimes
-              more during boost months — buy PBTC on Solana, and burn it.
+              Each month the travel partner uses 0.25% up to 2% of confirmed stay value,
+              from its own margin, to buy PBTC on Solana and burn it.
             </li>
             <li className="flex gap-3">
               <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#EAB308]/45 bg-[#EAB308]/10 text-[10px] font-semibold text-[#FDE047]">

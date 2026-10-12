@@ -111,7 +111,7 @@ export default function InvestorsPage() {
           One burn. The partner pays it.
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-violet-100/75">
-          Stays are booked with a licensed travel partner. 0.25% of booking
+          Stays are booked with a licensed travel partner. 0.25% up to 2% of booking
           value is used by that partner to buy and burn PBTC. The club takes
           nothing. This is not a claim that the supply will move.
         </p>

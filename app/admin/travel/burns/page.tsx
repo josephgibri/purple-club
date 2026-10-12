@@ -29,6 +29,7 @@ type SuggestedResponse = {
   fulfilledStaysCount: number;
   revenueUsd: string;
   suggestedBurnUsd: string;
+  suggestedBurnMaxUsd?: string;
   alreadyBurned: { id: string; periodLabel: string; committedAt: string } | null;
 };
 
@@ -453,18 +454,23 @@ export default function AdminBurnsPage() {
                   }
                 />
                 <StatTile
-                  eyebrow="Suggested 0.25% burn"
+                  eyebrow="Suggested burn, 0.25% up to 2%"
                   value={
                     suggestedLoading
                       ? "…"
                       : suggested
-                        ? `~$${Number(suggested.suggestedBurnUsd).toLocaleString("en-US", {
+                        ? `$${Number(suggested.suggestedBurnUsd).toLocaleString("en-US", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })} – $${Number(
+                            suggested.suggestedBurnMaxUsd ?? suggested.suggestedBurnUsd,
+                          ).toLocaleString("en-US", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}`
                         : "—"
                   }
-                  sub="Hint only · enter what you actually burned"
+                  sub="Floor to ceiling · enter what you actually burned"
                 />
               </div>
             </article>

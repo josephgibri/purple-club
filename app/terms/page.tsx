@@ -67,8 +67,8 @@ export default function TermsPage() {
             <li>Book through the club&apos;s travel partner.</li>
             <li>Same room, same dates — 5% off the public rate.</li>
             <li>
-              0.25% of booking value is used by the travel partner, from its own margin, to
-              buy PBTC on the open market and burn it.
+              0.25% up to 2% of booking value is used by the travel partner, from its own
+              margin, to buy PBTC on the open market and burn it.
             </li>
             <li>You pay the agency, not the club.</li>
           </ul>

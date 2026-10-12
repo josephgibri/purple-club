@@ -3,6 +3,7 @@ import { Prisma, TravelRequestStatus } from "@prisma/client";
 import { isFounderWallet, readSession } from "@/lib/wallet-session";
 import { prisma } from "@/lib/prisma";
 import { lastCompletedMonthLabel, periodBounds } from "@/lib/burns";
+import { TRAVEL_BURN_CAP, TRAVEL_BURN_FLOOR } from "@/lib/constants";
 
 export const runtime = "nodejs";
 
@@ -55,16 +56,17 @@ export async function GET(request: NextRequest) {
   ]);
 
   const stays = stats._count._all;
+  const revenue = Number(stats._sum.purplePriceUsd ?? new Prisma.Decimal(0));
   const revenueUsd = (stats._sum.purplePriceUsd ?? new Prisma.Decimal(0)).toFixed(2);
-  const suggestedBurnUsd = (
-    Number(stats._sum.purplePriceUsd ?? new Prisma.Decimal(0)) * 0.0025
-  ).toFixed(2);
+  const suggestedBurnUsd = (revenue * TRAVEL_BURN_FLOOR).toFixed(2);
+  const suggestedBurnMaxUsd = (revenue * TRAVEL_BURN_CAP).toFixed(2);
 
   return NextResponse.json({
     periodLabel,
     fulfilledStaysCount: stays,
     revenueUsd,
     suggestedBurnUsd,
+    suggestedBurnMaxUsd,
     alreadyBurned: alreadyBurned
       ? {
           id: alreadyBurned.id,

@@ -86,7 +86,7 @@ const STAGES = [
   },
   {
     title: "Burn",
-    detail: "0.25% of every booking buys & burns PBTC — more during boost months.",
+    detail: "0.25% up to 2% of every booking buys and burns PBTC.",
     Icon: BurnIcon,
   },
 ] as const;
