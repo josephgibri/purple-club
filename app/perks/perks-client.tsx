@@ -21,7 +21,7 @@ export function PerksClient() {
     <ProductGate
       eyebrow="Places"
       connectTitle="Sign in to see Places"
-      connectDescription="Connect a Solana wallet that holds at least 1 PBTC. Verification is read-only. The directory is the club."
+      connectDescription="Hold 1 PBTC. Get the member price."
     >
       <PerksDirectory />
     </ProductGate>
@@ -83,54 +83,51 @@ function PerksDirectory() {
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-5xl flex-col px-6 py-8 sm:py-10">
-      <div className="rounded-3xl border border-border bg-surface p-7 shadow-2xl shadow-black/20">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--bone-faint)]">
-              Places
-            </p>
-            <h1 className="club-display mt-2 text-3xl text-[var(--bone)] sm:text-4xl">
-              The directory
-            </h1>
-            <p className="mt-2 max-w-xl text-sm text-[var(--bone-dim)]">
-              A business is a place. Name, category, location, the member benefit.
-              The discount is applied at the counter. The club never touches the money.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="hidden items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-100 sm:inline-flex">
-              <ShieldCheck size={14} />
-              {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })} PBTC
-            </span>
-            <Link
-              href="/account/business/list"
-              className="inline-flex items-center gap-1.5 rounded-full bg-[var(--ink)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--bone)]"
-            >
-              <Store size={14} />
-              List a place
-            </Link>
-            <button
-              type="button"
-              onClick={() => setIsPassOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-gold-accent px-4 py-2 text-xs font-semibold text-black transition hover:brightness-110"
-            >
-              <Sparkles size={14} />
-              Open Pass
-            </button>
-          </div>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--bone-faint)]">
+            Places
+          </p>
+          <h1 className="club-display mt-2 text-3xl text-[var(--bone)] sm:text-4xl">
+            The directory
+          </h1>
+          <p className="mt-2 max-w-xl text-sm text-[var(--bone-dim)]">
+            Show your pass. The business charges the member price. The club never touches the money.
+          </p>
         </div>
-
-        <div id="directory">
-          <Suspense
-            fallback={
-              <div className="mt-6 text-sm text-violet-100/70">
-                Loading merchant directory…
-              </div>
-            }
+        <div className="flex items-center gap-2">
+          <span className="hidden items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-100 sm:inline-flex">
+            <ShieldCheck size={14} />
+            {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })} PBTC
+          </span>
+          <Link
+            href="/account/business/list"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[var(--ink)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--bone)]"
           >
-            <MerchantDirectory merchants={directoryMerchants} />
-          </Suspense>
+            <Store size={14} />
+            List a place
+          </Link>
+          <button
+            type="button"
+            onClick={() => setIsPassOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full bg-[var(--ink)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--bone)]"
+          >
+            <Sparkles size={14} />
+            Open Pass
+          </button>
         </div>
+      </div>
+
+      <div id="directory">
+        <Suspense
+          fallback={
+            <div className="mt-6 text-sm text-[var(--bone-dim)]">
+              Loading merchant directory…
+            </div>
+          }
+        >
+          <MerchantDirectory merchants={directoryMerchants} />
+        </Suspense>
       </div>
 
       <DigitalMembershipPass

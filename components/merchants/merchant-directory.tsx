@@ -142,12 +142,6 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
   }
 
   const hasResults = filtered.length > 0;
-  const emptyScope =
-    activeLocation === "global-online"
-      ? "Global/Online"
-      : activeLocation === "all"
-        ? "this area"
-        : activeLocation;
 
   return (
     <section className="mt-10 space-y-8">
@@ -240,7 +234,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
                         )}
                       </div>
                     </div>
-                    <span className="inline-flex items-center gap-2 rounded-xl bg-gold-accent px-5 py-2.5 text-sm font-semibold text-black transition group-hover:brightness-110">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-[var(--ink)] px-5 py-2.5 text-sm font-semibold text-[var(--bone)]">
                       View Merchant
                     </span>
                   </div>
@@ -315,7 +309,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
                   ) : (
                     <p className="text-xs text-violet-100/65">{merchant.locationOrCoverage}</p>
                   )}
-                  <span className="inline-flex rounded-lg bg-gold-accent px-3 py-1.5 text-xs font-semibold text-black">
+                  <span className="inline-flex rounded-full bg-[var(--ink)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--bone)]">
                     View
                   </span>
                 </div>
@@ -323,28 +317,14 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
             </ImpressionCard>
           ))
         ) : (
-          <article className="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-xl sm:col-span-2">
-            <h3 className="text-xl font-semibold text-gold-accent">
-              Purple Club is currently growing in {emptyScope}.
-            </h3>
-            <p className="mt-2 max-w-2xl text-sm text-violet-100/80">
-              Use your status to invite the first local partner and help expand
-              the PBTC merchant network on Solana.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <Link
-                href="/partners"
-                className="inline-flex rounded-xl bg-gold-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110"
-              >
-                Send Invitation
-              </Link>
-              <Link
-                href="/account/business/list"
-                className="inline-flex rounded-xl border border-gold-accent/50 px-4 py-2 text-sm font-semibold text-gold-accent transition hover:bg-gold-accent/10"
-              >
-                Register your business
-              </Link>
-            </div>
+          <article className="border border-[var(--line)] bg-[var(--wall-2)] p-6 sm:col-span-2">
+            <h3 className="text-base text-[var(--bone)]">No places in this filter yet.</h3>
+            <Link
+              href="/account/business/list"
+              className="mt-4 inline-flex bg-[var(--ink)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--bone)]"
+            >
+              List a place
+            </Link>
           </article>
         )}
 

@@ -51,7 +51,7 @@ export function CouncilRoom({
         {weight > 0 ? `Your weight is ${weight.toLocaleString()}.` : "No seat held."}
       </p>
       <p className="mt-1 text-sm text-[var(--bone-dim)]">
-        Weight is contribution credit. Talk stays on Telegram. The vote is recorded here.
+        Weight is contribution credit. The vote is recorded here.
       </p>
 
       <section className="mt-8">

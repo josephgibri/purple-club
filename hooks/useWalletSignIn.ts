@@ -6,16 +6,14 @@ import type { WalletName } from "@solana/wallet-adapter-base";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useMembershipGate } from "@/hooks/useMembershipGate";
 import { useWalletAuth } from "@/hooks/useWalletAuth";
 import { useMobileWallet } from "@/components/auth/mobile-wallet-context";
-import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
 import {
   getInjectedWalletKind,
   isMobileExternalBrowser,
   isMobileWalletWebView,
 } from "@/lib/device";
-
-const PURPLE_WALLET_NAME = "Purple Wallet";
 
 // Must stay in sync with the key written by useWalletAuth.ts.
 const PC_AUTH_PREFIX = "pc_auth:";
@@ -96,8 +94,13 @@ export function useWalletSignIn(): SignInState {
   const wallet = useWallet();
   const { setVisible } = useWalletModal();
   const { isVerified, verify, setError } = useWalletAuth();
+  const {
+    hasPbtc,
+    isLoading: isBalanceLoading,
+    error: balanceError,
+    sourceRpc,
+  } = useMembershipGate();
   const { openPicker, pendingResume, setPendingResume } = useMobileWallet();
-  const purple = usePurpleWalletContext();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -109,23 +112,10 @@ export function useWalletSignIn(): SignInState {
   // Guards against two callers (the connect state machine and the Purple
   // Wallet auto-sign effect) both firing runSignIn at once.
   const signingInFlightRef = useRef(false);
-  // Tracks the Purple Wallet address we've already auto-signed for, so we
-  // don't re-prompt a signature on every render once connected.
-  const purpleAutoSignRef = useRef<string | null>(null);
-  // Dedupes the Purple Wallet direct-verify so a burst of renders during the
-  // unlock → connect transition can't fire multiple signatures at once.
-  const purpleSignInFlightRef = useRef(false);
   // When the user explicitly chose to enter the club (vs. a silent
-  // reconnect), redirect into /account once SIWS lands. Lets a freshly
-  // created Purple Wallet (0 PBTC) reach its dashboard instead of stalling
-  // on the landing page.
+  // reconnect), send a holder to Places once the key is confirmed.
+  // A signed wallet under 1 PBTC stays on the wall.
   const enterIntentRef = useRef(false);
-  // Latest Purple Wallet context, read inside runSignIn without forcing it to
-  // be recreated on every unlock/lock transition.
-  const purpleRef = useRef(purple);
-  useEffect(() => {
-    purpleRef.current = purple;
-  }, [purple]);
 
   const clearWatchdog = useCallback(() => {
     if (watchdogTimerRef.current !== null) {
@@ -182,34 +172,10 @@ export function useWalletSignIn(): SignInState {
       // the user to sign again. useWalletAuth's own effect will re-sync the
       // server cookie from the stored proof.
       const address = wallet.publicKey?.toBase58();
-      // Purple Wallet: sign the SIWS message with the in-memory keypair
-      // directly. The wallet-adapter signMessage round-trip (adapter →
-      // standard-wallet → bridge → signer) can silently no-op if the bridge
-      // isn't wired yet, which is what left users stuck on "Sign to Enter".
-      // Signing through the live context is deterministic.
-      const isPurple = wallet.wallet?.adapter?.name === PURPLE_WALLET_NAME;
-
-      // External wallets: if a valid SIWS proof is already stored, skip the
-      // signature so we don't trigger a redundant extension popup. Purple
-      // Wallet signs SILENTLY with the in-memory key, so we always (re)sign —
-      // re-running verify also re-emits the proof event, resyncing any
-      // useWalletAuth instance that missed the first write. That stale-sync was
-      // what left the header stuck on "Sign to Enter" with clicks doing
-      // nothing (runSignIn kept early-returning here while isVerified was false).
-      if (!isPurple && address && hasValidStoredProof(address)) return;
-
-      const pw = purpleRef.current;
-      if (isPurple && address) {
-        if (pw.state !== "unlocked" || pw.address !== address) {
-          // Locked (e.g. auto-locked) — prompt unlock. The provider resolves
-          // the unlock and the auto-sign effect retries once it's unlocked.
-          pw.openModal("unlock");
-          return;
-        }
-        await verify({ address, signMessage: pw.signMessage });
-      } else {
-        await verify();
-      }
+      // A valid SIWS proof is already stored — skip the signature so we don't
+      // trigger a redundant extension popup.
+      if (address && hasValidStoredProof(address)) return;
+      await verify();
     } catch (value) {
       const raw =
         value instanceof Error ? value.message : "Sign-in failed.";
@@ -265,15 +231,7 @@ export function useWalletSignIn(): SignInState {
     clearWatchdog();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSiwsPending(false);
-    // Purple Wallet sign-in is owned by the dedicated auto-login effect below
-    // (it signs silently with the in-memory key the moment the wallet is
-    // unlocked). Driving it through runSignIn here too created a race: one pass
-    // could read a still-"locked" ref, bail, reopen the unlock modal, and
-    // consume the auto-sign guard so SIWS never fired. External wallets still
-    // go through runSignIn (they need the adapter signMessage round-trip).
-    if (wallet.wallet?.adapter?.name !== PURPLE_WALLET_NAME) {
-      void runSignIn();
-    }
+    void runSignIn();
     // useWallet() returns a fresh object every render so we list the
     // specific fields we read; disable exhaustive-deps for that reason.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -312,105 +270,27 @@ export function useWalletSignIn(): SignInState {
     enterIntentRef.current = true;
     armWatchdog();
     try {
-      const name =
-        pendingResume === "phantom"
-          ? "Phantom"
-          : pendingResume === "solflare"
-            ? "Solflare"
-            : "Purple Wallet";
+      const name = pendingResume === "phantom" ? "Phantom" : "Solflare";
       wallet.select(name as WalletName<string>);
     } catch {
-      // Adapter not registered — should never happen since Phantom/Solflare
-      // and Purple Wallet are all Wallet Standard wallets.
+      // Adapter not registered — Phantom and Solflare register via Wallet Standard.
     }
     // wallet/setPendingResume/armWatchdog change on every render; this
     // effect must only act when pendingResume transitions to a value.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingResume]);
 
-  // Purple Wallet auto-login — the single source of truth for Purple Wallet
-  // SIWS. The wallet only "connects" after the user explicitly unlocks/creates
-  // it (password required), so a connected + unlocked Purple Wallet is an
-  // unambiguous intent to sign in. We call verify() DIRECTLY with the live
-  // context's silent signMessage instead of routing through runSignIn — that
-  // path read a ref that could lag the unlock, bail, reopen the modal, and
-  // leave the user stuck on "Sign to Enter". Gating on the reactive
-  // purple.state means this re-fires the instant the unlock lands.
+  // Post-sign-in redirect. Scoped to the public landing page so gated product
+  // pages unlock in place. Wait until the balance read for this wallet has
+  // settled, then send a holder to Places. Under 1 PBTC, stay on the wall.
   useEffect(() => {
-    if (wallet.wallet?.adapter?.name !== PURPLE_WALLET_NAME) return;
-    if (!wallet.connected || !wallet.publicKey) {
-      purpleAutoSignRef.current = null;
-      return;
-    }
-    if (isVerified) return;
-    const address = wallet.publicKey.toBase58();
-    // Reset the one-shot guard whenever the wallet isn't unlocked, so a fresh
-    // unlock always re-attempts (and a failed verify can be retried by
-    // re-unlocking) without ever looping while unlocked + verified.
-    if (purple.state !== "unlocked") {
-      purpleAutoSignRef.current = null;
-      return;
-    }
-    if (purple.address !== address) return;
-    if (purpleAutoSignRef.current === address) return;
-    if (purpleSignInFlightRef.current) return;
-
-    purpleAutoSignRef.current = address;
-    purpleSignInFlightRef.current = true;
-    clearWatchdog();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSiwsPending(false);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsPending(true);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLocalError(null);
-    setError(null);
-    setVisible(false);
-
-    // Unlocking/creating the built-in wallet is an explicit intent to enter,
-    // so route into /account once SIWS lands (handled by the redirect effect).
-    enterIntentRef.current = true;
-    const signMessage = purple.signMessage;
-    void (async () => {
-      try {
-        await verify({ address, signMessage });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Sign-in failed.";
-        setLocalError(msg);
-        setError(msg);
-        // Allow a retry on the next unlock/click.
-        purpleAutoSignRef.current = null;
-      } finally {
-        purpleSignInFlightRef.current = false;
-        setIsPending(false);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    wallet.connected,
-    wallet.publicKey,
-    wallet.wallet,
-    isVerified,
-    purple.state,
-    purple.address,
-    purple.signMessage,
-    verify,
-    setError,
-    setVisible,
-    clearWatchdog,
-  ]);
-
-  // Post-sign-in redirect. When the user explicitly chose to enter (clicked
-  // "Enter Purple Club" / "Sign to Enter") and SIWS has now landed, route them
-  // into their dashboard. Scoped to the public landing page so gated product
-  // pages (/perks, /stay, /account) unlock in place without an extra hop.
-  useEffect(() => {
-    if (!isVerified || !enterIntentRef.current) return;
+    if (!enterIntentRef.current || pathname !== "/") return;
+    if (!isVerified) return;
+    const balanceSettled = !isBalanceLoading && (sourceRpc !== null || balanceError !== null);
+    if (!balanceSettled) return;
     enterIntentRef.current = false;
-    if (pathname === "/") {
-      router.push("/account");
-    }
-  }, [isVerified, pathname, router]);
+    if (hasPbtc) router.push("/places");
+  }, [isVerified, isBalanceLoading, hasPbtc, balanceError, sourceRpc, pathname, router]);
 
   /**
    * Single entry point. Branches by environment:
@@ -431,37 +311,12 @@ export function useWalletSignIn(): SignInState {
   const enter = useCallback(async () => {
     setLocalError(null);
     // Explicit user intent to enter the club — remember it so we can route
-    // into /account once SIWS completes (see the redirect effect below).
+    // a holder to Places once SIWS and the balance read complete.
     enterIntentRef.current = true;
     if (isVerified) return;
 
     // Already fully connected — just sign.
     if (wallet.wallet?.adapter && wallet.publicKey) {
-      const isPurple = wallet.wallet.adapter.name === PURPLE_WALLET_NAME;
-      if (isPurple) {
-        // Built-in wallet: verify DIRECTLY with the live context. No
-        // runSignIn (which reads a possibly-stale ref and is gated by an
-        // in-flight flag that can wedge the button into a no-op).
-        const address = wallet.publicKey.toBase58();
-        if (purple.state !== "unlocked" || purple.address !== address) {
-          // Locked / auto-locked — prompt unlock. The auto-login effect signs
-          // the moment the unlock lands.
-          purple.openModal("unlock");
-          return;
-        }
-        setIsPending(true);
-        setError(null);
-        try {
-          await verify({ address, signMessage: purple.signMessage });
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : "Sign-in failed.";
-          setLocalError(msg);
-          setError(msg);
-        } finally {
-          setIsPending(false);
-        }
-        return;
-      }
       await runSignIn();
       return;
     }
@@ -528,9 +383,6 @@ export function useWalletSignIn(): SignInState {
     setVisible,
     openPicker,
     armWatchdog,
-    purple,
-    verify,
-    setError,
   ]);
 
   return {

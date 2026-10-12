@@ -1,6 +1,6 @@
 "use client";
 
-import { BedDouble, CircleUser, MapPin, Users } from "lucide-react";
+import { BedDouble, CircleUser, MapPin } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
@@ -10,10 +10,9 @@ import { DogMark } from "@/components/brand/dog-mark";
 import { useMembershipGate } from "@/hooks/useMembershipGate";
 
 const TABS = [
-  { href: "/account", label: "You", icon: CircleUser },
-  { href: "/community", label: "Community", icon: Users },
-  { href: "/stay", label: "Stays", icon: BedDouble },
   { href: "/places", label: "Places", icon: MapPin },
+  { href: "/stay", label: "Stays", icon: BedDouble },
+  { href: "/account", label: "You", icon: CircleUser },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -40,7 +39,7 @@ export function TopNav() {
     <>
       <header className="fixed inset-x-0 top-0 z-40 h-14 border-b border-[var(--line)] bg-[var(--wall)]">
         <div className="mx-auto flex h-full w-full max-w-[1120px] items-center justify-between gap-3 px-4">
-          <Link href={isMember ? "/account" : "/"} className="flex min-w-0 items-center gap-2.5">
+          <Link href={isMember ? "/places" : "/"} className="flex min-w-0 items-center gap-2.5">
             <DogMark size={28} />
             <span className="club-display text-[13px] leading-none tracking-[0.14em]">
               <span className="text-[var(--bone)]">Purple</span>{" "}
@@ -62,7 +61,7 @@ export function TopNav() {
         aria-label="Club"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--line)] bg-[var(--wall)]"
       >
-        <ul className="mx-auto grid h-16 w-full max-w-[1120px] grid-cols-4">
+        <ul className="mx-auto grid h-16 w-full max-w-[1120px] grid-cols-3">
           {TABS.map((tab) => {
             const active = isActive(pathname, tab.href);
             const Icon = tab.icon;

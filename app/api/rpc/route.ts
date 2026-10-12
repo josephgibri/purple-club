@@ -16,13 +16,11 @@ export const dynamic = "force-dynamic";
  *
  * Because a naive proxy is just an open relay (anyone could drain our quota),
  * it is locked down:
- *   - explicit method allowlist (reads + sendTransaction for Purple Wallet swap/send),
+ *   - explicit method allowlist (reads only),
  *   - per-IP rate limit,
  *   - request body size cap,
  *   - bounded batch size.
  *
- * sendTransaction is included so Purple Wallet can broadcast signed swap and
- * send transactions without exposing the Helius API key to the client bundle.
  * The per-IP rate limit (80 req / 10 s) is the abuse guard.
  */
 const ALLOWED_METHODS = new Set<string>([
@@ -35,7 +33,6 @@ const ALLOWED_METHODS = new Set<string>([
   "getSignatureStatuses",
   "getSlot",
   "getHealth",
-  "sendTransaction",
 ]);
 
 const MAX_BODY_BYTES = 16 * 1024; // 16 KB is plenty for read RPC payloads

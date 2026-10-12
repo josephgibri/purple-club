@@ -114,8 +114,6 @@ export function EditClient({ initial, merchantId, merchantExists }: EditClientPr
 
         <div className="mt-6 rounded-xl border border-border bg-surface-muted p-4 text-xs text-violet-100/70">
           Lost your link later? DM{" "}
-          <span className="font-semibold text-violet-100">@purpleclubhq on Telegram</span>{" "}
-          or{" "}
           <span className="font-semibold text-violet-100">@purpleclub on X</span>{" "}
           with the email you submitted. A maintainer will regenerate a fresh
           edit link for you.

@@ -1,7 +1,6 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 import { useCallback, useEffect, useState } from "react";
 import nacl from "tweetnacl";
@@ -19,24 +18,12 @@ type Proof = {
   expiresAt: number;
 };
 
-/**
- * Optional direct-signer override for `verify()`. Lets a caller (e.g. the
- * built-in Purple Wallet) produce the SIWS signature with its own in-memory
- * keypair instead of going through the wallet-adapter `signMessage` plumbing,
- * which can silently no-op when the standard-wallet bridge isn't ready. The
- * address must match the currently connected adapter so `isVerified` resolves.
- */
-type SignOverride = {
-  address: string;
-  signMessage: (message: Uint8Array) => Promise<Uint8Array>;
-};
-
 type WalletAuthState = {
   isVerified: boolean;
   isSigning: boolean;
   error: string | null;
   proof: Proof | null;
-  verify: (override?: SignOverride) => Promise<void>;
+  verify: () => Promise<void>;
   clear: () => void;
   setError: (value: string | null) => void;
 };
@@ -145,28 +132,21 @@ export function useWalletAuth(): WalletAuthState {
     return () => window.removeEventListener(PROOF_EVENT, onProofChange);
   }, [publicKey, connected]);
 
-  const verify = useCallback(async (override?: SignOverride) => {
+  const verify = useCallback(async () => {
     setError(null);
 
-    // Resolve the signer + address. With an override (Purple Wallet) we sign
-    // with the in-memory keypair directly and don't require the adapter's
-    // signMessage; we still need the connected adapter's publicKey to match
-    // so the stored proof lines up with `isVerified`.
-    const signFn = override?.signMessage ?? signMessage;
-    const pubkeyStr = override?.address ?? publicKey?.toBase58() ?? null;
+    const pubkeyStr = publicKey?.toBase58() ?? null;
 
-    if (!pubkeyStr || (!override && (!publicKey || !connected))) {
+    if (!pubkeyStr || !publicKey || !connected) {
       setError("Connect your wallet first.");
       return;
     }
-    if (!signFn) {
+    if (!signMessage) {
       setError("This wallet does not support message signing.");
       return;
     }
 
-    const pubkeyBytes = override
-      ? new PublicKey(override.address).toBytes()
-      : publicKey!.toBytes();
+    const pubkeyBytes = publicKey.toBytes();
 
     setIsSigning(true);
     try {
@@ -175,7 +155,7 @@ export function useWalletAuth(): WalletAuthState {
       const message = buildMessage(pubkeyStr, nonce, issuedAt);
       const encoded = new TextEncoder().encode(message);
 
-      const signature = await signFn(encoded);
+      const signature = await signMessage(encoded);
 
       const valid = nacl.sign.detached.verify(
         encoded,

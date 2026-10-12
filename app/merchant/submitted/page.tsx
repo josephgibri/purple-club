@@ -42,7 +42,7 @@ function Submitted() {
       "Keep this link private. It is the only way to update or remove your",
       "listing until email recovery is enabled.",
       "",
-      "If you lose this link, DM @purpleclubhq on Telegram or @purpleclub on X",
+      "If you lose this link, DM @purpleclub on X",
       "with the email you submitted and we will regenerate a new link for you.",
     ].join("\n");
     const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
@@ -113,8 +113,6 @@ function Submitted() {
 
       <div className="mt-6 rounded-xl border border-border bg-surface-muted p-4 text-xs text-violet-100/70">
         Lost your link later? DM{" "}
-        <span className="font-semibold text-violet-100">@purpleclubhq on Telegram</span>{" "}
-        or{" "}
         <span className="font-semibold text-violet-100">@purpleclub on X</span>{" "}
         with the email you submitted. A maintainer will regenerate a fresh edit
         link for you within minutes.

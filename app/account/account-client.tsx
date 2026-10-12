@@ -18,9 +18,6 @@ import { useState } from "react";
 
 import { ProductGate } from "@/components/access/product-gate";
 import { DigitalMembershipPass } from "@/components/membership/digital-membership-pass";
-import { PurpleWalletCard } from "@/components/purple-wallet/wallet-card";
-import { usePurpleWalletContext } from "@/components/auth/purple-wallet-provider";
-import { PURPLE_WALLET_ENABLED } from "@/lib/purple-wallet/feature-flag";
 import { useMembershipGate } from "@/hooks/useMembershipGate";
 import { useWalletSession } from "@/hooks/useWalletSession";
 import { JUPITER_SWAP_URL } from "@/lib/constants";
@@ -49,20 +46,9 @@ export function AccountClient() {
 function AccountDashboard() {
   const { publicKey } = useWallet();
   const { balance, hasPbtc, signaturePrefix, signedAtIso } = useMembershipGate();
-  const purple = usePurpleWalletContext();
   const [isPassOpen, setIsPassOpen] = useState(false);
 
   const walletAddress = publicKey?.toBase58();
-
-  // The built-in Purple Wallet card is shown ONLY when the user is actually
-  // signed in with the Purple Wallet (its address matches the session). A
-  // Purple Wallet may exist in this browser from a previous session, but if the
-  // user logged in with a different wallet (Phantom/Solflare) it belongs to a
-  // different identity and must not surface in their profile — it only appears
-  // when they log in with it.
-  const loggedInWithPurple =
-    !!walletAddress && !!purple.address && purple.address === walletAddress;
-  const showPurpleCard = PURPLE_WALLET_ENABLED && loggedInWithPurple;
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-5xl flex-col gap-6 px-6 py-8 sm:py-10">
@@ -100,9 +86,7 @@ function AccountDashboard() {
             walletAddress={walletAddress}
             balance={balance}
             onOpenPass={() => setIsPassOpen(true)}
-            showDetails={!loggedInWithPurple}
           />
-          {showPurpleCard ? <PurpleWalletCard /> : null}
           <div className="flex min-h-0 flex-1 flex-col">
             <MemberTools />
           </div>
@@ -161,15 +145,9 @@ type WalletCardProps = {
   walletAddress?: string;
   balance: number;
   onOpenPass: () => void;
-  /**
-   * When false, the wallet address + PBTC rows are hidden. Used when the user
-   * signed in with the built-in Purple Wallet — its own card already shows the
-   * address and balances, so the Membership card collapses to just the Pass.
-   */
-  showDetails?: boolean;
 };
 
-function WalletCard({ walletAddress, balance, onOpenPass, showDetails = true }: WalletCardProps) {
+function WalletCard({ walletAddress, balance, onOpenPass }: WalletCardProps) {
   const short = walletAddress
     ? `${walletAddress.slice(0, 4)}…${walletAddress.slice(-4)}`
     : "—";
@@ -180,28 +158,19 @@ function WalletCard({ walletAddress, balance, onOpenPass, showDetails = true }: 
         <ShieldCheck size={14} />
         Membership
       </div>
-      {showDetails ? (
-        <div className="mt-4 space-y-3 text-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-violet-100/60">Wallet</span>
-            <span className="font-mono text-violet-100/95">{short}</span>
-          </div>
-          <AccountEmail />
-          <div className="flex items-center justify-between">
-            <span className="text-violet-100/60">PBTC held</span>
-            <span className="font-mono text-emerald-200">
-              {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-            </span>
-          </div>
+      <div className="mt-4 space-y-3 text-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-violet-100/60">Wallet</span>
+          <span className="font-mono text-violet-100/95">{short}</span>
         </div>
-      ) : (
-        <>
-          <p className="mt-3 text-xs text-violet-100/60">
-            Your membership pass — wallet details are in your Purple Wallet below.
-          </p>
-          <AccountEmail />
-        </>
-      )}
+        <AccountEmail />
+        <div className="flex items-center justify-between">
+          <span className="text-violet-100/60">PBTC held</span>
+          <span className="font-mono text-emerald-200">
+            {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+          </span>
+        </div>
+      </div>
       <div className="mt-5 flex flex-col gap-2">
         <button
           type="button"

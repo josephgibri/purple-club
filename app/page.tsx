@@ -3,7 +3,7 @@ import { DogMark } from "@/components/brand/dog-mark";
 
 /**
  * Outsider wall. A locked door, not a pitch.
- * The wall stays here. Enter sends a holder to You after they sign.
+ * The wall stays here. Enter sends a holder to Places after they sign.
  */
 export default function HomePage() {
   return (
@@ -13,7 +13,7 @@ export default function HomePage() {
         Purple <span className="text-[var(--ink)]">Club</span>
       </h1>
       <p className="mt-4 max-w-sm text-sm tracking-wide text-[var(--bone-dim)]">
-        Hold 1 PBTC. That is the key.
+        Hold 1 PBTC. Get the member price.
       </p>
       <div className="mt-8 w-full max-w-sm">
         <EnterClubCta />

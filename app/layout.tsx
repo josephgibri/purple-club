@@ -5,7 +5,6 @@ import { TopNav } from "@/components/navigation/top-nav";
 import { SiteFooter } from "@/components/navigation/site-footer";
 import { Atmosphere } from "@/components/shell/atmosphere";
 import { SolanaProvider } from "@/components/providers/solana-provider";
-import { PurpleWalletProvider } from "@/components/auth/purple-wallet-provider";
 import { BasePathFetch } from "@/components/base-path-fetch";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import "./globals.css";
@@ -37,7 +36,7 @@ const oswald = Oswald({
 
 export const metadata: Metadata = {
   title: "Purple Club",
-  description: "Hold 1 PBTC. That is the key.",
+  description: "Hold 1 PBTC. Get the member price.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -74,11 +73,9 @@ export default function RootLayout({
         <Atmosphere />
         <BasePathFetch />
         <SolanaProvider>
-          <PurpleWalletProvider>
-            <TopNav />
-            <div className="relative z-10 flex flex-1 flex-col">{children}</div>
-            <SiteFooter />
-          </PurpleWalletProvider>
+          <TopNav />
+          <div className="relative z-10 flex flex-1 flex-col">{children}</div>
+          <SiteFooter />
         </SolanaProvider>
         <InstallPrompt />
         <Toaster theme="dark" position="top-center" richColors />

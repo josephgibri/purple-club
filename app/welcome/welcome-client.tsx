@@ -56,7 +56,7 @@ export function WelcomeClient() {
       </p>
       <h1 className="club-display mt-2 text-4xl text-[var(--bone)] sm:text-5xl">Hold the key</h1>
       <p className="mt-3 max-w-md text-sm text-[var(--bone-dim)]">
-        Hold 1 PBTC. That is the key. The club reads the balance. It never holds the tokens.
+        Hold 1 PBTC. Get the member price. The club reads the balance. It never holds the tokens.
       </p>
       {merchantId ? (
         <p className="mt-4 text-sm text-[var(--bone)]">

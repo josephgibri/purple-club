@@ -69,8 +69,7 @@ function RecoveryShell({ reason }: { reason: "missing" | "invalid" }) {
         <div className="mt-6 rounded-xl border border-border bg-surface-muted p-4 text-sm text-violet-100/80">
           <p className="font-semibold text-violet-100">Lost your link?</p>
           <p className="mt-2">
-            DM <span className="font-semibold">@purpleclubhq on Telegram</span>{" "}
-            or <span className="font-semibold">@purpleclub on X</span> with the
+            DM <span className="font-semibold">@purpleclub on X</span> with the
             email you used when submitting. A maintainer will regenerate a
             fresh edit link for you within minutes.
           </p>

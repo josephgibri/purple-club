@@ -12,7 +12,7 @@ const JUPITER_BUY_URL = `https://jup.ag/?utm_source=phantom&utm_medium=list&buy=
 
 /**
  * The single primary action on the landing page. The wall stays put.
- * A holder who has signed this visit gets a button into You.
+ * A holder who has signed this visit gets a button into Places.
  */
 export function EnterClubCta() {
   const { connected } = useWallet();
@@ -38,7 +38,7 @@ export function EnterClubCta() {
     return (
       <button
         type="button"
-        onClick={() => router.push("/account")}
+        onClick={() => router.push("/places")}
         className="inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-emerald-100 transition hover:bg-emerald-500/25"
       >
         <ShieldCheck size={16} />

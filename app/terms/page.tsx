@@ -20,10 +20,11 @@ export default function TermsPage() {
         <section>
           <h2 className="text-base text-[var(--bone)]">1. What the club is</h2>
           <p className="mt-2">
-            Purple Club is a membership network. It is not a company you are contracting
-            with for goods, travel, or credit. It is not a financial intermediary. It does
-            not hold member money, does not pass money between members, and takes no cut
-            of a discount or a booking.
+            Purple Club is a discount membership. Hold 1 PBTC and you can use the directory
+            and the travel partner. It is not a company you are contracting with for goods,
+            travel, or credit. It is not a financial intermediary. It does not hold member
+            money, does not pass money between members, and takes no cut of a discount or a
+            booking.
           </p>
         </section>
 
@@ -33,10 +34,6 @@ export default function TermsPage() {
             Holding 1 PBTC is the club key. It is access, not an investment, not a deposit,
             and not a promise of profit, yield, or a particular discount. The club does not
             custody the token. Verification is a read of the wallet.
-          </p>
-          <p className="mt-2">
-            A council key is separate. It comes from contribution to the treasury and gives
-            voting weight. It is not a rank, and it pays nothing.
           </p>
         </section>
 
@@ -92,8 +89,8 @@ export default function TermsPage() {
           <h2 className="text-base text-[var(--bone)]">6. What is not offered</h2>
           <p className="mt-2">
             The club does not offer holder rewards, over-the-counter trading, peer-to-peer
-            lending, or a weekly lottery. It does not run an in-app feed, comments, or
-            direct messages. Conversation is on Telegram.
+            lending, or a weekly lottery. It does not run an in-app feed, comments,
+            direct messages, or a group chat.
           </p>
         </section>
 
