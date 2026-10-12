@@ -151,8 +151,8 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
 
   return (
     <section className="mt-10 space-y-8">
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="space-y-2">
+        <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <FilterButton
             label="All"
             active={activeCategory === "all"}
@@ -166,11 +166,12 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
               onClick={() => setActiveCategory(category)}
             />
           ))}
-          <select
-            value={activeLocation}
-            onChange={(event) => setActiveLocation(event.target.value)}
-            className="rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-2 text-sm text-violet-100 outline-none backdrop-blur-sm transition hover:border-white/15"
-          >
+        </div>
+        <select
+          value={activeLocation}
+          onChange={(event) => setActiveLocation(event.target.value)}
+          className="w-full rounded-full border border-[var(--line)] bg-[var(--wall-2)] px-3 py-1.5 text-xs text-[var(--bone)] outline-none"
+        >
             {locationOptions.map((location) => (
               <option key={location} value={location} className="bg-surface">
                 {location === "all"
@@ -180,8 +181,7 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
                     : location}
               </option>
             ))}
-          </select>
-        </div>
+        </select>
       </div>
 
       {anchorMerchants.length > 0 ? (
@@ -378,10 +378,10 @@ function FilterButton({ label, active, onClick }: FilterButtonProps) {
       type="button"
       onClick={onClick}
       className={clsx(
-        "rounded-full border px-4 py-2 text-sm font-medium transition",
+        "shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-[11px] font-medium transition",
         active
-          ? "border-gold-accent bg-gold-accent text-black"
-          : "border-border bg-surface-muted text-violet-100 hover:border-purple-accent",
+          ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--bone)]"
+          : "border-[var(--line)] bg-[var(--wall-2)] text-[var(--bone-dim)]",
       )}
     >
       {label}
