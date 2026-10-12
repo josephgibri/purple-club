@@ -144,22 +144,24 @@ export function MerchantDirectory({ merchants, locked = false }: MerchantDirecto
   const hasResults = filtered.length > 0;
 
   return (
-    <section className="mt-10 space-y-8">
-      <div className="space-y-2">
-        <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <FilterButton
-            label="All"
-            active={activeCategory === "all"}
-            onClick={() => setActiveCategory("all")}
-          />
-          {MERCHANT_CATEGORIES.map((category) => (
+    <section className="mt-10 min-w-0 space-y-8">
+      <div className="min-w-0 space-y-2">
+        <div className="w-full min-w-0 touch-pan-x overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max gap-2">
             <FilterButton
-              key={category}
-              label={CATEGORY_LABELS[category]}
-              active={activeCategory === category}
-              onClick={() => setActiveCategory(category)}
+              label="All"
+              active={activeCategory === "all"}
+              onClick={() => setActiveCategory("all")}
             />
-          ))}
+            {MERCHANT_CATEGORIES.map((category) => (
+              <FilterButton
+                key={category}
+                label={CATEGORY_LABELS[category]}
+                active={activeCategory === category}
+                onClick={() => setActiveCategory(category)}
+              />
+            ))}
+          </div>
         </div>
         <select
           value={activeLocation}

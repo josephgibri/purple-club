@@ -118,7 +118,7 @@ function PerksDirectory() {
         </div>
       </div>
 
-      <div id="directory">
+      <div id="directory" className="min-w-0">
         <Suspense
           fallback={
             <div className="mt-6 text-sm text-[var(--bone-dim)]">
