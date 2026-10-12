@@ -135,7 +135,7 @@ export function InstallPrompt() {
       <div className="flex items-start gap-3 pr-6">
         <span className="shrink-0 overflow-hidden rounded-xl border border-white/10">
           <Image
-            src="/purple-club-icon-192.png"
+            src="/brand/dog-icon-192.png"
             alt="Purple Club"
             width={44}
             height={44}

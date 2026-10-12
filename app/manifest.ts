@@ -12,19 +12,19 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait",
     icons: [
       {
-        src: "/purple-club-icon-192.png",
+        src: "/brand/dog-icon-192.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/purple-club-icon.png",
+        src: "/brand/dog-icon-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/purple-club-icon.png",
+        src: "/brand/dog-icon-maskable-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
