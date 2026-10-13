@@ -718,3 +718,45 @@ model Vote {
   @@index([wallet])
   @@map("votes")
 }
+
+/// Phone-app profile. The website User row stays keyed by its wallet.
+/// The phrase never lands here — only the address, after the email code matches.
+model AppAccount {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  emailVerifiedAt   DateTime?
+  codeHash          String?
+  codeExpires       DateTime?
+  codeAttempts      Int       @default(0)
+  address           String?   @unique
+  pendingInviteCode String?
+  sessionHash       String?   @unique
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  invitesSent       AppInvite[] @relation("AppInviteSender")
+  inviteRedeemed    AppInvite?  @relation("AppInviteRecipient")
+}
+
+model AppInviteSettings {
+  id        String   @id @default("club")
+  open      Boolean  @default(true)
+  memberCap Int      @default(3)
+  updatedAt DateTime @updatedAt
+}
+
+model AppInvite {
+  id                 String      @id @default(cuid())
+  code               String      @unique
+  senderAccountId    String?
+  sender             AppAccount? @relation("AppInviteSender", fields: [senderAccountId], references: [id], onDelete: SetNull)
+  recipientAccountId String?     @unique
+  recipient          AppAccount? @relation("AppInviteRecipient", fields: [recipientAccountId], references: [id], onDelete: SetNull)
+  recipientAddress   String?
+  status             String      @default("OPEN")
+  txSignature        String?
+  createdAt          DateTime    @default(now())
+  paidAt             DateTime?
+
+  @@index([senderAccountId])
+  @@index([status])
+}

@@ -21,11 +21,10 @@ import { DigitalMembershipPass } from "@/components/membership/digital-membershi
 import { useMembershipGate } from "@/hooks/useMembershipGate";
 import { useWalletSession } from "@/hooks/useWalletSession";
 import { JUPITER_SWAP_URL } from "@/lib/constants";
-import { DOG_TITLE, QUESTS } from "@/lib/quests";
 
 /**
  * Member dashboard. The shared <ProductGate> owns the connect/sign/buy
- * flow; members land on You: the club key, four quests, and the wallet.
+ * flow; members land on You: the club key and the pass.
  *
  * Travel "bookings" and burn activity arrive here in Phase 2 once the
  * Travel app is ported into `/stay`.
@@ -80,7 +79,7 @@ function AccountDashboard() {
       ) : null}
 
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        <KeyAndQuests held={hasPbtc} />
+        <ClubKey held={hasPbtc} />
         <div className="flex h-full flex-col gap-5">
           <WalletCard
             walletAddress={walletAddress}
@@ -107,7 +106,7 @@ function AccountDashboard() {
   );
 }
 
-function KeyAndQuests({ held }: { held: boolean }) {
+function ClubKey({ held }: { held: boolean }) {
   return (
     <section className="flex h-full flex-col rounded-lg border border-[var(--line)] bg-[var(--wall-2)] p-6">
       <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
@@ -115,27 +114,6 @@ function KeyAndQuests({ held }: { held: boolean }) {
       </p>
       <p className="mt-2 text-sm text-[var(--bone)]">
         {held ? "Held. 1 PBTC." : "Not held. 1 PBTC opens the club."}
-      </p>
-
-      <p className="mt-6 text-[11px] uppercase tracking-[0.18em] text-[var(--bone-faint)]">
-        Quests
-      </p>
-      <ul className="mt-2 divide-y divide-[var(--line)]">
-        {QUESTS.map((quest) => (
-          <li key={quest.id} className="flex items-baseline justify-between gap-4 py-3">
-            <span>
-              <span className="text-sm text-[var(--bone)]">{quest.title}</span>
-              <span className="mt-0.5 block text-xs text-[var(--bone-dim)]">{quest.detail}</span>
-            </span>
-            <span className="shrink-0 text-[11px] uppercase tracking-[0.14em] text-[var(--bone-faint)]">
-              Not done
-            </span>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-auto pt-4 text-xs text-[var(--bone-dim)]">
-        All four unlock <span className="text-[var(--ink)]">{DOG_TITLE}</span>. A title
-        unlocks nothing but the title.
       </p>
     </section>
   );

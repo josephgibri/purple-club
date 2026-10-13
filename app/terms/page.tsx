@@ -63,30 +63,18 @@ export default function TermsPage() {
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>Book through the club&apos;s travel partner.</li>
             <li>Same room, same dates — 5% off the public rate.</li>
-            <li>
-              0.25% up to 2% of booking value is used by the travel partner, from its own
-              margin, to buy PBTC on the open market and burn it.
-            </li>
+            <li>A concierge handles the request.</li>
             <li>You pay the agency, not the club.</li>
           </ul>
           <p className="mt-2">
-            The club does not guarantee a room, a rate, a refund, or that a burn will
-            occur. Cancellations follow the partner&apos;s and the supplier&apos;s rules.
-            The club is not responsible for the stay itself.
+            The club does not guarantee a room, a rate, or a refund. Cancellations follow
+            the partner&apos;s and the supplier&apos;s rules. The club is not responsible
+            for the stay itself.
           </p>
         </section>
 
         <section>
-          <h2 className="text-base text-[var(--bone)]">5. Quests and titles</h2>
-          <p className="mt-2">
-            Quests and titles are cosmetic. They unlock nothing but the title. They are not
-            transferable, not a token, and not a claim on anything the club holds — the club
-            holds nothing of yours.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-base text-[var(--bone)]">6. What is not offered</h2>
+          <h2 className="text-base text-[var(--bone)]">5. What is not offered</h2>
           <p className="mt-2">
             The club does not offer holder rewards, over-the-counter trading, peer-to-peer
             lending, or a weekly lottery. It does not run an in-app feed, comments,
@@ -95,7 +83,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-base text-[var(--bone)]">7. Liability</h2>
+          <h2 className="text-base text-[var(--bone)]">6. Liability</h2>
           <p className="mt-2">
             To the extent the law allows, the club is not liable for a merchant&apos;s
             service, a hotel&apos;s service, a delay, or a loss that follows from using a

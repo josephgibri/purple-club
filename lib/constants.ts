@@ -41,16 +41,7 @@ export const SURFACE_URLS = {
 } as const;
 
 /**
- * Travel-partner burn, taken from the partner's own margin.
- * Floor is every booking. The top of the band is the boost ceiling.
+ * Internal desk math for a recorded burn. Not shown as a member offer.
  */
 export const TRAVEL_BURN_FLOOR = 0.0025;
 export const TRAVEL_BURN_CAP = 0.02;
-
-/**
- * The only burn the club talks about. Funded by the travel partner,
- * from booking value. Not a club fee, and not a deflation claim.
- */
-export const BURN_SOURCES = [
-  { label: "Of booking value, funded by the travel partner", value: "0.25% up to 2%" },
-] as const;

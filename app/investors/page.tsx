@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Flame, Landmark, Sparkles } from "lucide-react";
 
-import { BURN_SOURCES, SOLSCAN_TOKEN_URL, SURFACE_URLS } from "@/lib/constants";
+import { SOLSCAN_TOKEN_URL, SURFACE_URLS } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Investor Thesis · Purple Club",
@@ -99,34 +99,6 @@ export default function InvestorsPage() {
               </article>
             );
           })}
-        </div>
-      </section>
-
-      <section className="relative mt-16 rounded-3xl border border-gold-accent/30 bg-gold-accent/[0.06] p-8">
-        <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] text-gold-accent">
-          <Flame size={14} />
-          The Burn
-        </div>
-        <h2 className="pc-serif mt-3 text-2xl font-semibold text-white sm:text-3xl">
-          One burn. The partner pays it.
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-violet-100/75">
-          Stays are booked with a licensed travel partner. 0.25% up to 2% of booking
-          value is used by that partner to buy and burn PBTC. The club takes
-          nothing. This is not a claim that the supply will move.
-        </p>
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          {BURN_SOURCES.map((source) => (
-            <div
-              key={source.label}
-              className="rounded-2xl border border-white/10 bg-black/20 p-4 text-center"
-            >
-              <p className="font-mono text-2xl font-semibold text-gold-accent">
-                {source.value}
-              </p>
-              <p className="mt-1 text-xs text-violet-100/65">{source.label}</p>
-            </div>
-          ))}
         </div>
       </section>
 

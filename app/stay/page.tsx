@@ -11,8 +11,8 @@ import { decodeHotelUrl } from "@/lib/url-decoder";
 const STEPS = [
   "Paste a hotel link.",
   "Same room, same dates — 5% off the public rate.",
+  "A concierge handles the request.",
   "You pay the agency, not the club.",
-  "0.25% up to 2% of every booking buys and burns PBTC.",
 ];
 
 /**
@@ -75,8 +75,8 @@ export default function StaysPage() {
       <div className="mt-4 space-y-1 text-sm text-[var(--bone-dim)]">
         <p>Book through the club&apos;s travel partner.</p>
         <p>Same room, same dates — 5% off the public rate.</p>
+        <p>A concierge handles the request.</p>
         <p>You pay the agency, not the club.</p>
-        <p>0.25% up to 2% of every booking buys and burns PBTC.</p>
       </div>
 
       <form

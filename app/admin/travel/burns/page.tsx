@@ -429,7 +429,7 @@ export default function AdminBurnsPage() {
                 ) : null}
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <StatTile
                   eyebrow="Confirmed stays"
                   value={
@@ -452,25 +452,6 @@ export default function AdminBurnsPage() {
                           })}`
                         : "—"
                   }
-                />
-                <StatTile
-                  eyebrow="Suggested burn, 0.25% up to 2%"
-                  value={
-                    suggestedLoading
-                      ? "…"
-                      : suggested
-                        ? `$${Number(suggested.suggestedBurnUsd).toLocaleString("en-US", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })} – $${Number(
-                            suggested.suggestedBurnMaxUsd ?? suggested.suggestedBurnUsd,
-                          ).toLocaleString("en-US", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}`
-                        : "—"
-                  }
-                  sub="Floor to ceiling · enter what you actually burned"
                 />
               </div>
             </article>

@@ -85,8 +85,8 @@ const STAGES = [
     Icon: BookIcon,
   },
   {
-    title: "Burn",
-    detail: "0.25% up to 2% of every booking buys and burns PBTC.",
+    title: "Concierge",
+    detail: "A concierge handles the request. You pay the agency, not the club.",
     Icon: BurnIcon,
   },
 ] as const;

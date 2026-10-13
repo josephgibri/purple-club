@@ -6,6 +6,8 @@ import { toast } from "sonner";
 
 import { useWalletSession } from "@/hooks/useWalletSession";
 
+import { AppInvites } from "./app-invites";
+
 type GiftStatus =
   | "CREATED"
   | "CLAIMED"
@@ -388,6 +390,7 @@ export default function AdminGiftsPage() {
           <div className="pt-glass rounded-2xl p-6 text-sm text-white/70">{gateMessage}</div>
         ) : (
           <>
+            <AppInvites />
             {statsError ? (
               <p className="mb-4 rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">
                 {statsError}
